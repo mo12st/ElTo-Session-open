@@ -88,14 +88,48 @@ class Root(ServiceInterface):
     def __init__(s): super().__init__('org.mpris.MediaPlayer2')
     @dbus_property(access=PropertyAccess.READ)
     def Identity(s) -> 's': return 'Mock'
+    @dbus_property(access=PropertyAccess.READ)
+    def CanQuit(s) -> 'b': return False
+    @dbus_property(access=PropertyAccess.READ)
+    def CanRaise(s) -> 'b': return False
+    @dbus_property(access=PropertyAccess.READ)
+    def HasTrackList(s) -> 'b': return False
+    @dbus_property(access=PropertyAccess.READ)
+    def SupportedUriSchemes(s) -> 'as': return []
+    @dbus_property(access=PropertyAccess.READ)
+    def SupportedMimeTypes(s) -> 'as': return []
 class Player(ServiceInterface):
     def __init__(s): super().__init__('org.mpris.MediaPlayer2.Player'); s.st='Playing'
     @dbus_property(access=PropertyAccess.READ)
     def PlaybackStatus(s) -> 's': return s.st
     @dbus_property(access=PropertyAccess.READ)
-    def Metadata(s) -> 'a{sv}': return {'xesam:title': Variant('s','Weightless'), 'xesam:artist': Variant('as',['Marconi Union']), 'mpris:trackid': Variant('o','/t/1')}
+    def Metadata(s) -> 'a{sv}': return {'xesam:title': Variant('s','Weightless'), 'xesam:artist': Variant('as',['Marconi Union']), 'mpris:trackid': Variant('o','/t/1'), 'mpris:length': Variant('x',480000000)}
     @dbus_property(access=PropertyAccess.READ)
     def CanControl(s) -> 'b': return True
+    @dbus_property(access=PropertyAccess.READ)
+    def CanPlay(s) -> 'b': return True
+    @dbus_property(access=PropertyAccess.READ)
+    def CanPause(s) -> 'b': return True
+    @dbus_property(access=PropertyAccess.READ)
+    def CanGoNext(s) -> 'b': return True
+    @dbus_property(access=PropertyAccess.READ)
+    def CanGoPrevious(s) -> 'b': return True
+    @dbus_property(access=PropertyAccess.READ)
+    def CanSeek(s) -> 'b': return False
+    @dbus_property(access=PropertyAccess.READ)
+    def Position(s) -> 'x': return 0
+    @dbus_property(access=PropertyAccess.READ)
+    def Rate(s) -> 'd': return 1.0
+    @dbus_property(access=PropertyAccess.READ)
+    def MinimumRate(s) -> 'd': return 1.0
+    @dbus_property(access=PropertyAccess.READ)
+    def MaximumRate(s) -> 'd': return 1.0
+    @dbus_property(access=PropertyAccess.READ)
+    def Volume(s) -> 'd': return 1.0
+    @dbus_property(access=PropertyAccess.READ)
+    def LoopStatus(s) -> 's': return 'None'
+    @dbus_property(access=PropertyAccess.READ)
+    def Shuffle(s) -> 'b': return False
     @method()
     def PlayPause(s):
         s.st = 'Paused' if s.st=='Playing' else 'Playing'; open('/tmp/mock.log','a').write('PlayPause -> '+s.st+'\n')
@@ -137,6 +171,10 @@ lockit; sleep 3
 shot /tmp/vm6.ppm lock6_dusk
 echo "== LOCK 7: Restart button"
 $S 'cat /proc/sys/kernel/random/boot_id; uptime -s'
+click 1110 706
+shot /tmp/vm8.ppm lock7a_after_click
+sleep 3
+$S 'sudo journalctl -b --no-pager | grep -a ELTOLOCK | tail -5'
 click 1110 706
 $S 'sudo journalctl -b --no-pager 2>/dev/null | grep -a -E "ELTOLOCK run: systemctl|systemd-logind|Reboot" | tail -6; systemctl is-system-running'
 sleep 25
