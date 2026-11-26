@@ -1,7 +1,7 @@
 # Third-party licenses
 
 ## Lucide icons (icons/lucide/)
-Icons: wifi, volume-2, moon, bell-off, sun, play, pause, skip-back, skip-forward. The stroke color was changed from `currentColor` to white so the shell can tint them with theme colors.
+Icons: wifi, volume-2, moon, bell-off, sun, play, pause, skip-back, skip-forward, folder, terminal, globe, notebook-pen, image, mail, panel-top. The stroke color was changed from `currentColor` to white so the shell can tint them with theme colors.
 
 ISC License
 
