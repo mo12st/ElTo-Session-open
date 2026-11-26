@@ -111,13 +111,14 @@ async def main():
     await asyncio.get_event_loop().create_future()
 asyncio.run(main())
 PY
+$SC /tmp/mockplayer.py dev@127.0.0.1:/tmp/ 2>&1 | tail -1
 $S 'python -m venv /tmp/mv && /tmp/mv/bin/pip -q install dbus-next 2>&1 | tail -1'
 echo "== LOCK 1: no player, aquarelle (B2)"
 lockit
 $S "$U sh -c 'journalctl --user -b 2>/dev/null | grep -a ELTOLOCK | tail; true'; sudo journalctl -b 2>/dev/null | grep -a ELTOLOCK | tail -8; grep -a ELTOLOCK /home/dev/.local/state/elto-session.log | tail -8"
 shot /tmp/vm1.ppm lock1_noplayer
 echo "== LOCK 2: with player"
-$S "$U sh -c 'nohup /tmp/mv/bin/python /tmp/mockplayer.py >/tmp/mock.out 2>&1 &'; sleep 5; $U playerctl metadata --format '{{status}}|{{title}}|{{artist}}'; cat /tmp/mock.out"
+$S "$U sh -c 'setsid nohup /tmp/mv/bin/python /tmp/mockplayer.py >/tmp/mock.out 2>&1 &'; sleep 5; $U playerctl metadata --format '{{status}}|{{title}}|{{artist}}'; cat /tmp/mock.out"
 sleep 4
 shot /tmp/vm2.ppm lock2_player
 echo "== LOCK 3: wrong password"
