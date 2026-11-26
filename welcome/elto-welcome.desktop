@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Welcome
+Comment=Welcome to ElTo: a short first tour
+Exec=quickshell -p /opt/elto-session/welcome/welcome.qml
+Icon=/opt/elto-session/icons/lucide/sun.svg
+Categories=Settings;
