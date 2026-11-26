@@ -89,6 +89,14 @@ printf "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin dev --nocl
 sudo systemctl daemon-reload; sudo systemctl restart getty@tty1; sleep 40
 grep -a TASKBAR /tmp/qs.log | head -30'
 shot /tmp/vm1.ppm vm1
+qmp() { python3 - "$@" <<'PY'
+import socket,json,sys
+s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
+f.readline();f.write(json.dumps({"execute":"qmp_capabilities"})+"\n");f.flush();f.readline()
+for a in sys.argv[1:]:
+    f.write(a+"\n");f.flush();print(f.readline().strip())
+PY
+}
 echo "== click second button (winB) via QMP absolute mouse"
 qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"abs","data":{"axis":"x","value":'$((734*32767/1280))'}},{"type":"abs","data":{"axis":"y","value":'$((771*32767/800))'}}]}}'
 sleep 1
