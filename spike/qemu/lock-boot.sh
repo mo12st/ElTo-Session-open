@@ -118,7 +118,7 @@ lockit
 $S "$U sh -c 'journalctl --user -b 2>/dev/null | grep -a ELTOLOCK | tail; true'; sudo journalctl -b 2>/dev/null | grep -a ELTOLOCK | tail -8; grep -a ELTOLOCK /home/dev/.local/state/elto-session.log | tail -8"
 shot /tmp/vm1.ppm lock1_noplayer
 echo "== LOCK 2: with player"
-$S "$U sh -c 'setsid nohup /tmp/mv/bin/python /tmp/mockplayer.py >/tmp/mock.out 2>&1 &'; sleep 5; $U playerctl metadata --format '{{status}}|{{title}}|{{artist}}'; cat /tmp/mock.out"
+$S "$U sh -c 'setsid nohup /tmp/mv/bin/python /tmp/mockplayer.py >/tmp/mock.out 2>&1 &'; sleep 5; echo MOCKDIAG; ls -la /tmp/mv/bin/python /tmp/mockplayer.py; pgrep -af mockplayer; $U busctl --user list | grep -i mpris; cat /tmp/mock.out; $U playerctl -l; $U playerctl metadata --format '{{status}}|{{title}}|{{artist}}'; cat /tmp/mock.out"
 sleep 4
 shot /tmp/vm2.ppm lock2_player
 echo "== LOCK 3: wrong password"
@@ -138,7 +138,8 @@ shot /tmp/vm6.ppm lock6_dusk
 echo "== LOCK 7: Restart button"
 $S 'cat /proc/sys/kernel/random/boot_id; uptime -s'
 click 1110 706
-sleep 15
+$S 'sudo journalctl -b --no-pager 2>/dev/null | grep -a -E "ELTOLOCK run: systemctl|systemd-logind|Reboot" | tail -6; systemctl is-system-running'
+sleep 25
 for i in $(seq 1 30); do if $S 'cat /proc/sys/kernel/random/boot_id; uptime -s' 2>/dev/null; then break; fi; echo "ssh down ($i)"; sleep 6; done
 $S 'sudo journalctl -b -1 2>/dev/null | grep -a -E "ELTOLOCK run|systemctl reboot" | tail -5; last reboot | head -3'
 shot /tmp/vm7.ppm lock7_after_restart
