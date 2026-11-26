@@ -1,5 +1,5 @@
-// ElTo bottom island dock (CONCEPT until approved): floating pill with the snail menu button, pinned apps,
-// a divider, and one pill per open window. Active app gets a hand-drawn rust trail. All look values come from Theme.
+// ElTo bottom island dock (CONCEPT until approved): floating pill with pinned apps,
+// a divider, and one pill per open window. Running apps get a selection circle. All look values come from Theme.
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
@@ -7,7 +7,6 @@ import QtQuick
 
 Scope {
     id: root
-    property var launcher: null
     readonly property var dk: Theme.dockT
     // pinned apps: icon (Lucide), command ("" = not wired yet), appid used to match open windows
     readonly property var pinned: [
@@ -75,21 +74,8 @@ Scope {
                 Row {
                     id: row
                     x: root.dk.pad
-                    y: (parent.height - height) / 2 - 4
+                    y: (parent.height - height) / 2
                     spacing: root.dk.gap
-
-                    // snail menu button
-                    Rectangle {
-                        width: root.dk.tile; height: width; radius: width / 2
-                        color: ma0.containsMouse || (root.launcher && root.launcher.open) ? Theme.selection : "transparent"
-                        Behavior on color { ColorAnimation { duration: Theme.ms(120) } }
-                        Image {
-                            anchors.centerIn: parent; width: parent.width * 0.78; height: width
-                            source: "file://" + Quickshell.shellPath("../lock/assets/snail.png"); fillMode: Image.PreserveAspectFit; smooth: true
-                        }
-                        MouseArea { id: ma0; anchors.fill: parent; hoverEnabled: true; onClicked: if (root.launcher) root.launcher.toggle() }
-                    }
-                    Item { width: root.dk.snailGap - root.dk.gap; height: 1 }
 
                     Repeater {
                         model: root.pinned
@@ -108,21 +94,6 @@ Scope {
                             LIcon { anchors.centerIn: parent; name: app.modelData.icon; size: root.dk.icon; tint: Theme.text
                                 scale: am.pressed ? 0.92 : (am.containsMouse && Theme.motion ? 1.08 : 1)
                                 Behavior on scale { NumberAnimation { duration: Theme.ms(120); easing.type: Easing.OutCubic } } }
-                            // rust trail under the active app
-                            Canvas {
-                                id: trail
-                                visible: app.current
-                                width: 46; height: 9
-                                x: (parent.width - width) / 2 - 2; y: parent.height + 1
-                                onPaint: {
-                                    var c = getContext("2d"); c.reset(); c.strokeStyle = Theme.accent; c.fillStyle = Theme.accent
-                                    c.lineWidth = 2.2; c.lineCap = "round"
-                                    c.beginPath(); c.moveTo(2, 5); c.bezierCurveTo(10, 2, 16, 8, 24, 5); c.bezierCurveTo(30, 3, 36, 6, 41, 5); c.stroke()
-                                    c.beginPath(); c.arc(42, 4.6, 2.6, 0, Math.PI * 2); c.fill()
-                                }
-                                Component.onCompleted: requestPaint()
-                                onVisibleChanged: requestPaint()
-                            }
                             MouseArea { id: am; anchors.fill: parent; hoverEnabled: true; onClicked: root.launch(app.modelData.cmd) }
                         }
                     }

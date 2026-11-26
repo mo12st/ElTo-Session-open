@@ -5,11 +5,9 @@ import QtQuick
 
 ShellRoot {
     Wallpaper {}
-    LauncherWindow {
-        id: launcher
-    }
+    AppDrawer { id: drawer }
     NotificationPopups {}
-    Notch {}
+    Notch { drawer: drawer }
 
-    Dock { launcher: launcher }
+    Dock {}
 }

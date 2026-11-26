@@ -9,6 +9,7 @@ import QtQuick
 Scope {
     id: root
     property bool open: false
+    property var drawer: null
     property string npStatus: ""
     property string npTitle: ""
     property string npArtist: ""
@@ -102,6 +103,7 @@ Scope {
                         source: "file://" + Quickshell.shellPath("../lock/assets/snail.png")
                         height: 22; width: 22; fillMode: Image.PreserveAspectFit; smooth: true
                         anchors.verticalCenter: parent.verticalCenter
+                        MouseArea { anchors.fill: parent; anchors.margins: -6; onClicked: if (root.drawer) { root.drawer.toggle(); root.open = false } }
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
@@ -144,6 +146,7 @@ Scope {
                         Image {
                             source: "file://" + Quickshell.shellPath("../lock/assets/snail.png")
                             x: 0; y: 6; width: 30; height: 30; fillMode: Image.PreserveAspectFit; smooth: true
+                            MouseArea { anchors.fill: parent; anchors.margins: -6; onClicked: if (root.drawer) { root.drawer.toggle(); root.open = false } }
                         }
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter

@@ -3,8 +3,9 @@
 set -e
 R=$(cd "$(dirname "$0")/.." && pwd)
 install -d /opt/elto-session
-cp -r "$R/panel-widgets" "$R/wallpaper" "$R/wallpapers" "$R/palette" "$R/themes" "$R/icons" /opt/elto-session/
+cp -r "$R/panel-widgets" "$R/wallpaper" "$R/wallpapers" "$R/palette" "$R/themes" "$R/icons" "$R/textures" /opt/elto-session/
 install -d /opt/elto-session/lock; cp -r "$R/lock/assets" /opt/elto-session/lock/
+install -m644 "$R/session/elto-customize.desktop" /usr/share/applications/elto-customize.desktop
 install -m755 "$R/session/elto-session" /usr/local/bin/elto-session
 install -m644 "$R/session/elto.desktop" /usr/share/wayland-sessions/elto.desktop
 (cd "$R/plugin/windowlist" && make >/dev/null && install -m755 elto-windowlist /usr/local/bin/elto-windowlist)

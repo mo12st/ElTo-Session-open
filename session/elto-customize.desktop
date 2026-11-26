@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Customize
+Comment=Appearance, wallpapers and dock
+Exec=quickshell -p /opt/elto-session/panel-widgets/customize.qml
+Icon=/opt/elto-session/icons/elto-customize.svg
+Categories=Settings;

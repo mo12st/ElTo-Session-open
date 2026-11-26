@@ -75,5 +75,19 @@
     "pillWidth": 112,
     "pillHeight": 40,
     "snailGap": 4
+  },
+  "drawer": {
+    "width": 580,
+    "height": 420,
+    "radius": 6,
+    "pad": 26,
+    "cols": 5,
+    "tile": 52,
+    "icon": 36,
+    "cell": 104,
+    "rowGap": 6,
+    "tilt": 0.6,
+    "backTilt": -2.4,
+    "openMs": 200
   }
 }
