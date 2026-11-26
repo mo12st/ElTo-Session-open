@@ -1,6 +1,6 @@
 # ElTo-Session
 
-Private repository. Nothing here is public and nothing is published.
+Public for reading only. Copyright (c) 2026 mo12st, all rights reserved. Not open source: no permission to copy, modify, reuse or redistribute without written permission. This includes the art, images, wallpaper and the ElTo name and logo. See LICENSE.
 
 Goal: an independent ElTo desktop session (own session entry, own shell, KWin underneath, no Plasma Shell), separate from the ElTo-OS distribution repo. Currently a spike: the first work checks whether Quickshell starts, draws, lists windows and locks under KWin on a virtual screen in CI.
 
