@@ -18,6 +18,6 @@ cp -r "$R/spike/sddm/elto-classic" /usr/share/sddm/themes/
 printf '[Theme]\nCurrent=elto-classic\n[General]\nDisplayServer=wayland\n[Wayland]\nCompositorCommand=kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1\n' > /etc/sddm.conf.d/elto.conf
 # lock screen greeter (kscreenlocker picks it from plasmashellrc ShellPackage)
 D=/usr/share/plasma/shells/org.elto.shell; install -d $D/contents/lockscreen
-cp "$R/spike/lock/metadata.json" $D/; cp "$R/spike/lock/LockScreen.qml" $D/contents/lockscreen/
+cp "$R/lock/metadata.json" $D/; cp -r "$R/lock/LockScreen.qml" "$R/lock/Exec.qml" "$R/lock/assets" $D/contents/lockscreen/
 printf '[Shell]\nShellPackage=org.elto.shell\n' > /etc/xdg/plasmashellrc
 echo installed
