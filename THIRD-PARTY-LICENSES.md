@@ -20,6 +20,3 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 Source: https://lucide.dev (https://github.com/lucide-icons/lucide)
-
-## Lucide icons on the lock screen (lock/assets/icons/)
-moon, rotate-cw, power, skip-back, skip-forward, play, pause, music. Same ISC license as above. Stroke color changed from `currentColor` to ink (#283a32) and cream (#f6f1e4) variants.

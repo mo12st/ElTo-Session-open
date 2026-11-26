@@ -9,6 +9,7 @@ ShellRoot {
         id: launcher
     }
     NotificationPopups {}
+    Notch {}
 
     PanelWindow {
         anchors {
