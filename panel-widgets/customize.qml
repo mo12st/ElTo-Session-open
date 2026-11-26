@@ -103,7 +103,7 @@ ShellRoot {
                             Text { x: 14; y: 56; text: tc.modelData.label; color: Theme.text; font.family: Theme.sans; font.pixelSize: 15 }
                             Rectangle { visible: tc.cur; x: parent.width - 34; y: parent.height - 34; width: 24; height: 24; radius: 12; color: Theme.accent
                                 Text { anchors.centerIn: parent; text: "\u2713"; color: Theme.surface; font.pixelSize: 15; font.bold: true } }
-                            Text { visible: !tc.modelData.real; x: parent.width - 62; y: 14; text: "concept"; color: Theme.disabled; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 12 }
+                            Text { visible: !tc.modelData.real; x: 92; y: 58; text: "concept"; color: Theme.disabled; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 12 }
                         }
                     }
                 }

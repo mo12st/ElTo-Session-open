@@ -84,14 +84,14 @@ $S "$U sh -c 'setsid quickshell -p /opt/elto-session/panel-widgets/customize.qml
 $S 'cat /tmp/cust.log | head -20; pgrep -a quickshell | cut -c1-120'
 shot /tmp/c1.ppm cust1_open
 echo "== click Moonlit swirl"
-click 480 470
+click 480 520
 $S 'cat /home/dev/.config/elto/theme.json; grep -a ELTOCUSTOMIZE /tmp/cust.log'
 shot /tmp/c2.ppm cust2_moonlit
 echo "== click Soft motion toggle"
-click 1160 588
+click 1160 622
 $S 'cat /home/dev/.config/elto/theme.json; grep -a ELTOCUSTOMIZE /tmp/cust.log'
 shot /tmp/c3.ppm cust3_motion
 echo "== click Golden valley"
-click 322 470
+click 322 520
 $S 'cat /home/dev/.config/elto/theme.json'
 shot /tmp/c4.ppm cust4_golden
