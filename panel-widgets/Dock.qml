@@ -16,7 +16,8 @@ Scope {
         { icon: "globe", cmd: "", appid: "browser" },
         { icon: "notebook-pen", cmd: "", appid: "notes" },
         { icon: "image", cmd: "", appid: "gallery" },
-        { icon: "mail", cmd: "", appid: "mail" }
+        { icon: "mail", cmd: "", appid: "mail" },
+        { icon: "palette", cmd: "quickshell -p " + Quickshell.shellPath("customize.qml"), appid: "customize" }
     ]
     property string activeApp: ""
     property var openApps: ({})
