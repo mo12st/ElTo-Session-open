@@ -1,4 +1,6 @@
-// CONCEPT / SPIKE wallpaper: one background-layer window per screen. Set ELTO_WALLPAPER to an image path to override.
+// Desktop wallpaper: one background-layer window per screen. The file name comes from Theme (options.wallpaper).
+// ~/.config/elto/wallpapers/<name> wins when it exists, otherwise the shipped wallpapers/<name> shows.
+// ELTO_WALLPAPER (full path) still overrides, for testing.
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
@@ -11,13 +13,24 @@ Variants {
         WlrLayershell.layer: WlrLayer.Background
         exclusionMode: ExclusionMode.Ignore
         anchors { left: true; right: true; top: true; bottom: true }
-        color: "#f6f1e4"
+        color: Theme.surface
         Image {
             anchors.fill: parent
-            source: Quickshell.env("ELTO_WALLPAPER") ? "file://" + Quickshell.env("ELTO_WALLPAPER") : "file://" + Quickshell.shellPath("../wallpaper/elto-default.svg")
+            source: Quickshell.env("ELTO_WALLPAPER") ? "file://" + Quickshell.env("ELTO_WALLPAPER")
+                  : "file://" + Quickshell.shellPath("../wallpapers/" + Theme.wallpaper)
             fillMode: Image.PreserveAspectCrop
             sourceSize.width: 1920
-            sourceSize.height: 1080
+            sourceSize.height: 1200
+            asynchronous: true
+        }
+        Image {
+            anchors.fill: parent
+            visible: status === Image.Ready
+            source: Quickshell.env("ELTO_WALLPAPER") ? "" : "file://" + Quickshell.env("HOME") + "/.config/elto/wallpapers/" + Theme.wallpaper
+            fillMode: Image.PreserveAspectCrop
+            sourceSize.width: 1920
+            sourceSize.height: 1200
+            asynchronous: true
         }
     }
 }
