@@ -97,15 +97,23 @@ for a in sys.argv[1:]:
     f.write(a+"\n");f.flush();print(f.readline().strip())
 PY
 }
-echo "== click second button (winB) via QMP absolute mouse"
-qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"abs","data":{"axis":"x","value":'$((734*32767/1280))'}},{"type":"abs","data":{"axis":"y","value":'$((771*32767/800))'}}]}}'
+click() { # x y in 1280x800
+qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"abs","data":{"axis":"x","value":'$(($1*32767/1280))'}},{"type":"abs","data":{"axis":"y","value":'$(($2*32767/800))'}}]}}' >/dev/null
 sleep 1
-qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":true,"button":"left"}}]}}'
+qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":true,"button":"left"}}]}}' >/dev/null
 sleep 0.3
-qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":false,"button":"left"}}]}}'
-sleep 3
+qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":false,"button":"left"}}]}}' >/dev/null
+sleep 3; }
+echo "== winB is active; click winA pill (x=544,y=771)"
+$S 'grep -a -c TASKBAR /tmp/qs.log'
+click 544 771
 $S 'grep -a TASKBAR /tmp/qs.log | tail -6'
 shot /tmp/vm2.ppm vm2
-echo "== close winB"
-$S 'pkill -f "[f]oot -T winB"; sleep 5; grep -a TASKBAR /tmp/qs.log | tail -4'
+echo "== minimize: click titlebar minimize of raised winA (x=908,y=124)"
+click 908 124
+$S 'grep -a TASKBAR /tmp/qs.log | tail -4'
 shot /tmp/vm3.ppm vm3
+echo "== restore: click winA pill again"
+click 544 771
+$S 'grep -a TASKBAR /tmp/qs.log | tail -4'
+shot /tmp/vm4.ppm vm4
