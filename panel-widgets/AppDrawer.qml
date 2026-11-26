@@ -14,8 +14,9 @@ PanelWindow {
 
     function toggle() {
         open = !open
-        if (open) { query = ""; search.text = ""; grid.currentIndex = 0; search.forceActiveFocus() }
+        if (open) { query = ""; search.text = ""; grid.currentIndex = 0 }
     }
+    onOpenChanged: if (open) Qt.callLater(() => search.forceActiveFocus())
     function launch(e) { e.execute(); open = false }
 
     anchors { left: true; right: true; top: true; bottom: true }
@@ -23,7 +24,7 @@ PanelWindow {
     color: "transparent"
     visible: true
     // always mapped; empty mask while closed so clicks pass through
-    mask: Region { width: sheet.visible ? win.width : 0; height: sheet.visible ? win.height : 0 }
+    mask: Region { width: win.open ? win.width : 0; height: win.open ? win.height : 0 }
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "elto-drawer"
     WlrLayershell.keyboardFocus: win.open ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -54,6 +55,8 @@ PanelWindow {
         x: (win.width - width) / 2
         y: (win.height - height) / 2 - 20
 
+        // one interactive area over shadow, back and front sheets: clicks on the paper never close the drawer
+        MouseArea { anchors.fill: parent; anchors.margins: -24 }
         // soft shadow
         Repeater {
             model: 6
@@ -84,14 +87,14 @@ PanelWindow {
             MouseArea { anchors.fill: parent }   // clicks on the sheet do not reach the close area
 
             Text {
-                x: win.dr.pad; y: 16; text: "Apps"
-                color: Theme.text; font.family: Theme.serif; font.pixelSize: 38; renderType: Text.NativeRendering
+                x: win.dr.pad; y: 12; text: "Apps"
+                color: Theme.text; font.family: Theme.serif; font.pixelSize: 28; renderType: Text.NativeRendering
             }
-            Rectangle { x: win.dr.pad; y: 66; width: parent.width - win.dr.pad * 2; height: 1; color: Theme.divider }
+            Rectangle { x: win.dr.pad; y: 52; width: parent.width - win.dr.pad * 2; height: 1; color: Theme.divider }
 
             Rectangle {
                 id: box
-                x: win.dr.pad; y: 78; width: parent.width - win.dr.pad * 2; height: 38; radius: 19
+                x: win.dr.pad; y: 62; width: parent.width - win.dr.pad * 2; height: 32; radius: 16
                 color: Theme.surfaceAlt
                 LIcon { x: 14; anchors.verticalCenter: parent.verticalCenter; name: "search"; size: 16; tint: Theme.textMuted }
                 TextInput {
@@ -101,7 +104,7 @@ PanelWindow {
                     font.family: Theme.sans; font.pixelSize: 15; color: Theme.text
                     onTextChanged: { win.query = text; grid.currentIndex = 0 }
                     Keys.onEscapePressed: win.open = false
-                    Keys.onReturnPressed: { if (filtered.values.length > 0) win.launch(filtered.values[Math.max(0, grid.currentIndex)]) }
+                    Keys.onReturnPressed: { const v = filtered.values; if (v.length > 0) win.launch(v[Math.min(Math.max(0, grid.currentIndex), v.length - 1)]) }
                     Keys.onDownPressed: grid.moveCurrentIndexDown()
                     Keys.onUpPressed: grid.moveCurrentIndexUp()
                     Keys.onLeftPressed: e => { if (text === "") grid.moveCurrentIndexLeft(); else e.accepted = false }
@@ -113,7 +116,7 @@ PanelWindow {
 
             GridView {
                 id: grid
-                x: win.dr.pad; y: 128; width: parent.width - win.dr.pad * 2; height: parent.height - 128 - 44
+                x: win.dr.pad; y: 104; width: parent.width - win.dr.pad * 2; height: parent.height - 104 - 36
                 clip: true; model: filtered; currentIndex: 0
                 cellWidth: width / win.dr.cols; cellHeight: win.dr.cell
                 highlightMoveDuration: Theme.ms(120)
@@ -131,7 +134,7 @@ PanelWindow {
                     Rectangle {
                         id: tile
                         width: win.dr.tile; height: width; radius: Theme.radiusCard
-                        anchors.horizontalCenter: parent.horizontalCenter; y: 8
+                        anchors.horizontalCenter: parent.horizontalCenter; y: 6
                         color: Theme.surface; border.width: 1; border.color: Theme.divider
                         IconImage {
                             anchors.centerIn: parent; implicitSize: win.dr.icon
@@ -141,9 +144,9 @@ PanelWindow {
                         }
                     }
                     Text {
-                        anchors.horizontalCenter: parent.horizontalCenter; y: 8 + win.dr.tile + 6
+                        anchors.horizontalCenter: parent.horizontalCenter; y: 6 + win.dr.tile + 4
                         width: parent.width - 8; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
-                        text: cell.modelData.name; color: Theme.text; font.family: Theme.sans; font.pixelSize: 13
+                        text: cell.modelData.name; color: Theme.text; font.family: Theme.sans; font.pixelSize: 12
                     }
                     MouseArea {
                         id: ma; anchors.fill: parent; hoverEnabled: true
@@ -152,9 +155,9 @@ PanelWindow {
                     }
                 }
             }
-            Rectangle { x: win.dr.pad; y: parent.height - 40; width: parent.width - win.dr.pad * 2; height: 1; color: Theme.divider }
-            Text { anchors.horizontalCenter: parent.horizontalCenter; y: parent.height - 30; text: "Enter to open  \u00b7  Esc to close"
-                color: Theme.textMuted; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 13; renderType: Text.NativeRendering }
+            Rectangle { x: win.dr.pad; y: parent.height - 32; width: parent.width - win.dr.pad * 2; height: 1; color: Theme.divider }
+            Text { anchors.horizontalCenter: parent.horizontalCenter; y: parent.height - 24; text: "Enter to open  \u00b7  Esc to close"
+                color: Theme.textMuted; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 12; renderType: Text.NativeRendering }
         }
     }
 }

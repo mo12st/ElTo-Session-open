@@ -8,17 +8,7 @@ import QtQuick
 ShellRoot {
     id: app
 
-    // ---- write a changed option into the user overlay (deep copy of what is already there)
-    Process { id: writer }
-    function setOption(key, value) {
-        var u = JSON.parse(JSON.stringify(Theme.user))
-        if (!u.options) u.options = {}
-        u.options[key] = value
-        var dir = Theme.userPath.substring(0, Theme.userPath.lastIndexOf("/"))
-        writer.command = ["sh", "-c", "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$3\"", "sh", dir, JSON.stringify(u, null, 2), Theme.userPath]
-        writer.running = true
-        console.log("ELTOCUSTOMIZE set " + key + "=" + value)
-    }
+    function setOption(key, value) { UserTheme.set("options", key, value) }
 
     readonly property var themes: [
         { id: "soft-paper", label: "Soft paper", real: true, sw: ["cream", "lightGreen", "midGreen", "green", "rust"] },
@@ -43,8 +33,8 @@ ShellRoot {
     FloatingWindow {
         id: win
         title: "Customize"
-        implicitWidth: 1180; implicitHeight: 690
-        minimumSize: Qt.size(1180, 690); maximumSize: Qt.size(1180, 690)
+        implicitWidth: 1180; implicitHeight: 700
+        minimumSize: Qt.size(1180, 700); maximumSize: Qt.size(1180, 700)
         color: "transparent"
 
         Rectangle {
@@ -153,14 +143,14 @@ ShellRoot {
                             required property var modelData
                             spacing: 6
                             Rectangle {
-                                width: (rightCol.width - 12) / 2; height: 108; radius: 12; clip: true; color: Theme.surfaceAlt
+                                width: (rightCol.width - 12) / 2; height: 90; radius: 12; clip: true; color: Theme.surfaceAlt
                                 Image { anchors.fill: parent; source: "file://" + Quickshell.shellPath("../wallpapers/" + Theme.wallpaper)
                                     fillMode: Image.PreserveAspectCrop; sourceSize.width: 320; sourceSize.height: 200; asynchronous: true }
                                 Text { visible: pv.modelData.k === "lock"; anchors.horizontalCenter: parent.horizontalCenter; y: 12; text: "10:42"
                                     color: Theme.text; font.family: Theme.serif; font.pixelSize: 26 }
                                 Image { visible: pv.modelData.k === "login"; width: 34; height: 34; anchors.horizontalCenter: parent.horizontalCenter; y: 10
                                     source: "file://" + Quickshell.shellPath("../lock/assets/snail.png"); fillMode: Image.PreserveAspectFit }
-                                Rectangle { visible: pv.modelData.k === "login"; width: 90; height: 18; radius: 9; color: Theme.surface; anchors.horizontalCenter: parent.horizontalCenter; y: 72
+                                Rectangle { visible: pv.modelData.k === "login"; width: 90; height: 18; radius: 9; color: Theme.surface; anchors.horizontalCenter: parent.horizontalCenter; y: 58
                                     Text { anchors.centerIn: parent; text: "Password"; color: Theme.disabled; font.family: Theme.sans; font.pixelSize: 9 } }
                             }
                             Text { text: pv.modelData.l; color: Theme.text; font.family: Theme.sans; font.pixelSize: 14 }
@@ -170,34 +160,34 @@ ShellRoot {
                     }
                 }
 
-                Text { y: 232; text: "Dock"; color: Theme.text; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 22; renderType: Text.NativeRendering }
+                Text { y: 196; text: "Dock"; color: Theme.text; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 22; renderType: Text.NativeRendering }
                 Row {
-                    y: 266; spacing: 10
+                    y: 228; spacing: 10
                     Repeater {
                         model: [{ id: "island", l: "Island", real: true }, { id: "ridge-shelf", l: "Ridge shelf", real: false }, { id: "hidden-thread", l: "Hidden thread", real: false }]
                         Rectangle {
                             id: dc
                             required property var modelData
                             readonly property bool cur: Theme.dockStyle === modelData.id
-                            width: (rightCol.width - 20) / 3; height: 96; radius: Theme.radiusCard; color: Theme.surfaceAlt
+                            width: (rightCol.width - 20) / 3; height: 80; radius: Theme.radiusCard; color: Theme.surfaceAlt
                             border.width: cur ? 2 : 0; border.color: Theme.accent
                             opacity: modelData.real ? 1 : 0.6
-                            Rectangle { x: 12; y: 10; width: parent.width - 24; height: 46; radius: 8; color: Theme.selection }
-                            Rectangle { visible: dc.modelData.id === "island"; width: 40; height: 10; radius: 5; color: Theme.surface; anchors.horizontalCenter: parent.horizontalCenter; y: 36 }
-                            Rectangle { visible: dc.modelData.id === "hidden-thread"; x: 12; y: 54; width: parent.width - 24; height: 2; color: Theme.textMuted }
-                            Text { anchors.horizontalCenter: parent.horizontalCenter; y: 66; text: dc.modelData.l; color: Theme.text; font.family: Theme.sans; font.pixelSize: 13 }
-                            Text { visible: !dc.modelData.real; anchors.horizontalCenter: parent.horizontalCenter; y: 82; text: "concept"; color: Theme.disabled; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 11 }
-                            MouseArea { anchors.fill: parent; enabled: dc.modelData.real; onClicked: app.setOption("dock", dc.modelData.id) }
+                            Rectangle { x: 12; y: 8; width: parent.width - 24; height: 36; radius: 8; color: Theme.selection }
+                            Rectangle { visible: dc.modelData.id === "island"; width: 40; height: 10; radius: 5; color: Theme.surface; anchors.horizontalCenter: parent.horizontalCenter; y: 28 }
+                            Rectangle { visible: dc.modelData.id === "hidden-thread"; x: 12; y: 42; width: parent.width - 24; height: 2; color: Theme.textMuted }
+                            Text { anchors.horizontalCenter: parent.horizontalCenter; y: 48; text: dc.modelData.l; color: Theme.text; font.family: Theme.sans; font.pixelSize: 13 }
+                            Text { visible: !dc.modelData.real; anchors.horizontalCenter: parent.horizontalCenter; y: 64; text: "concept"; color: Theme.disabled; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 10 }
+                            MouseArea { anchors.fill: parent; enabled: dc.modelData.real; onClicked: UserTheme.set("options", "dock", dc.modelData.id) }
                         }
                     }
                 }
 
-                Rectangle { y: 380; width: parent.width; height: 54; radius: Theme.radiusCard; color: Theme.surfaceAlt
+                Rectangle { y: 320; width: parent.width; height: 44; radius: Theme.radiusCard; color: Theme.surfaceAlt
                     Text { x: 16; anchors.verticalCenter: parent.verticalCenter; text: "Notch style"; color: Theme.text; font.family: Theme.sans; font.pixelSize: 15 }
                     Rectangle { anchors.right: parent.right; anchors.rightMargin: 12; anchors.verticalCenter: parent.verticalCenter; width: 100; height: 32; radius: 16; color: Theme.surface
                         Text { anchors.centerIn: parent; text: Theme.optionsT.notch === "clock" ? "Clock" : Theme.optionsT.notch; color: Theme.text; font.family: Theme.sans; font.pixelSize: 13 } } }
 
-                Rectangle { y: 444; width: parent.width; height: 54; radius: Theme.radiusCard; color: Theme.surfaceAlt
+                Rectangle { y: 372; width: parent.width; height: 44; radius: Theme.radiusCard; color: Theme.surfaceAlt
                     Text { x: 16; anchors.verticalCenter: parent.verticalCenter; text: "Soft motion"; color: Theme.text; font.family: Theme.sans; font.pixelSize: 15 }
                     Rectangle {
                         id: tog
@@ -207,6 +197,47 @@ ShellRoot {
                         Rectangle { y: 3; x: Theme.motion ? parent.width - width - 3 : 3; width: 24; height: 24; radius: 12; color: Theme.surface
                             Behavior on x { NumberAnimation { duration: Theme.ms(150); easing.type: Easing.OutCubic } } }
                         MouseArea { anchors.fill: parent; onClicked: app.setOption("motion", Theme.motion ? "off" : "soft") }
+                    }
+                }
+
+                // ---- dock appearance (writes dock.* in the user theme, applies live)
+                Rectangle { y: 424; width: parent.width; height: 44; radius: Theme.radiusCard; color: Theme.surfaceAlt
+                    Text { x: 16; anchors.verticalCenter: parent.verticalCenter; text: "Dock color"; color: Theme.text; font.family: Theme.sans; font.pixelSize: 15 }
+                    Row { anchors.right: parent.right; anchors.rightMargin: 12; anchors.verticalCenter: parent.verticalCenter; spacing: 8
+                        Repeater {
+                            model: ["surface", "surfaceAlt", "selection", "textMuted", "text"]
+                            Rectangle {
+                                required property string modelData
+                                width: 26; height: 26; radius: 13; color: Theme.role(modelData)
+                                border.width: Theme.dockT.color === modelData ? 2.5 : 1; border.color: Theme.dockT.color === modelData ? Theme.accent : Theme.divider
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: UserTheme.set("dock", "color", parent.modelData) }
+                            }
+                        }
+                    }
+                }
+                Rectangle { y: 476; width: parent.width; height: 44; radius: Theme.radiusCard; color: Theme.surfaceAlt
+                    Text { x: 16; anchors.verticalCenter: parent.verticalCenter; text: "Glass"; color: Theme.text; font.family: Theme.sans; font.pixelSize: 15 }
+                    Rectangle { id: gt; x: 78; anchors.verticalCenter: parent.verticalCenter; width: 46; height: 26; radius: 13
+                        color: Theme.dockT.glass ? Theme.color("midGreen") : Theme.divider
+                        Rectangle { y: 3; x: Theme.dockT.glass ? parent.width - width - 3 : 3; width: 20; height: 20; radius: 10; color: Theme.surface
+                            Behavior on x { NumberAnimation { duration: Theme.ms(150); easing.type: Easing.OutCubic } } }
+                        MouseArea { anchors.fill: parent; onClicked: UserTheme.set("dock", "glass", !Theme.dockT.glass) } }
+                    Text { x: parent.width / 2 + 10; anchors.verticalCenter: parent.verticalCenter; text: "Blur"; color: Theme.text; font.family: Theme.sans; font.pixelSize: 15 }
+                    Rectangle { anchors.right: parent.right; anchors.rightMargin: 14; anchors.verticalCenter: parent.verticalCenter; width: 46; height: 26; radius: 13
+                        color: Theme.dockT.blur ? Theme.color("midGreen") : Theme.divider
+                        Rectangle { y: 3; x: Theme.dockT.blur ? parent.width - width - 3 : 3; width: 20; height: 20; radius: 10; color: Theme.surface
+                            Behavior on x { NumberAnimation { duration: Theme.ms(150); easing.type: Easing.OutCubic } } }
+                        MouseArea { anchors.fill: parent; onClicked: UserTheme.set("dock", "blur", !Theme.dockT.blur) } }
+                }
+                Rectangle { y: 528; width: parent.width; height: 44; radius: Theme.radiusCard; color: Theme.surfaceAlt
+                    Text { x: 16; anchors.verticalCenter: parent.verticalCenter; text: "Glass opacity"; color: Theme.text; font.family: Theme.sans; font.pixelSize: 15 }
+                    Item { id: otrack; anchors.right: parent.right; anchors.rightMargin: 16; anchors.verticalCenter: parent.verticalCenter; width: 200; height: 26
+                        Rectangle { y: 10; width: parent.width; height: 6; radius: 3; color: Theme.divider }
+                        Rectangle { y: 10; width: parent.width * Theme.dockT.opacity; height: 6; radius: 3; color: Theme.color("midGreen") }
+                        Rectangle { x: parent.width * Theme.dockT.opacity - 7; y: 6; width: 14; height: 14; radius: 7; color: Theme.accent }
+                        MouseArea { anchors.fill: parent
+                            onReleased: m => UserTheme.set("dock", "opacity", Math.round(Math.max(0.2, Math.min(1, m.x / width)) * 20) / 20)
+                            onClicked: m => UserTheme.set("dock", "opacity", Math.round(Math.max(0.2, Math.min(1, m.x / width)) * 20) / 20) }
                     }
                 }
             }
