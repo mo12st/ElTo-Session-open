@@ -26,6 +26,7 @@ Singleton {
     readonly property var optionsT: section("options")
     readonly property var notchT: section("notch")
     readonly property var dockT: section("dock")
+    readonly property var drawerT: section("drawer")
 
     function role(r) { var n = rolesT[r]; return colorsT[n] !== undefined ? colorsT[n] : (colorsT[r] !== undefined ? colorsT[r] : "transparent") }
     function color(name) { return colorsT[name] !== undefined ? colorsT[name] : "transparent" }
