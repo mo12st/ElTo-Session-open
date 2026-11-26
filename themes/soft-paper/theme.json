@@ -63,5 +63,17 @@
     "sliderKnob": 14,
     "openMs": 220,
     "mediaHeight": 96
+  },
+  "dock": {
+    "height": 57,
+    "radius": 29,
+    "bottomMargin": 18,
+    "tile": 40,
+    "icon": 22,
+    "gap": 8,
+    "pad": 10,
+    "pillWidth": 96,
+    "pillHeight": 40,
+    "snailGap": 14
   }
 }
