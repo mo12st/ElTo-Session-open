@@ -94,12 +94,12 @@ Item {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.timeText; color: root.ink
-            font.family: root.serif; font.pixelSize: 150 * root.k
+            font.family: root.serif; font.pixelSize: 150 * root.k; renderType: Text.NativeRendering
         }
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.dateText; color: root.soft
-            font.family: root.serif; font.italic: true; font.pixelSize: 30 * root.k
+            font.family: root.serif; font.italic: true; font.pixelSize: 30 * root.k; renderType: Text.NativeRendering
         }
         Item { width: 1; height: 26 * root.k }
         // password field with the snail inside
@@ -107,7 +107,7 @@ Item {
             id: field
             anchors.horizontalCenter: parent.horizontalCenter
             width: 380 * root.k; height: 56 * root.k; radius: height / 2
-            color: root.dusk ? "#33ffffff" : "#e6f6f1e4"
+            color: "#ecf6f1e4"
             border.color: pw.activeFocus ? root.rust : (root.dusk ? "#88cfe3d4" : "#8a9a90"); border.width: 2
             Image {
                 id: snail
@@ -115,13 +115,13 @@ Item {
                 height: 38 * root.k; width: height * 360 / 272
                 x: 16 * root.k; anchors.verticalCenter: parent.verticalCenter
                 fillMode: Image.PreserveAspectFit
-                opacity: root.dusk ? 0.9 : 1
+                
             }
             TextInput {
                 id: pw
                 anchors { left: snail.right; leftMargin: 14 * root.k; right: parent.right; rightMargin: 22 * root.k; verticalCenter: parent.verticalCenter }
                 echoMode: TextInput.Password; passwordCharacter: "\u2022"
-                color: root.ink; font.pixelSize: 22 * root.k; font.family: "Noto Sans"
+                color: root.green; font.pixelSize: 22 * root.k; font.family: "Noto Sans"
                 clip: true; focus: true
                 Keys.onReturnPressed: root.submit()
                 Keys.onEnterPressed: root.submit()
@@ -129,7 +129,7 @@ Item {
             Text {
                 anchors { left: pw.left; verticalCenter: parent.verticalCenter }
                 visible: pw.text.length === 0
-                text: "Password"; color: root.dusk ? "#a8bfb0" : "#8a9a90"
+                text: "Password"; color: "#8a9a90"
                 font.pixelSize: 22 * root.k; font.family: "Noto Sans"
             }
         }
@@ -268,7 +268,7 @@ Item {
                                 c.beginPath(); c.arc(cx, cy, r, -0.35 * Math.PI, 1.55 * Math.PI, false); c.stroke()
                                 c.beginPath(); c.moveTo(cx + r * 1.05, cy - r * 1.25); c.lineTo(cx + r * 1.05, cy - r * 0.35); c.lineTo(cx + r * 0.2, cy - r * 0.6); c.closePath(); c.fill()
                             } else {   // power symbol
-                                c.beginPath(); c.arc(cx, cy + r * 0.1, r, -0.35 * Math.PI, 1.35 * Math.PI, true); c.stroke()
+                                c.beginPath(); c.arc(cx, cy + r * 0.1, r, -0.3 * Math.PI, 1.3 * Math.PI, false); c.stroke()
                                 c.beginPath(); c.moveTo(cx, cy - r * 1.1); c.lineTo(cx, cy - r * 0.1); c.stroke()
                             }
                         }
