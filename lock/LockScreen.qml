@@ -185,7 +185,7 @@ Item {
             id: art
             x: 14 * root.k; anchors.verticalCenter: parent.verticalCenter
             width: 68 * root.k; height: width; radius: 10 * root.k; color: root.mid
-            Text { anchors.centerIn: parent; text: "\u266A"; color: root.cream; font.pixelSize: 34 * root.k }
+            Image { anchors.centerIn: parent; width: 36 * root.k; height: width; sourceSize.width: 144; sourceSize.height: 144; smooth: true; source: Qt.resolvedUrl("assets/icons/music-cream.svg") }
         }
         Column {
             x: 96 * root.k; y: 14 * root.k; width: parent.width - 110 * root.k; spacing: 2 * root.k
@@ -208,18 +208,12 @@ Item {
                 Rectangle {
                     width: 30 * root.k; height: width; radius: width / 2
                     color: ma.containsMouse && root.hasPlayer ? root.mid : "transparent"
-                    Canvas {
-                        anchors.fill: parent
-                        property bool playing: root.npStatus === "Playing"
-                        onPlayingChanged: requestPaint()
-                        onPaint: {
-                            var c = getContext("2d"); c.reset(); c.fillStyle = root.ink
-                            var w = width, h = height, m = modelData
-                            if (m === "play" && playing) { c.fillRect(w*0.32, h*0.28, w*0.13, h*0.44); c.fillRect(w*0.55, h*0.28, w*0.13, h*0.44) }
-                            else if (m === "play") { c.beginPath(); c.moveTo(w*0.36, h*0.26); c.lineTo(w*0.72, h*0.5); c.lineTo(w*0.36, h*0.74); c.closePath(); c.fill() }
-                            else if (m === "next") { c.beginPath(); c.moveTo(w*0.28, h*0.28); c.lineTo(w*0.58, h*0.5); c.lineTo(w*0.28, h*0.72); c.closePath(); c.fill(); c.fillRect(w*0.62, h*0.28, w*0.08, h*0.44) }
-                            else { c.beginPath(); c.moveTo(w*0.72, h*0.28); c.lineTo(w*0.42, h*0.5); c.lineTo(w*0.72, h*0.72); c.closePath(); c.fill(); c.fillRect(w*0.30, h*0.28, w*0.08, h*0.44) }
-                        }
+                    Image {
+                        anchors.centerIn: parent; width: 18 * root.k; height: width
+                        sourceSize.width: 72; sourceSize.height: 72; smooth: true
+                        property string nm: modelData === "play" ? (root.npStatus === "Playing" ? "pause" : "play") : (modelData === "next" ? "skip-forward" : "skip-back")
+                        property bool hot: ma.containsMouse && root.hasPlayer
+                        source: Qt.resolvedUrl("assets/icons/" + nm + "-" + ((hot || root.dusk) ? "cream" : "ink") + ".svg")
                     }
                     MouseArea {
                         id: ma; anchors.fill: parent; hoverEnabled: true
@@ -251,27 +245,11 @@ Item {
                     scale: pma.pressed ? 0.94 : 1
                     Behavior on scale { NumberAnimation { duration: 80; easing.type: Easing.OutCubic } }
                     Behavior on color { ColorAnimation { duration: 120 } }
-                    Canvas {
-                        anchors.fill: parent
+                    Image {
+                        anchors.centerIn: parent; width: 26 * root.k; height: width
+                        sourceSize.width: 104; sourceSize.height: 104; smooth: true
                         property bool hot: pma.containsMouse || pma.pressed
-                        onHotChanged: requestPaint()
-                        onPaint: {
-                            var c = getContext("2d"); c.reset()
-                            var w = width, h = height, cx = w / 2, cy = h / 2, r = w * 0.2
-                            c.strokeStyle = hot ? root.cream : root.ink; c.fillStyle = c.strokeStyle
-                            c.lineWidth = Math.max(2, w * 0.06); c.lineCap = "round"
-                            if (modelData.id === "sleep") {   // crescent moon
-                                c.beginPath(); c.arc(cx, cy, r * 1.05, 0.5 * Math.PI, 1.9 * Math.PI, false)
-                                c.arc(cx + r * 0.45, cy - r * 0.25, r * 0.85, 1.75 * Math.PI, 0.6 * Math.PI, true)
-                                c.closePath(); c.fill()
-                            } else if (modelData.id === "restart") {   // circular arrow
-                                c.beginPath(); c.arc(cx, cy, r, -0.35 * Math.PI, 1.55 * Math.PI, false); c.stroke()
-                                c.beginPath(); c.moveTo(cx + r * 1.05, cy - r * 1.25); c.lineTo(cx + r * 1.05, cy - r * 0.35); c.lineTo(cx + r * 0.2, cy - r * 0.6); c.closePath(); c.fill()
-                            } else {   // power symbol
-                                c.beginPath(); c.arc(cx, cy + r * 0.1, r, -0.3 * Math.PI, 1.3 * Math.PI, false); c.stroke()
-                                c.beginPath(); c.moveTo(cx, cy - r * 1.1); c.lineTo(cx, cy - r * 0.1); c.stroke()
-                            }
-                        }
+                        source: Qt.resolvedUrl("assets/icons/" + (modelData.id === "sleep" ? "moon" : modelData.id === "restart" ? "rotate-cw" : "power") + "-" + ((hot || root.dusk) ? "cream" : "ink") + ".svg")
                     }
                     MouseArea {
                         id: pma; anchors.fill: parent; hoverEnabled: true
