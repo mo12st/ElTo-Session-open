@@ -155,7 +155,7 @@ Scope {
                             anchors.horizontalCenter: parent.horizontalCenter
                             y: 50
                             text: Qt.formatDateTime(clk.date, "dddd, d MMMM")
-                            color: Theme.textMuted; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 14
+                            color: Theme.textMuted; font.family: Theme.serif; font.italic: true; font.pixelSize: 14
                             renderType: Text.NativeRendering
                         }
                         height: 76
@@ -230,7 +230,7 @@ Scope {
                         spacing: 2
                         Text { text: root.playing ? "Now playing" : "Paused"; color: Theme.textMuted; font.family: Theme.sans; font.pixelSize: 11 }
                         Text { width: parent.width; elide: Text.ElideRight; text: root.npTitle; color: Theme.text
-                            font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 19; renderType: Text.NativeRendering }
+                            font.family: Theme.serif; font.italic: true; font.pixelSize: 19; renderType: Text.NativeRendering }
                         Text { width: parent.width; elide: Text.ElideRight; text: root.npArtist; color: Theme.textMuted; font.family: Theme.sans; font.pixelSize: 12 }
                     }
                     Row {

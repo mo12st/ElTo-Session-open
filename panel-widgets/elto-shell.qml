@@ -11,37 +11,5 @@ ShellRoot {
     NotificationPopups {}
     Notch {}
 
-    PanelWindow {
-        anchors {
-            left: true
-            right: true
-            bottom: true
-        }
-        implicitHeight: 56
-        color: ElToPalette.cream
-
-        ElToPill {
-            id: menu
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            label: "Menu"
-            active: launcher.open
-            onClicked: launcher.toggle()
-        }
-
-        TaskbarPills {
-            anchors.left: menu.right
-            anchors.leftMargin: 20
-            anchors.verticalCenter: parent.verticalCenter
-            height: 32
-            width: Math.min(contentWidth, parent.width - 600)
-        }
-
-        Panel {
-            anchors.right: parent.right
-            anchors.rightMargin: 24
-            anchors.verticalCenter: parent.verticalCenter
-        }
-    }
+    Dock { launcher: launcher }
 }
