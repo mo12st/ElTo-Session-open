@@ -1,0 +1,5 @@
+{
+  "KPlugin": { "Id": "org.elto.shell", "Name": "ElTo shell", "Description": "ElTo lock screen package (concept)" },
+  "KPackageStructure": "Plasma/Shell",
+  "X-Plasma-APIVersion": "2"
+}
