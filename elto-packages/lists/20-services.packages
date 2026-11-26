@@ -28,3 +28,8 @@ xdg-desktop-portal-gtk    # GTK portal backend. The KDE backend is avoided on
                           # unavailable until this trade-off is revisited.
 # brightnessctl   # Optional on real hardware: screen brightness without
                   # powerdevil (which pulls plasma-workspace, see AVOIDED.md).
+pciutils          # lspci: hardware inventory for the Doctor check (owner-
+                  # approved add 2026-11-27; Doctor skips cleanly without it).
+mesa-demos        # glxinfo/glxgears: GL renderer diagnosis for Doctor.
+vulkan-tools      # vulkaninfo: Vulkan driver diagnosis for Doctor.
+pacman-contrib    # checkupdates/paccache: update and cache tooling for Doctor.
