@@ -88,7 +88,7 @@ click 480 470
 $S 'cat /home/dev/.config/elto/theme.json; grep -a ELTOCUSTOMIZE /tmp/cust.log'
 shot /tmp/c2.ppm cust2_moonlit
 echo "== click Soft motion toggle"
-click 1085 521
+click 1160 588
 $S 'cat /home/dev/.config/elto/theme.json; grep -a ELTOCUSTOMIZE /tmp/cust.log'
 shot /tmp/c3.ppm cust3_motion
 echo "== click Golden valley"

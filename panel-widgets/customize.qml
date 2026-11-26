@@ -43,8 +43,8 @@ ShellRoot {
     FloatingWindow {
         id: win
         title: "Customize"
-        implicitWidth: 1180; implicitHeight: 760
-        minimumSize: Qt.size(1180, 760); maximumSize: Qt.size(1180, 760)
+        implicitWidth: 1180; implicitHeight: 690
+        minimumSize: Qt.size(1180, 690); maximumSize: Qt.size(1180, 690)
         color: "transparent"
 
         Rectangle {
@@ -103,14 +103,14 @@ ShellRoot {
                             Text { x: 14; y: 56; text: tc.modelData.label; color: Theme.text; font.family: Theme.sans; font.pixelSize: 15 }
                             Rectangle { visible: tc.cur; x: parent.width - 34; y: parent.height - 34; width: 24; height: 24; radius: 12; color: Theme.accent
                                 Text { anchors.centerIn: parent; text: "\u2713"; color: Theme.surface; font.pixelSize: 15; font.bold: true } }
-                            Text { visible: !tc.modelData.real; x: parent.width - 66; y: parent.height - 26; text: "concept"; color: Theme.disabled; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 12 }
+                            Text { visible: !tc.modelData.real; x: parent.width - 62; y: 14; text: "concept"; color: Theme.disabled; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 12 }
                         }
                     }
                 }
 
                 Text { y: 150; text: "Desktop wallpaper"; color: Theme.text; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 22; renderType: Text.NativeRendering }
                 Flickable {
-                    y: 186; width: parent.width + 10; height: 480
+                    y: 186; width: parent.width + 10; height: leftCol.height - 190
                     contentHeight: grid.height; clip: true
                     Grid {
                         id: grid; columns: 3; spacing: 12
