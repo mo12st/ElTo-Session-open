@@ -14,5 +14,17 @@
   "btnGreen": "#5fae7a",
   "btnGreenHover": "#72c08c",
   "btnBlue": "#4f86c6",
-  "btnBlueHover": "#639ad8"
+  "btnBlueHover": "#639ad8",
+  "motion": {
+    "_note": "Animation tuning. enabled=false makes every duration 0 (no animation). Durations in ms. easing is a QtQuick Easing.Type name.",
+    "enabled": true,
+    "hoverMs": 120,
+    "pressMs": 80,
+    "activeMs": 160,
+    "appearMs": 180,
+    "disappearMs": 140,
+    "popupMs": 160,
+    "popupSlidePx": 8,
+    "easing": "OutCubic"
+  }
 }
