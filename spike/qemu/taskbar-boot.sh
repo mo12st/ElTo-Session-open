@@ -89,6 +89,15 @@ printf "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin dev --nocl
 sudo systemctl daemon-reload; sudo systemctl restart getty@tty1; sleep 40
 grep -a TASKBAR /tmp/qs.log | head -30'
 shot /tmp/vm1.ppm vm1
-echo "== close winB via kill"
-$S 'pkill -f "foot -T winB"; sleep 4; grep -a TASKBAR /tmp/qs.log | tail -5'
+echo "== click second button (winB) via QMP absolute mouse"
+qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"abs","data":{"axis":"x","value":'$((734*32767/1280))'}},{"type":"abs","data":{"axis":"y","value":'$((771*32767/800))'}}]}}'
+sleep 1
+qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":true,"button":"left"}}]}}'
+sleep 0.3
+qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":false,"button":"left"}}]}}'
+sleep 3
+$S 'grep -a TASKBAR /tmp/qs.log | tail -6'
 shot /tmp/vm2.ppm vm2
+echo "== close winB"
+$S 'pkill -f "[f]oot -T winB"; sleep 5; grep -a TASKBAR /tmp/qs.log | tail -4'
+shot /tmp/vm3.ppm vm3

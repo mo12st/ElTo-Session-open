@@ -28,6 +28,9 @@ ShellRoot {
         console.log("TASKBAR " + m.event + " now=" + order.length);
     }
 
+    function titleOf(u) { const w = wins[u]; return w ? (w.title !== "" ? w.title : w.appid) : ""; }
+    function activeOf(u) { const w = wins[u]; return w ? (w.flags & 1) !== 0 : false; }
+
     Process {
         id: wl
         running: true
@@ -53,16 +56,15 @@ ShellRoot {
                 model: root.rev >= 0 ? root.order : []
                 delegate: Rectangle {
                     required property string modelData
-                    readonly property var w: root.rev >= 0 ? root.wins[modelData] : null
                     width: 180; height: 36; radius: 18
-                    color: (w && (w.flags & 1)) ? "#cfe3d4" : "#efe9d8"
+                    color: (root.rev >= 0 && root.activeOf(modelData)) ? "#cfe3d4" : "#efe9d8"
                     border.color: "#283a32"
                     Text {
                         anchors.centerIn: parent
                         width: parent.width - 20
                         elide: Text.ElideRight
                         horizontalAlignment: Text.AlignHCenter
-                        text: w ? (w.title !== "" ? w.title : w.appid) : ""
+                        text: root.rev >= 0 ? root.titleOf(modelData) : ""
                         color: "#283a32"; font.pixelSize: 15
                     }
                     MouseArea {
