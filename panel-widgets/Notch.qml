@@ -15,9 +15,9 @@ Scope {
     readonly property bool hasPlayer: npStatus !== ""
     readonly property bool playing: npStatus === "Playing"
     readonly property var nt: Theme.notchT
-    readonly property int dw: N.drawerWidth
-    readonly property int pad: N.drawerPadding
-    readonly property real sw: playing ? 236 : N.idleWidth
+    readonly property int dw: nt.drawerWidth
+    readonly property int pad: nt.drawerPadding
+    readonly property real sw: playing ? 236 : nt.idleWidth
 
     // ---- media via playerctl (MPRIS) ----
     Process {
