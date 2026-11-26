@@ -23,7 +23,8 @@ PanelWindow {
     implicitHeight: 480
     color: "transparent"
     exclusiveZone: 0
-    visible: stack.count > 0
+    visible: true
+    onVisibleChanged: console.log("NOTIF-DEBUG visible", visible, "w", width, "h", height)
     WlrLayershell.layer: WlrLayer.Overlay
     mask: Region {
         item: stack
@@ -36,10 +37,13 @@ PanelWindow {
         imageSupported: false
         keepOnReload: false
         onNotification: n => {
+            console.log("NOTIF-DEBUG got", n.summary, "urgency", n.urgency);
             n.tracked = true;
+            console.log("NOTIF-DEBUG tracked count", server.trackedNotifications.values.length);
         }
     }
 
+    Rectangle { anchors.fill: parent; color: "#80ff00ff" }
     ListView {
         id: stack
         anchors {
