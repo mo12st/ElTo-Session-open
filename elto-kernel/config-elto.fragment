@@ -1,0 +1,6 @@
+# ElTo kernel fragment, applied on top of the CachyOS config with
+# scripts/kconfig/merge_config.sh. Keep this minimal: branding only.
+# uname -r becomes 7.3.6-elto (the CachyOS base sets CONFIG_LOCALVERSION="").
+CONFIG_LOCALVERSION="-elto"
+# Kernel default hostname before userspace sets one (CachyOS base: "cachyos").
+CONFIG_DEFAULT_HOSTNAME="elto"
