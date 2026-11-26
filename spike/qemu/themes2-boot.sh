@@ -105,6 +105,7 @@ PY
 python3 $TT install /tmp/t/night; python3 $TT install /tmp/t/night; mkdir -p /tmp/t/badd && cp /tmp/t/bad.json /tmp/t/badd/theme.json; python3 $TT install /tmp/t/badd; python3 $TT export night-paper; ls ~/ElTo-themes ~/.config/elto/themes; python3 -c \"import zipfile;print(zipfile.ZipFile('/home/dev/ElTo-themes/night-paper.zip').namelist())\"; python3 $TT install /home/dev/ElTo-themes/night-paper.zip"
 echo "== Themes page"
 $S "$U sh -c 'setsid quickshell -p /opt/elto-session/panel-widgets/customize.qml >/tmp/cust.log 2>&1 </dev/null &'"; sleep 12
+$S "grep -a -v WARN /tmp/cust.log | head -30; pgrep -a quickshell | cut -c1-120"
 click 135 199
 sleep 2
 shot /tmp/t1.ppm th1_list
