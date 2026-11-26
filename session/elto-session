@@ -1,0 +1,18 @@
+#!/bin/bash
+# ElTo session entry (CONCEPT / SPIKE). Started by SDDM from elto.desktop. KWin is the compositor, Quickshell the shell. No plasmashell.
+ROOT=${ELTO_ROOT:-/opt/elto-session}
+mkdir -p "$HOME/.local/state"
+exec > "$HOME/.local/state/elto-session.log" 2>&1
+export XDG_SESSION_TYPE=wayland XDG_CURRENT_DESKTOP=KDE
+export QT_QPA_PLATFORMTHEME=kde
+export ELTO_WINDOWLIST=${ELTO_WINDOWLIST:-/usr/local/bin/elto-windowlist}
+# a user dbus session may be started by logind/pam; fall back to dbus-run-session if there is none
+if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && [ ! -S "/run/user/$(id -u)/bus" ]; then
+  exec dbus-run-session -- "$0" "$@"
+fi
+kwin_wayland --socket wayland-0 &
+KWIN=$!
+for i in $(seq 1 50); do [ -S "$XDG_RUNTIME_DIR/wayland-0" ] && break; sleep 0.2; done
+export WAYLAND_DISPLAY=wayland-0 QT_QPA_PLATFORM=wayland
+quickshell -p "$ROOT/panel-widgets/elto-shell.qml" &
+wait $KWIN

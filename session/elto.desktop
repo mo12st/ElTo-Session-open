@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=ElTo
+Comment=ElTo session (concept spike): KWin and Quickshell, no Plasma Shell
+Exec=/usr/local/bin/elto-session
+Type=Application
+DesktopNames=ElTo

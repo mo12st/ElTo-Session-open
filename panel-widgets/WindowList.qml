@@ -7,7 +7,7 @@ import QtQuick
 
 Item {
     id: root
-    property string helper: "/tmp/elto-windowlist"
+    property string helper: Quickshell.env("ELTO_WINDOWLIST") || "/tmp/elto-windowlist"
     readonly property alias model: lm
 
     ListModel { id: lm }

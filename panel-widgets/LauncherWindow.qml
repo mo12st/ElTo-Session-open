@@ -33,7 +33,13 @@ PanelWindow {
     implicitWidth: 380
     implicitHeight: 460
     color: "transparent"
-    visible: popup.visible
+    // Always mapped (a visible binding did not map the window in the full session, same as the notifications window);
+    // the empty mask lets clicks pass through while the popup is closed.
+    visible: true
+    mask: Region {
+        width: popup.visible ? win.width : 0
+        height: popup.visible ? win.height : 0
+    }
     exclusiveZone: 0
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: win.open ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
