@@ -80,7 +80,7 @@ sleep 3; }
 lockit() { $S "$U busctl --user call org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver Lock 2>&1; sleep 8"; }
 
 echo "== open Customize"
-$S "$U sh -c 'cd /opt/elto-session && HOME=/home/dev setsid quickshell -p /opt/elto-session/panel-widgets/customize.qml >/tmp/cust.log 2>&1 &'"; sleep 12
+$S "$U sh -c 'setsid quickshell -p /opt/elto-session/panel-widgets/customize.qml >/tmp/cust.log 2>&1 </dev/null &'"; sleep 12
 $S 'cat /tmp/cust.log | head -20; pgrep -a quickshell | cut -c1-120'
 shot /tmp/c1.ppm cust1_open
 echo "== click Moonlit swirl"
