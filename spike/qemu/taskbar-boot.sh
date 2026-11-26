@@ -20,7 +20,7 @@ ACCEL=tcg; [ -w /dev/kvm ] && ACCEL=kvm
 echo "ACCEL=$ACCEL"
 qemu-system-x86_64 -accel $ACCEL -m 4096 -smp 2 -cpu max \
   -drive file=arch.qcow2,if=virtio -drive file=seed.img,if=virtio,format=raw \
-  -device virtio-vga -display none -serial file:/tmp/serial.log \
+  -device virtio-vga -device qemu-xhci -device usb-tablet -display none -serial file:/tmp/serial.log \
   -netdev user,id=n0,hostfwd=tcp:127.0.0.1:2222-:22 -device virtio-net-pci,netdev=n0 \
   -qmp unix:/tmp/qmp.sock,server,nowait -daemonize
 START=$(date +%s)
