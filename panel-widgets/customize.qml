@@ -8,6 +8,7 @@ import QtQuick
 ShellRoot {
     id: app
 
+    property string page: "appearance"
     function setOption(key, value) { UserTheme.set("options", key, value) }
 
     readonly property var themes: [
@@ -48,21 +49,25 @@ ShellRoot {
                 Column {
                     x: 12; y: 76; spacing: 4; width: parent.width - 24
                     Repeater {
-                        model: [{ i: "palette", t: "Appearance", on: true }]
+                        model: [{ i: "palette", t: "Appearance", id: "appearance" }, { i: "panel-top", t: "Themes", id: "themes" }]
                         Rectangle {
                             required property var modelData
                             width: parent.width; height: 38; radius: 19
-                            color: modelData.on ? Theme.selection : "transparent"
+                            color: app.page === modelData.id ? Theme.selection : "transparent"
                             Row {
                                 x: 14; anchors.verticalCenter: parent.verticalCenter; spacing: 10
                                 LIcon { name: modelData.i; size: 18; tint: Theme.text; anchors.verticalCenter: parent.verticalCenter }
                                 Text { text: modelData.t; color: Theme.text; font.family: Theme.sans; font.pixelSize: 15; anchors.verticalCenter: parent.verticalCenter }
                             }
+                            MouseArea { anchors.fill: parent; onClicked: app.page = modelData.id }
                         }
                     }
                 }
             }
 
+            Item {
+                id: appearancePage
+                anchors.fill: parent; visible: app.page === "appearance"
             // ---------- header
             Text { x: side.width + 28; y: 22; text: "Appearance"; color: Theme.text; font.family: Theme.serif; font.pixelSize: 38; renderType: Text.NativeRendering }
             Text { anchors.right: parent.right; anchors.rightMargin: 30; y: 40; text: "Changes apply instantly"
@@ -241,6 +246,9 @@ ShellRoot {
                     }
                 }
             }
+            }
+
+            ThemesPage { x: side.width; width: parent.width - side.width; height: parent.height; visible: app.page === "themes" }
         }
     }
 }
