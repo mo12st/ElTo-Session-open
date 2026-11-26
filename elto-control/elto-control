@@ -1,0 +1,10 @@
+#!/bin/bash
+# ElTo Control entry point and deep-link contract:
+#   elto-control            opens the Appearance page
+#   elto-control <page>     opens a page: appearance sound network bluetooth power about
+# Welcome, Guardian and other components use this to open a specific page.
+ROOT=${ELTO_ROOT:-/opt/elto-session}
+if [ -n "$1" ]; then
+  export ELTO_CONTROL_PAGE="$1"
+fi
+exec quickshell -p "$ROOT/elto-control/Main.qml"
