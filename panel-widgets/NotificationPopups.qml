@@ -20,7 +20,7 @@ PanelWindow {
         right: 12
     }
     implicitWidth: 360
-    implicitHeight: Math.max(1, stack.contentHeight)
+    implicitHeight: 480
     color: "transparent"
     exclusiveZone: 0
     visible: stack.count > 0
@@ -42,7 +42,12 @@ PanelWindow {
 
     ListView {
         id: stack
-        anchors.fill: parent
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: parent.top
+        }
+        height: Math.min(parent.height, contentHeight)
         interactive: false
         spacing: 8
         model: server.trackedNotifications
