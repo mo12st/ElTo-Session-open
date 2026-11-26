@@ -74,7 +74,7 @@ Scope {
                 Row {
                     id: row
                     x: root.dk.pad
-                    anchors.verticalCenter: parent.verticalCenter
+                    y: (parent.height - height) / 2 - 4
                     spacing: root.dk.gap
 
                     // snail menu button
@@ -112,7 +112,7 @@ Scope {
                                 id: trail
                                 visible: app.current
                                 width: 46; height: 9
-                                x: (parent.width - width) / 2 - 2; y: parent.height + 3
+                                x: (parent.width - width) / 2 - 2; y: parent.height + 1
                                 onPaint: {
                                     var c = getContext("2d"); c.reset(); c.strokeStyle = Theme.accent; c.fillStyle = Theme.accent
                                     c.lineWidth = 2.2; c.lineCap = "round"
@@ -126,7 +126,7 @@ Scope {
                         }
                     }
 
-                    Rectangle { width: 1; height: root.dk.tile * 0.7; anchors.verticalCenter: parent.verticalCenter; color: Theme.divider }
+                    Rectangle { visible: wl.model.count > 0; width: 1; height: root.dk.tile * 0.7; anchors.verticalCenter: parent.verticalCenter; color: Theme.divider }
 
                     // open windows
                     Repeater {

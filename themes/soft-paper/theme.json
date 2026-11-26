@@ -72,8 +72,8 @@
     "icon": 22,
     "gap": 8,
     "pad": 10,
-    "pillWidth": 96,
+    "pillWidth": 112,
     "pillHeight": 40,
-    "snailGap": 14
+    "snailGap": 4
   }
 }
