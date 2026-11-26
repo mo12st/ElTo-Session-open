@@ -16,6 +16,7 @@ ListView {
     WindowList { id: wl }
 
     delegate: ElToPill {
+        id: pill
         required property string uuid
         required property string title
         required property string appid
@@ -23,6 +24,19 @@ ListView {
         label: title !== "" ? title : appid
         active: isActive
         onClicked: wl.activate(uuid)
+
+        // Fade out on close. delayRemove keeps the item alive until the fade ends.
+        ListView.onRemove: SequentialAnimation {
+            PropertyAction { target: pill; property: "ListView.delayRemove"; value: true }
+            NumberAnimation {
+                target: pill
+                property: "opacity"
+                to: 0
+                duration: ElToPalette.disappearMs
+                easing.type: ElToPalette.easing
+            }
+            PropertyAction { target: pill; property: "ListView.delayRemove"; value: false }
+        }
     }
 
     add: Transition {
@@ -41,14 +55,6 @@ ListView {
                 duration: ElToPalette.appearMs
                 easing.type: ElToPalette.easing
             }
-        }
-    }
-    remove: Transition {
-        NumberAnimation {
-            property: "opacity"
-            to: 0
-            duration: ElToPalette.disappearMs
-            easing.type: ElToPalette.easing
         }
     }
     displaced: Transition {
