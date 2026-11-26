@@ -92,7 +92,7 @@ shot /tmp/k2.ppm dk2_menu
 click 592 699
 $S 'cat /home/dev/.config/elto/theme.json; grep -a "ELTOUSER" /home/dev/.local/state/elto-session.log | tail -3'
 echo "== drawer fixes"
-$S "$U quickshell ipc call drawer toggle 2>&1 | tail -2"; sleep 2
+echo; $S "$U quickshell -p /opt/elto-session/panel-widgets/elto-shell.qml ipc call drawer toggle 2>&1 | tail -3; echo IPC-DONE"; sleep 2
 key k; key a; key t
 shot /tmp/k9.ppm dk9_typed_no_click
 click 856 536
@@ -100,7 +100,7 @@ shot /tmp/k10.ppm dk10_click_paper_edge
 key ret; sleep 4
 shot /tmp/k11.ppm dk11_enter_kate
 $S 'pgrep -a kate | cut -c1-80'
-$S "$U quickshell ipc call drawer toggle 2>&1 | tail -2"; sleep 0.3
+echo; $S "$U quickshell -p /opt/elto-session/panel-widgets/elto-shell.qml ipc call drawer toggle 2>&1 | tail -3; echo IPC-DONE"; sleep 0.3
 click 640 600
 sleep 2
 shot /tmp/k12.ppm dk12_after_close_click
