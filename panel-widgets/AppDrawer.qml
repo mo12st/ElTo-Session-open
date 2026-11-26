@@ -14,8 +14,9 @@ PanelWindow {
 
     function toggle() {
         open = !open
-        if (open) { query = ""; search.text = ""; grid.currentIndex = 0; search.forceActiveFocus() }
+        if (open) { query = ""; search.text = ""; grid.currentIndex = 0 }
     }
+    onOpenChanged: if (open) Qt.callLater(() => search.forceActiveFocus())
     function launch(e) { e.execute(); open = false }
 
     anchors { left: true; right: true; top: true; bottom: true }
@@ -23,7 +24,7 @@ PanelWindow {
     color: "transparent"
     visible: true
     // always mapped; empty mask while closed so clicks pass through
-    mask: Region { width: sheet.visible ? win.width : 0; height: sheet.visible ? win.height : 0 }
+    mask: Region { width: win.open ? win.width : 0; height: win.open ? win.height : 0 }
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "elto-drawer"
     WlrLayershell.keyboardFocus: win.open ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -54,6 +55,8 @@ PanelWindow {
         x: (win.width - width) / 2
         y: (win.height - height) / 2 - 20
 
+        // one interactive area over shadow, back and front sheets: clicks on the paper never close the drawer
+        MouseArea { anchors.fill: parent; anchors.margins: -24 }
         // soft shadow
         Repeater {
             model: 6
@@ -101,7 +104,7 @@ PanelWindow {
                     font.family: Theme.sans; font.pixelSize: 15; color: Theme.text
                     onTextChanged: { win.query = text; grid.currentIndex = 0 }
                     Keys.onEscapePressed: win.open = false
-                    Keys.onReturnPressed: { if (filtered.values.length > 0) win.launch(filtered.values[Math.max(0, grid.currentIndex)]) }
+                    Keys.onReturnPressed: { const v = filtered.values; if (v.length > 0) win.launch(v[Math.min(Math.max(0, grid.currentIndex), v.length - 1)]) }
                     Keys.onDownPressed: grid.moveCurrentIndexDown()
                     Keys.onUpPressed: grid.moveCurrentIndexUp()
                     Keys.onLeftPressed: e => { if (text === "") grid.moveCurrentIndexLeft(); else e.accepted = false }

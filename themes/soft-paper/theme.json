@@ -100,7 +100,7 @@
   },
   "drawer": {
     "width": 420,
-    "height": 330,
+    "height": 316,
     "radius": 6,
     "pad": 20,
     "cols": 4,
