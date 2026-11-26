@@ -23,7 +23,9 @@ PanelWindow {
     implicitHeight: 480
     color: "transparent"
     exclusiveZone: 0
-    visible: stack.count > 0
+    // Always mapped: a visible binding on the list count never showed the window under KWin (VM run 45841600027).
+    // The mask keeps input only on the cards, so the empty window does not block clicks.
+    visible: true
     WlrLayershell.layer: WlrLayer.Overlay
     mask: Region {
         item: stack
