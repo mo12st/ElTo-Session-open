@@ -1,0 +1,30 @@
+# ElTo 20-services: system services the shell widgets talk to.
+# Grounded in the actual QML imports (panel-widgets/):
+#   Volume.qml    -> Quickshell.Services.Pipewire   -> pipewire
+#   Battery.qml   -> Quickshell.Services.UPower     -> upower
+#   Bluetooth.qml -> Quickshell.Bluetooth (BlueZ)   -> bluez
+#   Network.qml   -> Quickshell.Networking (NM)     -> networkmanager
+#   Notch.qml     -> spawns `playerctl`             -> playerctl
+# Verified against the live Arch repos on 2026-11-27; see VERIFICATION.md.
+
+pipewire          # Audio server.
+pipewire-pulse    # PulseAudio-compatible API for apps.
+pipewire-alsa     # ALSA clients routed through PipeWire.
+wireplumber       # PipeWire session/policy manager.
+libpulse          # Pulse client library (VM-proven list).
+networkmanager    # Network backend for Quickshell.Networking.
+# iwd             # Optional: NM wifi backend (lighter than wpa_supplicant).
+bluez             # Bluetooth daemon (BlueZ over D-Bus).
+# bluez-utils     # Optional: bluetoothctl for debugging pairing.
+upower            # Power/battery daemon for Quickshell.Services.UPower.
+playerctl         # MPRIS CLI; Notch.qml runs `playerctl metadata`.
+polkit-kde-agent  # GUI polkit authentication agent (NM system connections,
+                  # mounts, ...). Verified: no plasma-workspace dependency.
+xdg-desktop-portal        # Portal frontend (file dialogs for sandboxed/GTK apps).
+xdg-desktop-portal-gtk    # GTK portal backend. The KDE backend is avoided on
+                          # purpose: xdg-desktop-portal-kde hard-depends on
+                          # plasma-workspace (Plasma Shell). See AVOIDED.md.
+                          # Cost: KDE screen-sharing/remote-desktop portals
+                          # unavailable until this trade-off is revisited.
+# brightnessctl   # Optional on real hardware: screen brightness without
+                  # powerdevil (which pulls plasma-workspace, see AVOIDED.md).
