@@ -1,0 +1,67 @@
+{
+  "name": "soft-paper",
+  "label": "Soft paper",
+  "version": 1,
+  "colors": {
+    "cream": "#f6f1e4",
+    "creamDark": "#efe9d8",
+    "green": "#283a32",
+    "midGreen": "#4c7860",
+    "lightGreen": "#cfe3d4",
+    "rust": "#a05040",
+    "inactiveBg": "#e0d9c4",
+    "inactiveFg": "#8a9a90",
+    "windowMinimize": "#e0b84a",
+    "windowMaximize": "#5fae7a",
+    "windowClose": "#4f86c6"
+  },
+  "roles": {
+    "surface": "cream",
+    "surfaceAlt": "creamDark",
+    "text": "green",
+    "textMuted": "midGreen",
+    "accent": "rust",
+    "selection": "lightGreen",
+    "divider": "inactiveBg",
+    "disabled": "inactiveFg"
+  },
+  "shape": {
+    "radiusWindow": 22,
+    "radiusCard": 14,
+    "radiusPill": 999,
+    "shadowAlpha": 0.28,
+    "shadowBlur": 24,
+    "shadowOffsetY": 12,
+    "paperGrain": 0.04
+  },
+  "fonts": {
+    "serif": "Noto Serif Display",
+    "serifItalic": "Noto Serif Display Italic",
+    "sans": "Noto Sans",
+    "mono": "DejaVu Sans Mono"
+  },
+  "icons": {
+    "set": "lucide",
+    "strokeWidth": 2,
+    "size": 24
+  },
+  "options": {
+    "dock": "island",
+    "notch": "clock",
+    "wallpaper": "misty-dawn.png",
+    "motion": "soft"
+  },
+  "notch": {
+    "idleWidth": 156,
+    "idleHeight": 34,
+    "drawerWidth": 400,
+    "drawerRadius": 28,
+    "drawerPadding": 22,
+    "toggleHeight": 44,
+    "gap": 10,
+    "sliderTrack": 6,
+    "sliderKnob": 14,
+    "openMs": 220,
+    "mediaHeight": 96
+  }
+}
