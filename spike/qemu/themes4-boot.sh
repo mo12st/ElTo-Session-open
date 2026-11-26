@@ -109,7 +109,7 @@ $S "grep -a -v WARN /tmp/cust.log | head -30; pgrep -a quickshell | cut -c1-120"
 click 135 199
 sleep 2
 shot /tmp/t1.ppm th1_list
-click 250 291
+click 350 291
 shot /tmp/t2.ppm th2_night_selected
 click 1180 165
 sleep 4
@@ -124,6 +124,12 @@ click 1100 165
 sleep 3
 shot /tmp/t5.ppm th5_radius_export
 $S 'ls ~/ElTo-themes ~/.config/elto/themes; grep -a radiusCard ~/.config/elto/themes/*/theme.json; grep -a "ELTO" /tmp/cust.log | tail -8'
+click 700 300
+key end; key backspace; key backspace; key backspace; key backspace; key backspace; key backspace
+key 1; key 2; key 3; key 4; key 5; key 6; key ret
+sleep 2
+shot /tmp/t7.ppm th7_hex_edit
+$S 'grep -a -A2 "mySurface" ~/.config/elto/themes/my-theme/theme.json | head -4'
 click 272 165
 sleep 1
 shot /tmp/t6.ppm th6_install_panel

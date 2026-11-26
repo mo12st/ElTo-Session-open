@@ -180,7 +180,7 @@ Item {
     // ---------- right column
     Item {
         id: rc
-        x: 408; y: 84; width: 600; height: parent.height - 100
+        x: 408; y: 84; width: 570; height: parent.height - 100
         visible: pg.draft !== null
 
         Rectangle {
@@ -212,7 +212,7 @@ Item {
                     Rectangle {
                         id: cr
                         required property var modelData
-                        width: 284; height: 48; radius: 12; color: Theme.surface
+                        width: 269; height: 48; radius: 12; color: Theme.surface
                         Rectangle { x: 10; anchors.verticalCenter: parent.verticalCenter; width: 28; height: 28; radius: 14; color: pg.dc(cr.modelData.r); border.width: 1; border.color: Theme.divider }
                         Text { x: 48; y: 6; text: cr.modelData.l; color: Theme.text; font.family: Theme.sans; font.pixelSize: 13 }
                         TextInput {
