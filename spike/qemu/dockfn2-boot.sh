@@ -95,7 +95,7 @@ echo "== drawer fixes"
 $S "$U quickshell ipc call drawer toggle 2>&1 | tail -2"; sleep 2
 key k; key a; key t
 shot /tmp/k9.ppm dk9_typed_no_click
-click 428 300
+click 856 536
 shot /tmp/k10.ppm dk10_click_paper_edge
 key ret; sleep 4
 shot /tmp/k11.ppm dk11_enter_kate
