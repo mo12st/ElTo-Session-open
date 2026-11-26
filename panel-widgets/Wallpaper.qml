@@ -8,6 +8,7 @@ import QtQuick
 Variants {
     model: Quickshell.screens
     PanelWindow {
+        id: win
         required property var modelData
         screen: modelData
         WlrLayershell.layer: WlrLayer.Background
@@ -19,8 +20,8 @@ Variants {
         Image {
             id: img
             anchors.fill: parent
-            source: Quickshell.env("ELTO_WALLPAPER") ? "file://" + Quickshell.env("ELTO_WALLPAPER") : parent.userUrl
-            onStatusChanged: if (status === Image.Error && !Quickshell.env("ELTO_WALLPAPER") && source === parent.userUrl) source = parent.shippedUrl
+            source: Quickshell.env("ELTO_WALLPAPER") ? "file://" + Quickshell.env("ELTO_WALLPAPER") : win.userUrl
+            onStatusChanged: if (status === Image.Error && !Quickshell.env("ELTO_WALLPAPER") && source === win.userUrl) source = win.shippedUrl
             fillMode: Image.PreserveAspectCrop
             sourceSize.width: 1920
             sourceSize.height: 1200
@@ -28,7 +29,7 @@ Variants {
         }
         Connections {
             target: Theme
-            function onWallpaperChanged() { if (!Quickshell.env("ELTO_WALLPAPER")) img.source = parent.userUrl }
+            function onWallpaperChanged() { if (!Quickshell.env("ELTO_WALLPAPER")) img.source = win.userUrl }
         }
     }
 }
