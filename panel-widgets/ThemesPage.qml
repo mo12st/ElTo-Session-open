@@ -216,7 +216,7 @@ Item {
                         Rectangle { x: 10; anchors.verticalCenter: parent.verticalCenter; width: 28; height: 28; radius: 14; color: pg.dc(cr.modelData.r); border.width: 1; border.color: Theme.divider }
                         Text { x: 48; y: 6; text: cr.modelData.l; color: Theme.text; font.family: Theme.sans; font.pixelSize: 13 }
                         TextInput {
-                            x: 48; y: 25; width: 100; maxLength: 7; readOnly: pg.draftBuiltin
+                            x: 48; y: 25; width: 100; maximumLength: 7; readOnly: pg.draftBuiltin
                             text: pg.dc(cr.modelData.r); color: pg.draftBuiltin ? Theme.textMuted : Theme.text
                             font.family: Theme.mono; font.pixelSize: 12
                             onEditingFinished: pg.setColor(cr.modelData.r, text)
