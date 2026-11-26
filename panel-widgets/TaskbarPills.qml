@@ -1,8 +1,7 @@
 // CONCEPT / SPIKE window pills for the taskbar, UNVERIFIED until a VM run.
 // Pills fade and grow in when a window opens and fade out when it closes.
-// Uses Quickshell.Wayland ToplevelManager (the same source as spike/taskbar/shell.qml).
+// Fed by WindowList.qml (elto-windowlist helper), because KWin does not offer foreign-toplevel.
 import QtQuick
-import Quickshell.Wayland
 
 ListView {
     id: root
@@ -12,13 +11,18 @@ ListView {
     interactive: false
     implicitHeight: 32
     implicitWidth: contentWidth
-    model: ToplevelManager.toplevels
+    model: wl.model
+
+    WindowList { id: wl }
 
     delegate: ElToPill {
-        required property var modelData
-        label: modelData.title
-        active: modelData.activated
-        onClicked: modelData.activate()
+        required property string uuid
+        required property string title
+        required property string appid
+        required property bool isActive
+        label: title !== "" ? title : appid
+        active: isActive
+        onClicked: wl.activate(uuid)
     }
 
     add: Transition {
