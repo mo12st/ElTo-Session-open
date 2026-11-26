@@ -174,7 +174,7 @@ $S 'cat /proc/sys/kernel/random/boot_id; uptime -s'
 click 1110 706
 shot /tmp/vm8.ppm lock7a_after_click
 sleep 3
-$S 'sudo journalctl -b --no-pager | grep -a ELTOLOCK | tail -5'
+$S 'sudo journalctl -b --no-pager | grep -a ELTOLOCK | tail -5; grep -a ELTOLOCK /home/dev/.local/state/elto-session.log | tail -8'
 click 1110 706
 $S 'sudo journalctl -b --no-pager 2>/dev/null | grep -a -E "ELTOLOCK run: systemctl|systemd-logind|Reboot" | tail -6; systemctl is-system-running'
 sleep 25
