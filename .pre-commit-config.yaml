@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-json
+      - id: check-yaml
+      - id: check-added-large-files
+  - repo: local
+    hooks:
+      - id: no-ai-junk
+        name: forbid aider/opencode junk files
+        entry: "AI helper junk file (.aider*/.opencode*) must not be committed"
+        language: fail
+        files: '(^|/)(\.aider|\.opencode)'
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v19.1.0
+    hooks:
+      - id: clang-format
+        files: '\.(c|h)$'
+        args: [--dry-run, --Werror]

@@ -1,0 +1,18 @@
+{
+  "_note": "Single source for all ElTo colors. Edit here, then run: python3 palette/gen.py",
+  "cream": "#f6f1e4",
+  "creamDark": "#efe9d8",
+  "green": "#283a32",
+  "midGreen": "#4c7860",
+  "lightGreen": "#cfe3d4",
+  "rust": "#a05040",
+  "inactiveBg": "#e0d9c4",
+  "inactiveFg": "#8a9a90",
+  "inactiveFrame": "#7d8c84",
+  "btnYellow": "#e0b84a",
+  "btnYellowHover": "#ecc860",
+  "btnGreen": "#5fae7a",
+  "btnGreenHover": "#72c08c",
+  "btnBlue": "#4f86c6",
+  "btnBlueHover": "#639ad8"
+}

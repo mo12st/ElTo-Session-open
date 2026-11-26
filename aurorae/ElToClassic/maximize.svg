@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 30 20">
+<g id="active"><rect id="active-center" width="30" height="20" rx="10" fill="#5fae7a"/><rect x="10" y="6" width="10" height="8" rx="1.5" fill="none" stroke="#283a32" stroke-width="2"/></g>
+<g id="hover"><rect id="hover-center" width="30" height="20" rx="10" fill="#72c08c"/><rect x="10" y="6" width="10" height="8" rx="1.5" fill="none" stroke="#283a32" stroke-width="2"/></g>
+<g id="pressed"><rect id="pressed-center" width="30" height="20" rx="10" fill="#283a32"/><rect x="10" y="6" width="10" height="8" rx="1.5" fill="none" stroke="#f6f1e4" stroke-width="2"/></g>
+<g id="inactive"><rect id="inactive-center" width="30" height="20" rx="10" fill="#e0d9c4"/><rect x="10" y="6" width="10" height="8" rx="1.5" fill="none" stroke="#8a9a90" stroke-width="2"/></g>
+<g id="hover-inactive"><rect id="hover-inactive-center" width="30" height="20" rx="10" fill="#72c08c"/><rect x="10" y="6" width="10" height="8" rx="1.5" fill="none" stroke="#283a32" stroke-width="2"/></g>
+<g id="pressed-inactive"><rect id="pressed-inactive-center" width="30" height="20" rx="10" fill="#283a32"/><rect x="10" y="6" width="10" height="8" rx="1.5" fill="none" stroke="#f6f1e4" stroke-width="2"/></g>
+<g id="deactivated"><rect id="deactivated-center" width="30" height="20" rx="10" fill="#e0d9c4"/><rect x="10" y="6" width="10" height="8" rx="1.5" fill="none" stroke="#8a9a90" stroke-width="2"/></g>
+<g id="deactivated-inactive"><rect id="deactivated-inactive-center" width="30" height="20" rx="10" fill="#e0d9c4"/><rect x="10" y="6" width="10" height="8" rx="1.5" fill="none" stroke="#8a9a90" stroke-width="2"/></g>
+</svg>

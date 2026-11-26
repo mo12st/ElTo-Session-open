@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 30 20">
+<g id="active"><rect id="active-center" width="30" height="20" rx="10" fill="#e0b84a"/><rect x="9" y="9" width="12" height="2.5" rx="1.25" fill="#283a32"/></g>
+<g id="hover"><rect id="hover-center" width="30" height="20" rx="10" fill="#ecc860"/><rect x="9" y="9" width="12" height="2.5" rx="1.25" fill="#283a32"/></g>
+<g id="pressed"><rect id="pressed-center" width="30" height="20" rx="10" fill="#283a32"/><rect x="9" y="9" width="12" height="2.5" rx="1.25" fill="#f6f1e4"/></g>
+<g id="inactive"><rect id="inactive-center" width="30" height="20" rx="10" fill="#e0d9c4"/><rect x="9" y="9" width="12" height="2.5" rx="1.25" fill="#8a9a90"/></g>
+<g id="hover-inactive"><rect id="hover-inactive-center" width="30" height="20" rx="10" fill="#ecc860"/><rect x="9" y="9" width="12" height="2.5" rx="1.25" fill="#283a32"/></g>
+<g id="pressed-inactive"><rect id="pressed-inactive-center" width="30" height="20" rx="10" fill="#283a32"/><rect x="9" y="9" width="12" height="2.5" rx="1.25" fill="#f6f1e4"/></g>
+<g id="deactivated"><rect id="deactivated-center" width="30" height="20" rx="10" fill="#e0d9c4"/><rect x="9" y="9" width="12" height="2.5" rx="1.25" fill="#8a9a90"/></g>
+<g id="deactivated-inactive"><rect id="deactivated-inactive-center" width="30" height="20" rx="10" fill="#e0d9c4"/><rect x="9" y="9" width="12" height="2.5" rx="1.25" fill="#8a9a90"/></g>
+</svg>

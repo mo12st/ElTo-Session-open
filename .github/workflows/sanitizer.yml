@@ -1,0 +1,30 @@
+name: sanitizer-rig
+
+on:
+  pull_request:
+  push:
+    branches: ["agent/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  asan-ubsan:
+    name: ASan+UBSan helper under nested KWin
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          path: pr
+      - name: Run sanitizer rig in a disposable Arch container
+        run: |
+          docker run --rm -v "$PWD/spike:/spike:ro" -v "$PWD/pr:/pr:ro" archlinux:base-devel bash -c '
+            pacman -Sy --noconfirm >/dev/null 2>&1
+            pacman -S --noconfirm --needed kwin kscreenlocker foot qt6-wayland mesa dbus ttf-dejavu libcap plasma-wayland-protocols wayland-protocols wayland gcc >/tmp/pacman.log 2>&1 || { tail -30 /tmp/pacman.log; exit 1; }
+            getcap $(readlink -f /usr/bin/kwin_wayland); setcap -r $(readlink -f /usr/bin/kwin_wayland) 2>&1
+            useradd -m dev
+            su dev -c "dbus-run-session -- bash /spike/run5-sanitize.sh" 2>&1
+          '

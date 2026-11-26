@@ -1,0 +1,59 @@
+name: ci-checks
+
+on:
+  pull_request:
+  push:
+    branches: ["agent/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: build, lint, secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential pkg-config libwayland-dev libwayland-bin \
+            wayland-protocols plasma-wayland-protocols \
+            cppcheck clang-tidy qt6-declarative-dev-tools
+          python3 -m pip install --user pre-commit semgrep
+
+      - name: Build window-list helper
+        run: make -C plugin/windowlist
+
+      - name: Strict warnings gate
+        run: gcc -fsyntax-only -Wall -Wextra -Werror $(pkg-config --cflags wayland-client) -Iplugin/windowlist plugin/windowlist/elto-windowlist.c
+
+      - name: cppcheck
+        run: cppcheck --enable=warning,performance,portability --error-exitcode=1 --inline-suppr -Iplugin/windowlist plugin/windowlist/elto-windowlist.c
+
+      - name: clang-tidy
+        run: clang-tidy plugin/windowlist/elto-windowlist.c --header-filter='elto-windowlist\.c' --checks='clang-analyzer-*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,bugprone-*,misc-*,-misc-include-cleaner,cert-*,-cert-err33-c,-bugprone-reserved-identifier,-cert-dcl37-c,-cert-dcl51-cpp,-bugprone-easily-swappable-parameters' --warnings-as-errors='clang-analyzer-*,bugprone-*,misc-*,cert-*,-misc-include-cleaner,-cert-err33-c' -- $(pkg-config --cflags wayland-client) -Iplugin/windowlist
+
+      - name: qmllint
+        run: |
+          QL=$(command -v qmllint || command -v qmllint6 || command -v qmllint-qt6 || ls /usr/lib/qt6/bin/qmllint 2>/dev/null || true)
+          if [ -z "$QL" ]; then echo 'qmllint binary not found'; exit 1; fi
+          echo "using $QL"
+          fail=0
+          for f in $(git ls-files '*.qml'); do
+            out=$("$QL" "$f" 2>&1) || true
+            if [ -n "$out" ]; then echo "== $f"; echo "$out"; fi
+            if echo "$out" | grep -q 'Error:'; then fail=1; fi
+          done
+          exit $fail
+
+      - name: pre-commit (changed files)
+        run: SKIP=clang-format pre-commit run --from-ref origin/${{ github.base_ref || 'main' }} --to-ref HEAD
+
+      - name: Semgrep CE secrets scan
+        run: semgrep scan --config p/secrets --oss-only --error --metrics=off

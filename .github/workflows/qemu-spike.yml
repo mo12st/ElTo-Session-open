@@ -1,0 +1,33 @@
+name: SPIKE (temporary) QEMU VM boot test
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: boot.sh or sddm-boot.sh
+        default: boot.sh
+      ref:
+        description: branch mounted at ./pr (for panel-boot.sh)
+        default: main
+permissions:
+  contents: read
+jobs:
+  vm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || 'main' }}
+          path: pr
+      - name: Does this runner have KVM?
+        run: |
+          ls -la /dev/kvm || echo "NO /dev/kvm"
+          nproc; free -m | head -2
+          grep -c -E 'vmx|svm' /proc/cpuinfo || true
+      - name: Install QEMU tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq qemu-system-x86 qemu-utils cloud-image-utils sshpass imagemagick >/dev/null && qemu-system-x86_64 --version | head -1
+      - name: Allow KVM for the runner user
+        run: sudo chmod 666 /dev/kvm && ls -la /dev/kvm
+      - name: Boot Arch cloud image and run the in-VM script
+        run: bash spike/qemu/${{ inputs.script || 'boot.sh' }}

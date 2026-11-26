@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 30 20">
+<g id="active"><rect id="active-center" width="30" height="20" rx="10" fill="#4f86c6"/><path d="M11 6l8 8M19 6l-8 8" stroke="#f6f1e4" stroke-width="2.2" stroke-linecap="round"/></g>
+<g id="hover"><rect id="hover-center" width="30" height="20" rx="10" fill="#639ad8"/><path d="M11 6l8 8M19 6l-8 8" stroke="#f6f1e4" stroke-width="2.2" stroke-linecap="round"/></g>
+<g id="pressed"><rect id="pressed-center" width="30" height="20" rx="10" fill="#283a32"/><path d="M11 6l8 8M19 6l-8 8" stroke="#f6f1e4" stroke-width="2.2" stroke-linecap="round"/></g>
+<g id="inactive"><rect id="inactive-center" width="30" height="20" rx="10" fill="#e0d9c4"/><path d="M11 6l8 8M19 6l-8 8" stroke="#8a9a90" stroke-width="2.2" stroke-linecap="round"/></g>
+<g id="hover-inactive"><rect id="hover-inactive-center" width="30" height="20" rx="10" fill="#639ad8"/><path d="M11 6l8 8M19 6l-8 8" stroke="#f6f1e4" stroke-width="2.2" stroke-linecap="round"/></g>
+<g id="pressed-inactive"><rect id="pressed-inactive-center" width="30" height="20" rx="10" fill="#283a32"/><path d="M11 6l8 8M19 6l-8 8" stroke="#f6f1e4" stroke-width="2.2" stroke-linecap="round"/></g>
+<g id="deactivated"><rect id="deactivated-center" width="30" height="20" rx="10" fill="#e0d9c4"/><path d="M11 6l8 8M19 6l-8 8" stroke="#8a9a90" stroke-width="2.2" stroke-linecap="round"/></g>
+<g id="deactivated-inactive"><rect id="deactivated-inactive-center" width="30" height="20" rx="10" fill="#e0d9c4"/><path d="M11 6l8 8M19 6l-8 8" stroke="#8a9a90" stroke-width="2.2" stroke-linecap="round"/></g>
+</svg>

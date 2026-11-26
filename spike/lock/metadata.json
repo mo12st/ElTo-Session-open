@@ -1,0 +1,5 @@
+{
+  "KPlugin": { "Id": "org.elto.shell", "Name": "ElTo spike shell", "Description": "Spike lock screen package, not a design" },
+  "KPackageStructure": "Plasma/Shell",
+  "X-Plasma-APIVersion": "2"
+}
