@@ -1,0 +1,306 @@
+#!/usr/bin/env python3
+"""elto-discovery - ElTo Discovery, Phase 1 spike.
+
+Find and install apps on the ElTo base system through PackageKit's pacman
+(alpm) backend, via the pkcon command-line client. Machine-facing: the ElTo
+shell spawns one process per operation and reads JSON Lines from stdout.
+
+Contract: every invocation prints one JSON object per line. The last line is
+always {"event": "done", "ok": true|false, ...}. Human diagnostics go to
+stderr only, so stdout stays machine-clean.
+
+  search <text>            -> {"event": "results", "results": [...]}, done
+  info <package-id>        -> {"event": "info", "info": {...}}, done
+  install <package-id>     -> progress events, done
+  remove <package-id>      -> progress events, done
+  selftest                 -> {"event": "info", "info": {...}}, done
+
+<package-id> is a full PackageKit ID: name;version;arch;data as reported in
+search results ("id" field). Full IDs are required for install/remove so pkcon
+never falls back to its interactive name-resolution prompt on stdin (which we
+close). See README.md. Scope: pacman/PackageKit only; Flatpak is a separate
+approved-later decision; worlds follow the World Engine schema.
+
+pkcon output parsing is modeled on PackageKit v1.4.1 client/pkcon/pk-console.c;
+the exact line formats this reads are cited in VERIFICATION.md and must be
+confirmed against a live system in the VM test.
+"""
+
+import json
+import os
+import re
+import shutil
+import signal
+import subprocess
+import sys
+
+PKCON = "pkcon"
+SEARCH_TIMEOUT_S = 120
+INFO_TIMEOUT_S = 120
+# install/remove get no timeout: transactions can legitimately take a long time.
+
+# pkcon non-console ("--plain") package line, from pk-console.c
+# pk_console_package_cb(): g_print("%s %s\n", info_pad, printable) where
+# printable is "name-version.arch (data)". The info word is padded to 12.
+# name may contain dashes (lib32-glibc); version is pkgver-pkgrel (pkgver never
+# contains '-'), so the name boundary is the first dash followed by a digit.
+PACKAGE_LINE = re.compile(
+    r"^(?P<info>[A-Za-z][A-Za-z ]*?)\s+"
+    r"(?P<name>.+?)-(?P<version>[0-9][^-]*-[0-9][0-9A-Za-z.+]*)"
+    r"\.(?P<arch>[A-Za-z0-9_]+) \((?P<data>[^)]*)\)$"
+)
+
+# "  key:           value" detail lines from pk_console_details_cb().
+DETAIL_LINE = re.compile(r"^  (?P<key>[a-z ]+?):\s+(?P<value>.*)$")
+
+# Non-console progress lines from pk_console_progress_cb() (note: "Status" is
+# printed as "%s: \t%s" with a space before the tab, the others as "%s:\t%s").
+PROGRESS_LINE = re.compile(
+    r"^(?P<kind>Transaction|Package|Percentage|Status): ?\t(?P<value>.*)$"
+)
+
+KNOWN_PREFIXES = (
+    "Results:",
+    "Fatal error",
+    "The transaction failed",
+    "Command failed",
+    "More than one package matches",
+    "Package description",
+    "Package files",
+    "No files",
+)
+
+
+def emit(obj):
+    sys.stdout.write(json.dumps(obj, ensure_ascii=False) + "\n")
+    sys.stdout.flush()
+
+
+def fail(code, message, exit_code=1, **extra):
+    done = {"event": "done", "ok": False,
+            "error": {"code": code, "message": message}}
+    done.update(extra)
+    emit(done)
+    sys.exit(exit_code)
+
+
+def classify_error(text):
+    """Map pkcon's failure text to a stable error code.
+
+    Patterns from pk-console.c v1.4.1: "The transaction failed: <enum>,
+    <details>" (line ~734), "Fatal error: <message>" (line ~700),
+    "Command failed: <message>" (main, line ~2620). The enum strings
+    ("transaction-cancelled", "not-authorized", ...) are pk_error_enum_to_string
+    values. Exact strings for each real failure remain a VM-test item.
+    """
+    low = text.lower()
+    if "not found" in low or "not find" in low or "no packages found" in low:
+        return "not-found"
+    if "not-authorized" in low or "not authorized" in low:
+        return "not-authorized"
+    if "cancel" in low:
+        return "cancelled"
+    if re.search(r"could not (connect|activate)|d-bus|dbus|spawn", low):
+        return "daemon-error"
+    if "the transaction failed" in low:
+        return "transaction-failed"
+    return "pkcon-error"
+
+
+def extract_error(lines):
+    """Return pkcon's error line(s) from captured output, or None."""
+    msgs = [l for l in lines if l.startswith(
+        ("The transaction failed", "Fatal error", "Command failed",
+         "Package not found"))]
+    return "; ".join(msgs) if msgs else None
+
+
+def pkcon_env():
+    env = dict(os.environ)
+    # pkcon localizes its output (pk_info_enum_to_localised_past etc.); pin C
+    # so the parser sees the English words documented in VERIFICATION.md.
+    env["LC_ALL"] = "C"
+    return env
+
+
+def spawn_pkcon(args):
+    return subprocess.Popen(
+        [PKCON, "--plain"] + args,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        stdin=subprocess.DEVNULL,  # never let pkcon prompt us on stdin
+        env=pkcon_env(), text=True, errors="replace",
+        start_new_session=True,  # own process group for clean cancellation
+    )
+
+
+def parse_package_line(line):
+    m = PACKAGE_LINE.match(line)
+    if not m:
+        return None
+    info_word = m.group("info").strip().lower()
+    data = m.group("data")
+    if info_word == "installed" or data.startswith("installed") or data == "local":
+        status = "installed"
+    else:
+        status = info_word  # "available", or another pk info word, lowercased
+    return {
+        "id": ";".join([m.group("name"), m.group("version"),
+                        m.group("arch"), data]),
+        "name": m.group("name"),
+        "version": m.group("version"),
+        "arch": m.group("arch"),
+        "repo": data,
+        "status": status,
+        # summary is not printed by pkcon in non-console mode
+        # (pk-console.c line ~125): use `info` for the description.
+    }
+
+
+def cmd_search(query):
+    proc = spawn_pkcon(["search", "name", query])
+    try:
+        out, err = proc.communicate(timeout=SEARCH_TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.communicate()
+        fail("timeout", "pkcon search exceeded %ds" % SEARCH_TIMEOUT_S)
+    lines = [l.rstrip("\r") for l in out.splitlines()]
+    results = []
+    for line in lines:
+        if not line.strip() or line.startswith(KNOWN_PREFIXES):
+            continue
+        parsed = parse_package_line(line)
+        if parsed:
+            results.append(parsed)
+    if proc.returncode != 0:
+        msg = extract_error(lines) or (err.strip() or
+                                       "pkcon exited %d" % proc.returncode)
+        fail(classify_error(msg), msg)
+    emit({"event": "results", "query": query, "results": results})
+    emit({"event": "done", "ok": True, "count": len(results)})
+
+
+def cmd_info(package_id):
+    proc = spawn_pkcon(["get-details", package_id])
+    try:
+        out, err = proc.communicate(timeout=INFO_TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.communicate()
+        fail("timeout", "pkcon get-details exceeded %ds" % INFO_TIMEOUT_S)
+    lines = [l.rstrip("\r") for l in out.splitlines()]
+    if proc.returncode != 0:
+        msg = extract_error(lines) or (err.strip() or
+                                       "pkcon exited %d" % proc.returncode)
+        fail(classify_error(msg), msg)
+    info = {}
+    for line in lines:
+        m = DETAIL_LINE.match(line)
+        if m:
+            info[m.group("key").strip().replace(" ", "_")] = m.group("value")
+    if not info:
+        fail("parse-error",
+             "pkcon get-details produced no recognizable output",
+             pkcon_output=out[:2000])
+    parts = package_id.split(";")
+    if len(parts) == 4:
+        data = parts[3]
+        info["status"] = ("installed" if data.startswith("installed")
+                          or data == "local" else "available")
+        info["id"] = package_id
+    emit({"event": "info", "info": info})
+    emit({"event": "done", "ok": True})
+
+
+def cmd_transaction(verb, package_id):
+    if len(package_id.split(";")) != 4:
+        # A bare name makes pkcon resolve interactively ("Please choose the
+        # correct package:") and we close stdin, so refuse early with a clear
+        # error instead of failing obscurely.
+        fail("usage",
+             "%s needs a full package id (name;version;arch;data) from a "
+             "search result, got: %r" % (verb, package_id), exit_code=2)
+    proc = spawn_pkcon([verb, package_id])
+    lines = []
+    try:
+        assert proc.stdout is not None
+        for raw in proc.stdout:
+            line = raw.rstrip("\n").rstrip("\r")
+            lines.append(line)
+            m = PROGRESS_LINE.match(line)
+            if not m:
+                continue
+            kind, value = m.group("kind"), m.group("value")
+            if kind == "Percentage":
+                try:
+                    emit({"event": "progress", "percent": int(value)})
+                except ValueError:
+                    pass
+            elif kind == "Status":
+                emit({"event": "status", "status": value})
+            elif kind == "Package":
+                emit({"event": "package", "package": value})
+            elif kind == "Transaction":
+                emit({"event": "transaction", "role": value})
+        proc.wait()
+    except KeyboardInterrupt:
+        # cancel: kill the whole pkcon process group, then report
+        try:
+            os.killpg(proc.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        proc.wait()
+        fail("cancelled", "interrupted; pkcon process group terminated")
+    err = proc.stderr.read() if proc.stderr else ""
+    if proc.returncode != 0:
+        msg = extract_error(lines) or (err.strip() or
+                                       "pkcon exited %d" % proc.returncode)
+        fail(classify_error(msg), msg)
+    emit({"event": "done", "ok": True, "command": verb, "package": package_id})
+
+
+def cmd_selftest():
+    info = {"pkcon_path": shutil.which(PKCON)}
+    if not info["pkcon_path"]:
+        fail("pkcon-missing",
+             "pkcon not found on PATH; install the 'packagekit' package")
+    proc = spawn_pkcon(["backend-details"])
+    try:
+        out, err = proc.communicate(timeout=30)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.communicate()
+        fail("daemon-error", "pkcon backend-details timed out")
+    info["backend_details_exit"] = proc.returncode
+    info["backend_details"] = [l for l in out.splitlines() if l.strip()]
+    if proc.returncode != 0:
+        msg = extract_error(info["backend_details"]) or err.strip()
+        fail(classify_error(msg or "daemon-error"), msg or
+             "pkcon backend-details failed")
+    emit({"event": "info", "info": info})
+    emit({"event": "done", "ok": True})
+
+
+USAGE = __doc__
+
+
+def main(argv):
+    if len(argv) < 2:
+        sys.stderr.write(USAGE)
+        fail("usage", "no command given", exit_code=2)
+    cmd, rest = argv[1], argv[2:]
+    if cmd == "search" and len(rest) == 1 and rest[0].strip():
+        cmd_search(rest[0])
+    elif cmd == "info" and len(rest) == 1:
+        cmd_info(rest[0])
+    elif cmd in ("install", "remove") and len(rest) == 1:
+        cmd_transaction(cmd, rest[0])
+    elif cmd == "selftest" and not rest:
+        cmd_selftest()
+    else:
+        sys.stderr.write(USAGE)
+        fail("usage", "bad arguments: %r" % argv[1:], exit_code=2)
+
+
+if __name__ == "__main__":
+    main(sys.argv)
