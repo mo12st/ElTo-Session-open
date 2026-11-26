@@ -52,6 +52,7 @@ echo "== provision full session"
 SC="sshpass -p devpass scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P 2222"
 (cd $REPO/pr && tar --exclude=.git -czf /tmp/repo.tgz .) && $SC /tmp/repo.tgz dev@127.0.0.1:/tmp/ 2>&1 | tail -2
 $S 'sudo pacman -Syu --noconfirm --needed sddm kwin quickshell foot qt6-wayland qt6-svg qt6-declarative mesa libglvnd ttf-dejavu noto-fonts noto-fonts-extra ttf-nunito base-devel wayland plasma-wayland-protocols wayland-protocols libnotify kcalc dolphin plasma-integration breeze kscreenlocker playerctl python >/tmp/pacman.log 2>&1; tail -2 /tmp/pacman.log
+sudo pacman -S --noconfirm --needed plasma5support 2>&1 | tail -4; pacman -Q plasma5support
 mkdir -p /tmp/repo && tar -xzf /tmp/repo.tgz -C /tmp/repo && sudo bash /tmp/repo/session/install.sh 2>&1 | tail -5
 ls -la /usr/local/bin/elto-session /usr/local/bin/elto-windowlist /usr/share/wayland-sessions/elto.desktop /etc/xdg/kdeglobals /etc/xdg/kwinrc
 sudo systemctl disable --now getty@tty1 2>&1 | tail -1
@@ -88,14 +89,48 @@ class Root(ServiceInterface):
     def __init__(s): super().__init__('org.mpris.MediaPlayer2')
     @dbus_property(access=PropertyAccess.READ)
     def Identity(s) -> 's': return 'Mock'
+    @dbus_property(access=PropertyAccess.READ)
+    def CanQuit(s) -> 'b': return False
+    @dbus_property(access=PropertyAccess.READ)
+    def CanRaise(s) -> 'b': return False
+    @dbus_property(access=PropertyAccess.READ)
+    def HasTrackList(s) -> 'b': return False
+    @dbus_property(access=PropertyAccess.READ)
+    def SupportedUriSchemes(s) -> 'as': return []
+    @dbus_property(access=PropertyAccess.READ)
+    def SupportedMimeTypes(s) -> 'as': return []
 class Player(ServiceInterface):
     def __init__(s): super().__init__('org.mpris.MediaPlayer2.Player'); s.st='Playing'
     @dbus_property(access=PropertyAccess.READ)
     def PlaybackStatus(s) -> 's': return s.st
     @dbus_property(access=PropertyAccess.READ)
-    def Metadata(s) -> 'a{sv}': return {'xesam:title': Variant('s','Weightless'), 'xesam:artist': Variant('as',['Marconi Union']), 'mpris:trackid': Variant('o','/t/1')}
+    def Metadata(s) -> 'a{sv}': return {'xesam:title': Variant('s','Weightless'), 'xesam:artist': Variant('as',['Marconi Union']), 'mpris:trackid': Variant('o','/t/1'), 'mpris:length': Variant('x',480000000)}
     @dbus_property(access=PropertyAccess.READ)
     def CanControl(s) -> 'b': return True
+    @dbus_property(access=PropertyAccess.READ)
+    def CanPlay(s) -> 'b': return True
+    @dbus_property(access=PropertyAccess.READ)
+    def CanPause(s) -> 'b': return True
+    @dbus_property(access=PropertyAccess.READ)
+    def CanGoNext(s) -> 'b': return True
+    @dbus_property(access=PropertyAccess.READ)
+    def CanGoPrevious(s) -> 'b': return True
+    @dbus_property(access=PropertyAccess.READ)
+    def CanSeek(s) -> 'b': return False
+    @dbus_property(access=PropertyAccess.READ)
+    def Position(s) -> 'x': return 0
+    @dbus_property(access=PropertyAccess.READ)
+    def Rate(s) -> 'd': return 1.0
+    @dbus_property(access=PropertyAccess.READ)
+    def MinimumRate(s) -> 'd': return 1.0
+    @dbus_property(access=PropertyAccess.READ)
+    def MaximumRate(s) -> 'd': return 1.0
+    @dbus_property(access=PropertyAccess.READ)
+    def Volume(s) -> 'd': return 1.0
+    @dbus_property(access=PropertyAccess.READ)
+    def LoopStatus(s) -> 's': return 'None'
+    @dbus_property(access=PropertyAccess.READ)
+    def Shuffle(s) -> 'b': return False
     @method()
     def PlayPause(s):
         s.st = 'Paused' if s.st=='Playing' else 'Playing'; open('/tmp/mock.log','a').write('PlayPause -> '+s.st+'\n')
@@ -118,7 +153,7 @@ lockit
 $S "$U sh -c 'journalctl --user -b 2>/dev/null | grep -a ELTOLOCK | tail; true'; sudo journalctl -b 2>/dev/null | grep -a ELTOLOCK | tail -8; grep -a ELTOLOCK /home/dev/.local/state/elto-session.log | tail -8"
 shot /tmp/vm1.ppm lock1_noplayer
 echo "== LOCK 2: with player"
-$S "$U sh -c 'setsid nohup /tmp/mv/bin/python /tmp/mockplayer.py >/tmp/mock.out 2>&1 &'; sleep 5; $U playerctl metadata --format '{{status}}|{{title}}|{{artist}}'; cat /tmp/mock.out"
+$S "$U sh -c 'setsid nohup /tmp/mv/bin/python /tmp/mockplayer.py >/tmp/mock.out 2>&1 &'; sleep 5; echo MOCKDIAG; ls -la /tmp/mv/bin/python /tmp/mockplayer.py; pgrep -af mockplayer; $U busctl --user list | grep -i mpris; cat /tmp/mock.out; $U playerctl -l; $U playerctl metadata --format '{{status}}|{{title}}|{{artist}}'; cat /tmp/mock.out"
 sleep 4
 shot /tmp/vm2.ppm lock2_player
 echo "== LOCK 3: wrong password"
@@ -138,7 +173,12 @@ shot /tmp/vm6.ppm lock6_dusk
 echo "== LOCK 7: Restart button"
 $S 'cat /proc/sys/kernel/random/boot_id; uptime -s'
 click 1110 706
-sleep 15
+shot /tmp/vm8.ppm lock7a_after_click
+sleep 3
+$S 'sudo journalctl -b --no-pager | grep -a ELTOLOCK | tail -5; grep -a ELTOLOCK /home/dev/.local/state/elto-session.log | tail -8'
+click 1110 706
+$S 'sudo journalctl -b --no-pager 2>/dev/null | grep -a -E "ELTOLOCK run: systemctl|systemd-logind|Reboot" | tail -6; systemctl is-system-running'
+sleep 25
 for i in $(seq 1 30); do if $S 'cat /proc/sys/kernel/random/boot_id; uptime -s' 2>/dev/null; then break; fi; echo "ssh down ($i)"; sleep 6; done
 $S 'sudo journalctl -b -1 2>/dev/null | grep -a -E "ELTOLOCK run|systemctl reboot" | tail -5; last reboot | head -3'
 shot /tmp/vm7.ppm lock7_after_restart
