@@ -108,53 +108,54 @@ sleep 0.3
 qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":false,"button":"left"}}]}}' >/dev/null
 sleep 3; }
 cat > /tmp/frames.py <<'PY'
-import socket,json,sys,time,subprocess
-n=int(sys.argv[1]); pre=sys.argv[2]; trig=sys.argv[3] if len(sys.argv)>3 else ""
+import socket,json,sys,time
+n=int(sys.argv[1]); dt=float(sys.argv[2]); pre=sys.argv[3]
+acts=sorted((float(x.split("@",1)[0]),x.split("@",1)[1]) for x in sys.argv[4:])
 s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
 f.readline();f.write(json.dumps({"execute":"qmp_capabilities"})+"\n");f.flush();f.readline()
 def send(o):
     f.write(json.dumps(o)+"\n");f.flush();return f.readline()
-if trig: subprocess.Popen(trig,shell=True)
-t0=time.time()
+def mv(x,y): return {"execute":"input-send-event","arguments":{"events":[{"type":"abs","data":{"axis":"x","value":x*32767//1280}},{"type":"abs","data":{"axis":"y","value":y*32767//800}}]}}
+def btn(d): return {"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":d,"button":"left"}}]}}
+t0=time.time(); log=[]
 for i in range(n):
+    t=time.time()-t0
+    while acts and acts[0][0]<=t:
+        a=acts.pop(0)[1]
+        if a=="hover": send(mv(215,771))
+        elif a=="away": send(mv(60,700))
+        elif a=="down": send(btn(True))
+        elif a=="up": send(btn(False))
+        log.append((round(t,2),a))
     send({"execute":"screendump","arguments":{"filename":"/tmp/%s%02d.ppm"%(pre,i)}})
-    print(pre,i,round(time.time()-t0,2))
+    time.sleep(dt)
+print(pre,"actions",log,"total",round(time.time()-t0,2))
 PY
 sheet() { # prefix name
-  convert /tmp/$1[0-9][0-9].ppm -crop 560x56+170+744 +repage -append /tmp/$2.png; ls -la /tmp/$2.png
+  montage /tmp/$1[0-9][0-9].ppm -crop 400x56+170+744 +repage -tile 4x -geometry +2+2 -background '#888' /tmp/$2.png 2>&1 | head -2; ls -la /tmp/$2.png
   echo "===== BEGIN-SHOT $2 ====="; base64 -w0 /tmp/$2.png; echo; }
 SSHT="sshpass -p devpass ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p 2222 dev@127.0.0.1"
 shot /tmp/vm1.ppm vm1
-echo "== 1 appear: spawn winC while taking frames"
-python3 /tmp/frames.py 8 ap "$SSHT 'XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-0 nohup foot -T winC -e sh -c \"sleep 3000\" >/dev/null 2>&1 &'"
+echo "== 1 appear: winC spawns in the VM about 0.6 s after frames start"
+$SSHT 'nohup sh -c "sleep 0.8; XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-0 foot -T winC -e sh -c \"sleep 3000\"" >/dev/null 2>&1 &'
+python3 /tmp/frames.py 28 0.05 ap
 sheet ap appear
-$S 'grep -a -c . /tmp/qs.log'
-echo "== 2 hover: move pointer onto first pill"
-python3 - <<'PY'
-PY
+sleep 2
+echo "== 2 hover: pointer to pill after 0.4 s, away after 1.0 s"
 qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"abs","data":{"axis":"x","value":'$((60*32767/1280))'}},{"type":"abs","data":{"axis":"y","value":'$((700*32767/800))'}}]}}' >/dev/null
 sleep 1
-python3 /tmp/frames.py 6 hv "python3 - <<'P2'
-import socket,json
-s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
-f.readline();f.write(json.dumps({'execute':'qmp_capabilities'})+chr(10));f.flush();f.readline()
-f.write(json.dumps({'execute':'input-send-event','arguments':{'events':[{'type':'abs','data':{'axis':'x','value':215*32767//1280}},{'type':'abs','data':{'axis':'y','value':771*32767//800}}]}})+chr(10));f.flush();f.readline()
-P2"
+python3 /tmp/frames.py 28 0.05 hv 0.4@hover 1.0@away
 sheet hv hover
-echo "== 3 press: hold left button over the pill"
-python3 /tmp/frames.py 5 pr "python3 - <<'P2'
-import socket,json
-s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
-f.readline();f.write(json.dumps({'execute':'qmp_capabilities'})+chr(10));f.flush();f.readline()
-f.write(json.dumps({'execute':'input-send-event','arguments':{'events':[{'type':'btn','data':{'down':True,'button':'left'}}]}})+chr(10));f.flush();f.readline()
-P2"
+echo "== 3 press: hover, down at 0.4 s, up at 1.0 s"
+python3 /tmp/frames.py 28 0.05 pr 0.0@hover 0.4@down 1.0@up
 sheet pr press
-qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":false,"button":"left"}}]}}' >/dev/null
+python3 /tmp/frames.py 1 0 pz 0.0@away
 sleep 2
 shot /tmp/vm2.ppm vm2
-echo "== 4 disappear: kill winC while taking frames"
-python3 /tmp/frames.py 8 dp "$SSHT 'pkill -f \"[f]oot -T winC\"'"
+echo "== 4 disappear: winC killed in the VM about 0.8 s after frames start"
+$SSHT 'nohup sh -c "sleep 0.8; pkill -f \"[f]oot -T winC\"" >/dev/null 2>&1 &'
+python3 /tmp/frames.py 28 0.05 dp
 sheet dp disappear
 sleep 1
 shot /tmp/vm3.ppm vm3
-$S 'grep -a -i -E "error|warn|crash|segv|abort" /tmp/qs.log | head; pgrep -a quickshell | head -1'
+$S 'grep -a -i -E "error|crash|segv|abort" /tmp/qs.log | head -5; pgrep -a quickshell | head -1'
