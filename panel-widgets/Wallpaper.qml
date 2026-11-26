@@ -14,7 +14,7 @@ Variants {
         color: "#f6f1e4"
         Image {
             anchors.fill: parent
-            source: Quickshell.env("ELTO_WALLPAPER") ? "file://" + Quickshell.env("ELTO_WALLPAPER") : Qt.resolvedUrl("../wallpaper/elto-default.svg")
+            source: Quickshell.env("ELTO_WALLPAPER") ? "file://" + Quickshell.env("ELTO_WALLPAPER") : "file://" + Quickshell.shellPath("../wallpaper/elto-default.svg")
             fillMode: Image.PreserveAspectCrop
             sourceSize.width: 1920
             sourceSize.height: 1080
