@@ -22,6 +22,14 @@ ShellRoot {
             font.pixelSize: 16
         }
 
+        TaskbarPills {
+            anchors.left: parent.left
+            anchors.leftMargin: 180
+            anchors.verticalCenter: parent.verticalCenter
+            height: 32
+            width: Math.min(contentWidth, parent.width - 600)
+        }
+
         Panel {
             anchors.right: parent.right
             anchors.rightMargin: 24
@@ -29,3 +37,4 @@ ShellRoot {
         }
     }
 }
+
