@@ -156,6 +156,7 @@ echo "== LOCK 2: with player"
 $S "$U sh -c 'setsid nohup /tmp/mv/bin/python /tmp/mockplayer.py >/tmp/mock.out 2>&1 &'; sleep 5; echo MOCKDIAG; ls -la /tmp/mv/bin/python /tmp/mockplayer.py; pgrep -af mockplayer; $U busctl --user list | grep -i mpris; cat /tmp/mock.out; $U playerctl -l; $U playerctl metadata --format '{{status}}|{{title}}|{{artist}}'; cat /tmp/mock.out"
 sleep 4
 shot /tmp/vm2.ppm lock2_player
+convert /tmp/vm2.ppm -crop 1280x170+0+630 -resize 200% /tmp/zoom_bottom.png; echo "===== BEGIN-SHOT zoom_bottom ====="; base64 -w0 /tmp/zoom_bottom.png; echo
 echo "== LOCK 3: wrong password"
 for k in x x x ret; do key $k; done; sleep 3
 shot /tmp/vm3.ppm lock3_wrong
