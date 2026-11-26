@@ -14,7 +14,7 @@ Scope {
     property string npArtist: ""
     readonly property bool hasPlayer: npStatus !== ""
     readonly property bool playing: npStatus === "Playing"
-    readonly property var N: Theme.notchT
+    readonly property var nt: Theme.notchT
     readonly property int dw: N.drawerWidth
     readonly property int pad: N.drawerPadding
     readonly property real sw: playing ? 236 : N.idleWidth
@@ -82,18 +82,18 @@ Scope {
                 x: (parent.width - width) / 2
                 y: -30
                 width: root.open ? root.dw : root.sw
-                height: (root.open ? drawer.implicitHeight + 30 : root.N.idleHeight + 30)
-                radius: root.open ? root.N.drawerRadius : root.N.idleHeight / 2 + 2
+                height: (root.open ? drawer.implicitHeight + 30 : root.nt.idleHeight + 30)
+                radius: root.open ? root.nt.drawerRadius : root.nt.idleHeight / 2 + 2
                 color: Theme.surface
                 clip: true
-                Behavior on width { NumberAnimation { duration: Theme.ms(root.N.openMs); easing.type: Easing.OutCubic } }
-                Behavior on height { NumberAnimation { duration: Theme.ms(root.N.openMs); easing.type: Easing.OutCubic } }
-                Behavior on radius { NumberAnimation { duration: Theme.ms(root.N.openMs); easing.type: Easing.OutCubic } }
+                Behavior on width { NumberAnimation { duration: Theme.ms(root.nt.openMs); easing.type: Easing.OutCubic } }
+                Behavior on height { NumberAnimation { duration: Theme.ms(root.nt.openMs); easing.type: Easing.OutCubic } }
+                Behavior on radius { NumberAnimation { duration: Theme.ms(root.nt.openMs); easing.type: Easing.OutCubic } }
 
                 // idle notch row
                 Row {
                     id: idle
-                    y: 30 + (root.N.idleHeight - height) / 2
+                    y: 30 + (root.nt.idleHeight - height) / 2
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 10
                     opacity: root.open ? 0 : 1
@@ -137,7 +137,7 @@ Scope {
                     topPadding: root.pad - 6
                     bottomPadding: root.pad
                     opacity: root.open ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: Theme.ms(root.N.openMs); easing.type: Easing.OutCubic } }
+                    Behavior on opacity { NumberAnimation { duration: Theme.ms(root.nt.openMs); easing.type: Easing.OutCubic } }
 
                     Item {
                         width: parent.width
@@ -163,7 +163,7 @@ Scope {
 
                     Grid {
                         columns: 2
-                        spacing: root.N.gap
+                        spacing: root.nt.gap
                         width: parent.width
                         Repeater {
                             model: [
@@ -175,8 +175,8 @@ Scope {
                             Rectangle {
                                 required property var modelData
                                 readonly property bool on: root.toggles[modelData.key]
-                                width: (drawer.width - root.N.gap) / 2
-                                height: root.N.toggleHeight
+                                width: (drawer.width - root.nt.gap) / 2
+                                height: root.nt.toggleHeight
                                 radius: height / 2
                                 color: on ? Theme.color("midGreen") : Theme.surfaceAlt
                                 Behavior on color { ColorAnimation { duration: Theme.ms(150) } }
@@ -212,10 +212,10 @@ Scope {
                 x: card.x + (card.width - width) / 2
                 y: card.y + card.height + 10
                 width: root.hasPlayer ? 380 : 0
-                height: root.hasPlayer ? root.N.mediaHeight : 0
-                Behavior on y { NumberAnimation { duration: Theme.ms(root.N.openMs); easing.type: Easing.OutCubic } }
+                height: root.hasPlayer ? root.nt.mediaHeight : 0
+                Behavior on y { NumberAnimation { duration: Theme.ms(root.nt.openMs); easing.type: Easing.OutCubic } }
                 opacity: root.hasPlayer ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: Theme.ms(root.N.openMs) } }
+                Behavior on opacity { NumberAnimation { duration: Theme.ms(root.nt.openMs) } }
                 Rectangle {
                     anchors.fill: parent; radius: 24; color: Theme.surface
                     Rectangle {
