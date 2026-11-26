@@ -1,0 +1,12 @@
+[SddmGreeterTheme]
+Name=ElTo Classic
+Description=ElTo OS login screen, classic edition: aquarelle paper, editorial serif clock, snail logo, left-aligned sign-in card, session switch
+Author=ElTo project
+License=GPL-2.0-or-later
+Type=sddm-theme
+Version=0.1
+Website=https://localhost
+Screenshot=Background.png
+MainScript=Main.qml
+ConfigFile=theme.conf
+QtVersion=6
