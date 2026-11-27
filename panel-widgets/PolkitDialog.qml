@@ -154,7 +154,7 @@ PanelWindow {
     }
     Connections {
         target: agent
-        function onIsActiveChanged() { if (agent.isActive) { failedHint.visible = false; pw.text = ""; pw.forceActiveFocus() } }
+        function onIsActiveChanged() { console.warn("POLKITREG isActive=" + agent.isActive + " flow=" + (agent.flow ? agent.flow.message + " | ident=" + agent.flow.selectedIdentity : "null") + " dim=" + dim.width + "x" + dim.height + " card.visible=" + card.visible); if (agent.isActive) { failedHint.visible = false; pw.text = ""; pw.forceActiveFocus() } }
     }
     onVisibleChanged: if (false) { failedHint.visible = false; pw.text = ""; pw.forceActiveFocus() }
 }
