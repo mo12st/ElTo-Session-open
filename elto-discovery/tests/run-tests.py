@@ -107,7 +107,9 @@ case "$*" in
     printf '%s\n' '{"error":"Could not find packages: No packages were found"}'
     exit 1;;
   "--json --no-color install sl;5.05-3;x86_64;extra")
-    head -n 3 > "$(dirname "$0")/stdin-install.txt"; cat <<'EOF'
+    head -n 3 > "$(dirname "$0")/stdin-install.txt"
+    if [ -t 0 ]; then echo tty; else echo notty; fi > "$(dirname "$0")/stdin-istty.txt"
+    cat <<'EOF'
 @INSTALL_OK_OUT@EOF
     exit 0;;
   "--json --no-color install installed-pkg;1-1;x86_64;extra")
@@ -253,12 +255,17 @@ def main():
     check("install emits no progress events (pkgcli JSON mode)",
           "progress" not in kinds and "status" not in kinds, repr(kinds))
     check("install done ok", events[-1]["ok"] is True)
-    # install pre-answers pkgcli's simulation confirmation on stdin (the
+    # install pre-answers pkgcli's simulation confirmation through a real
+    # controlling tty (pkgcli reads it from /dev/tty, not stdin; the
     # polkit-gated transaction itself still needs session auth)
     with open(os.path.join(tmp, "stdin-install.txt")) as f:
         confirm = f.read().splitlines()
-    check("install pre-answers simulation prompt on stdin",
+    check("install pre-answers simulation prompt on the tty",
           confirm == ["y", "y", "y"], repr(confirm))
+    with open(os.path.join(tmp, "stdin-istty.txt")) as f:
+        istty = f.read().strip()
+    check("install runs pkgcli with a controlling tty", istty == "tty",
+          repr(istty))
 
     # install: already installed is success with an info message
     events, _ = run_helper(env, "install", "installed-pkg;1-1;x86_64;extra",
