@@ -2,6 +2,7 @@
   "en": {
     "appTitle": "ElTo Control",
     "appearance": "Appearance",
+    "themes": "Themes",
     "sound": "Sound",
     "network": "Network",
     "bluetooth": "Bluetooth",
@@ -81,6 +82,7 @@
   "ar": {
     "appTitle": "تحكم ElTo",
     "appearance": "المظهر",
+    "themes": "الثيمات",
     "sound": "الصوت",
     "network": "الشبكة",
     "bluetooth": "البلوتوث",

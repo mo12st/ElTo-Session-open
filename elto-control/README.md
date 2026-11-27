@@ -1,7 +1,7 @@
 # ElTo Control
 
 The unified center for system and session settings ("مركز موحد للتحكم في إعدادات النظام
-والجلسة"). One Quickshell window, one style, six pages. Approved Phase-1 scope: Appearance,
+والجلسة"). One Quickshell window, one style, seven pages. Approved Phase-1 scope: Appearance, Themes (the implementer's ThemesPage, embedded whole),
 Sound, Network, Bluetooth, Power and session, About. Display is deferred (no mature
 non-Plasma display UI exists; needs the owner's own decision).
 
@@ -22,7 +22,7 @@ approved); AppearancePage.qml already carries everything customize.qml did.
 
 ## Deep-link contract
 
-`elto-control <page>` with page in `appearance sound network bluetooth power about`.
+`elto-control <page>` with page in `appearance themes sound network bluetooth power about`.
 Unknown pages fall back to appearance. Welcome and Guardian open pages this way.
 
 ## How it meets the three binding conditions

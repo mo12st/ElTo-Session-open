@@ -1,5 +1,6 @@
 // ElTo Control: one window, one style, six pages. Deep link: `elto-control <page>`
 // (wrapper exports ELTO_CONTROL_PAGE; unknown pages fall back to appearance).
+// The themes page embeds the implementer's panel-widgets/ThemesPage.qml whole.
 // Pages load lazily: a broken page shows an error card and cannot break the rest.
 import Quickshell
 import QtQuick
@@ -10,13 +11,14 @@ ShellRoot {
 
     readonly property var pages: [
         { id: "appearance", icon: "palette",   iconDir: "../icons/lucide" },
+        { id: "themes",     icon: "panel-top", iconDir: "../icons/lucide" },
         { id: "sound",      icon: "volume-2",  iconDir: "../icons/lucide" },
         { id: "network",    icon: "wifi",      iconDir: "../icons/lucide" },
         { id: "bluetooth",  icon: "bluetooth", iconDir: "icons" },
         { id: "power",      icon: "power",     iconDir: "icons" },
         { id: "about",      icon: "info",      iconDir: "icons" }
     ]
-    readonly property var validIds: ["appearance", "sound", "network", "bluetooth", "power", "about"]
+    readonly property var validIds: ["appearance", "themes", "sound", "network", "bluetooth", "power", "about"]
 
     property string current: {
         var wanted = Quickshell.env("ELTO_CONTROL_PAGE")
@@ -126,8 +128,9 @@ ShellRoot {
                 }
             }
 
-            // ---------- header
+            // ---------- header (the themes page draws its own, pixel-identical to Customize)
             Text {
+                visible: app.current !== "themes"
                 x: side.width + 28; y: 22
                 text: I18n.t(app.current)
                 color: Theme.text
@@ -143,8 +146,20 @@ ShellRoot {
                 y: 84
                 width: parent.width - side.width
                 height: parent.height - 84
-                source: app.current.charAt(0).toUpperCase() + app.current.slice(1) + "Page.qml"
+                source: app.current === "themes" ? "" : app.current.charAt(0).toUpperCase() + app.current.slice(1) + "Page.qml"
                 asynchronous: false
+            }
+
+            // Themes page: the implementer's own component (panel-widgets/ThemesPage.qml,
+            // VM-proven in Customize), embedded whole. It draws its own header at the same
+            // metrics as ours. Its UI strings are English-only for now; localizing them means
+            // editing the implementer's file, tracked as a follow-up.
+            ThemesPage {
+                visible: app.current === "themes"
+                x: side.width
+                y: 0
+                width: parent.width - side.width
+                height: parent.height
             }
 
             Rectangle {

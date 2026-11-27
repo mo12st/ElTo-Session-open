@@ -22,7 +22,7 @@ Honest levels per the governance directive. Nothing here claims more than was do
 - **Not built, not launched, not functionally tested, not session-tested, not VM-tested,
   not hardware-tested.** The sandbox has no Quickshell, no PipeWire/NM/BlueZ session.
 - **VM test list:**
-  1. `elto-control` opens; sidebar shows 6 pages; deep links `elto-control network` etc.
+  1. `elto-control` opens; sidebar shows 7 pages; deep links `elto-control network` etc.
      open the right page; unknown page falls back to appearance.
   2. **Cross-directory singleton import**: pages use `Theme`/`UserTheme` via
      `import "../panel-widgets"`. If this fails in the real Quickshell build, the whole
@@ -57,3 +57,19 @@ Honest levels per the governance directive. Nothing here claims more than was do
   window in Arabic. Full RTL mirroring of that grid is a follow-up, not hidden.
 - After the Themes PR merges, AppearancePage must be re-synced with the final
   customize.qml if the implementer changed it.
+
+## Re-sync with Themes PR #28 (2026-11-27)
+
+- Rebased onto main 5b6f73f. customize.qml's Appearance content was unchanged by the
+  merge (only wrapped in an Item and given a sibling Themes page), so AppearancePage
+  stays a faithful port. UserTheme.qml gained apply()/write(); nothing in Control used
+  the old internals, no change needed.
+- Control gains a seventh sidebar page, "Themes", embedding the implementer's own
+  panel-widgets/ThemesPage.qml whole (unnamespaced directory import already present in
+  Main.qml). It draws its own header at the same metrics as Control's, so it renders
+  pixel-identical to its VM-proven Customize form. Its internal strings remain English
+  (implementer-owned file); Arabic for its content is a follow-up with the implementer,
+  the sidebar label is localized.
+- New VM item 12: themes page inside Control lists themes, New from copy, edit, apply,
+  export and install behave exactly as in the Customize window (same component), and
+  theme-tool.py resolves (path is relative to panel-widgets/, unaffected by embedding).
