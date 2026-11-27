@@ -1,0 +1,7 @@
+[Sound Theme]
+Name=ElTo Soft
+Comment=Short, quiet sounds for the ElTo shell (CONCEPT: audio assets pending, see ../../ASSETS.md)
+Directories=stereo
+
+[stereo]
+OutputProfile=stereo

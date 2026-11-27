@@ -1,0 +1,36 @@
+#!/bin/sh
+# elto-sounds: install/remove the ElTo sound theme at user level, and turn shell sounds on or off.
+# Usage: elto-sounds install | uninstall | enable | disable | status
+# No daemon, no root. Missing assets are reported, never faked.
+set -eu
+HERE=$(cd "$(dirname "$0")" && pwd)
+DATA=${XDG_DATA_HOME:-$HOME/.local/share}
+DEST=$DATA/sounds/elto-soft
+THEME=${ELTO_THEME:-${XDG_CONFIG_HOME:-$HOME/.config}/elto/theme.json}
+setopt() { python3 - "$THEME" "$1" <<'PY'
+import json,os,sys
+p,val=sys.argv[1],sys.argv[2]=="true"
+try: d=json.load(open(p))
+except Exception: d={}
+d.setdefault("options",{}).setdefault("sounds",{})["enabled"]=val
+os.makedirs(os.path.dirname(p),exist_ok=True)
+t=p+".tmp"; json.dump(d,open(t,"w"),indent=2); os.replace(t,p)
+PY
+}
+case "${1:-}" in
+install)
+  mkdir -p "$DEST/stereo"
+  cp "$HERE/themes/elto-soft/index.theme" "$DEST/index.theme"
+  n=0; miss=""
+  for id in message-new-instant elto-drawer-open elto-drawer-close elto-lock elto-unlock desktop-login; do
+    f=$HERE/themes/elto-soft/stereo/$id.wav
+    if [ -f "$f" ]; then cp "$f" "$DEST/stereo/$id.wav"; n=$((n+1)); else miss="$miss $id"; fi
+  done
+  echo "installed theme to $DEST ($n sounds)"; [ -z "$miss" ] || echo "missing assets (silent):$miss" ;;
+uninstall) rm -rf "$DEST"; echo "removed $DEST" ;;
+enable) setopt true; echo "sounds enabled in $THEME" ;;
+disable) setopt false; echo "sounds disabled in $THEME" ;;
+status) [ -d "$DEST" ] && ls "$DEST/stereo" || echo "not installed"
+  python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('options',{}).get('sounds',{}))" "$THEME" 2>/dev/null || echo "no sound settings" ;;
+*) echo "usage: elto-sounds install|uninstall|enable|disable|status" >&2; exit 2 ;;
+esac
