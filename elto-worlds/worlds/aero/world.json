@@ -59,7 +59,8 @@
     "folderArt": "aero",
     "snail": "glass",
     "iconArt": "gloss",
-    "cardArt": "aero"
+    "cardArt": "aero",
+    "pageLayout": "rows"
   },
   "fonts": {
     "serif": "Noto Serif Display",

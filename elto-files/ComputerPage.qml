@@ -17,6 +17,7 @@ Item {
         return "paper"
     }
     readonly property string ca: th.cardArt
+    readonly property string layout: th.pageLayout
     readonly property bool paper: era === "paper"
     readonly property string hf: paper ? th.serif : (era === "term" ? th.mono : th.sans)
     readonly property bool boldHead: era === "w95" || era === "luna"
@@ -32,12 +33,13 @@ Item {
         property string label
         property real ruleX
         width: parent.width; height: 22
-        readonly property bool bar: page.era === "luna"
+        readonly property bool bar: page.era === "luna" || page.ca === "vapor"
         Rectangle {
-            visible: parent.bar; anchors.fill: parent; radius: 6; height: 22
+            visible: parent.bar; anchors.fill: parent; radius: page.ca === "vapor" ? 0 : 6; height: 22
             gradient: Gradient {
-                GradientStop { position: 0; color: Qt.lighter(th.accent, 1.25) }
-                GradientStop { position: 1; color: th.accent }
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0; color: page.ca === "vapor" ? th.accent : Qt.lighter(th.accent, 1.25) }
+                GradientStop { position: 1; color: page.ca === "vapor" ? th.selection : th.accent }
             }
         }
         Text {
@@ -103,9 +105,10 @@ Item {
             }
             SnailArt { th: page.th; anchors { left: rule.right; leftMargin: 2; verticalCenter: rule.verticalCenter; verticalCenterOffset: -8 } }
 
-            Head { y: 82; label: "Folders"; ruleX: 74 }
+            Head { visible: page.layout === "cards"; y: 82; label: "Folders"; ruleX: 74 }
             Row {
                 id: fRow
+                visible: page.layout === "cards"
                 y: 116; width: parent.width
                 Repeater {
                     model: page.folders
@@ -129,8 +132,9 @@ Item {
                 }
             }
 
-            Head { y: 236; label: "Drives"; ruleX: 60 }
+            Head { visible: page.layout === "cards"; y: 236; label: "Drives"; ruleX: 60 }
             Flickable {
+                visible: page.layout === "cards"
                 y: 266; width: parent.width; height: 140
                 contentWidth: dRow.width; contentHeight: height; clip: true
                 boundsBehavior: Flickable.StopAtBounds
@@ -315,6 +319,14 @@ Item {
                         }
                     }
                 }
+            }
+            Loader {
+                id: body
+                x: 0; y: 74; width: parent.width; height: parent.height - 74 - 8
+                readonly property string file: ({ grid: "CompGrid", rows: "CompRows", tiles: "CompTiles", gauge: "CompGauge", table: "CompTable", columns: "CompColumns" })[page.layout] || ""
+                function load() { if (file !== "") setSource(file + ".qml", { page: page }); else source = "" }
+                Component.onCompleted: load()
+                onFileChanged: load()
             }
     }
 }

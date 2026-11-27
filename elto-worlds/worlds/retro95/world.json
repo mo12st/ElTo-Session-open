@@ -59,7 +59,8 @@
     "folderArt": "classic95",
     "snail": "solid",
     "iconArt": "pixel",
-    "cardArt": "vapor"
+    "cardArt": "vapor",
+    "pageLayout": "cards"
   },
   "fonts": {
     "serif": "VT323",

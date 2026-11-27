@@ -56,7 +56,8 @@
     "folderArt": "chrome",
     "snail": "solid",
     "iconArt": "thin",
-    "cardArt": "chrome"
+    "cardArt": "chrome",
+    "pageLayout": "gauge"
   },
   "fonts": {
     "serif": "Exo 2",

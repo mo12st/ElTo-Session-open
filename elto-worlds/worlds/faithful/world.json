@@ -57,7 +57,8 @@
     "folderArt": "classic95",
     "snail": "solid",
     "iconArt": "pixel",
-    "cardArt": "w95"
+    "cardArt": "w95",
+    "pageLayout": "grid"
   },
   "fonts": {
     "serif": "VT323",

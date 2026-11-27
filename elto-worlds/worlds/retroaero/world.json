@@ -56,7 +56,8 @@
     "paperGrain": 0.0,
     "folderArt": "luna",
     "iconArt": "gloss",
-    "cardArt": "pearl"
+    "cardArt": "pearl",
+    "pageLayout": "tiles"
   },
   "fonts": {
     "serif": "Quicksand",
