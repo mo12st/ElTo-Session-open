@@ -48,12 +48,9 @@ Attribution: the GNOME Project. Adwaita's COPYING says naming "GNOME Project" is
 (https://github.com/GNOME/adwaita-icon-theme/blob/master/COPYING); three of the files also name the
 GNOME Design Team as author in their own metadata.
 
-Licence texts are not vendored here, only named: GPL-3.0 (https://www.gnu.org/licenses/gpl-3.0.html),
-GPL-2.0 (https://www.gnu.org/licenses/gpl-2.0.html), LGPL-2.1 (https://www.gnu.org/licenses/lgpl-2.1.html),
-LGPL-3.0 (https://www.gnu.org/licenses/lgpl-3.0.html),
-CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/legalcode),
-CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/legalcode). The full texts can be added if this
-set stops being temporary.
+The full licence texts ship with the icons, in `icons/dock/gnome/LICENSES/`: GPL-3.0, GPL-2.0, LGPL-2.1,
+LGPL-3.0, CC BY-SA 4.0 and CC BY-SA 3.0. Per-file provenance, the upstream licence file that was read for
+each icon, and the licence chosen for it are in `icons/dock/gnome/NOTICE.md`.
 
 These files stay under their own licences. The repository LICENSE does not apply to them and cannot narrow
 them. All seven dock slots are wired: `folder`, `terminal`, `globe` (Epiphany), `notebook-pen`, `image`,

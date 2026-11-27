@@ -6,7 +6,7 @@ No license is granted. Without a written permission from the copyright holder (m
 
 This notice covers all original work in this repository, including source code, scripts, theme and color files, the ElTo name and logo (including the snail logo), wallpapers, backgrounds, images, icons and other art, and the palette. Art and images are all rights reserved, whether or not they are listed here.
 
-Third-party material is not covered by this notice and keeps its own license. This includes software and protocols this project builds on or talks to, for example Quickshell, Qt, KWin and KDE Plasma, Breeze and Papirus icons, and the Wayland and Plasma protocol definitions. Any file that states its own license in its header or metadata keeps that statement for that file. Nothing from third-party code is relicensed here.
+Third-party material is not covered by this notice and keeps its own license. This includes software and protocols this project builds on or talks to, for example Quickshell, Qt, KWin and KDE Plasma, Breeze and Papirus icons, and the Wayland and Plasma protocol definitions. Any file that states its own license in its header or metadata keeps that statement for that file. Nothing from third-party code is relicensed here. In particular the GNOME app icons vendored under icons/dock/gnome/ stay under their own licenses (GPL-3.0, GPL-2.0, LGPL-2.1, LGPL-3.0 and CC BY-SA, per file), with the texts in icons/dock/gnome/LICENSES/ and the provenance in icons/dock/gnome/NOTICE.md, listed in THIRD-PARTY-LICENSES.md.
 
 "ElTo" and the ElTo logo are names and marks of mo12st. No right to use them is granted.
 
