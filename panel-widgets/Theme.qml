@@ -54,6 +54,10 @@ Singleton {
 
     readonly property string dockStyle: optionsT.dock
     readonly property string wallpaper: optionsT.wallpaper
+    // Notch modes (world.json options.notchMode / notchAutoHideMs / notchRespectFullscreen). Unknown values fall back.
+    readonly property string notchMode: ["show", "hidden", "auto-hide"].indexOf(optionsT.notchMode) >= 0 ? optionsT.notchMode : "show"
+    readonly property int notchAutoHideMs: (typeof optionsT.notchAutoHideMs === "number" && optionsT.notchAutoHideMs >= 0 && optionsT.notchAutoHideMs <= 10000) ? Math.round(optionsT.notchAutoHideMs) : 400
+    readonly property bool notchRespectFullscreen: optionsT.notchRespectFullscreen === true
     readonly property bool motion: optionsT.motion !== "off"
     function ms(v) { return motion ? v : 0 }
 

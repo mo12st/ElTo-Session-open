@@ -8,6 +8,7 @@ Text {
 
     property string format: "ddd d MMM  HH:mm"
     property color textColor: "#283a32"
+    property int pixelSize: 20
 
     SystemClock {
         id: clock
@@ -16,5 +17,5 @@ Text {
 
     text: Qt.formatDateTime(clock.date, root.format)
     color: root.textColor
-    font.pixelSize: 20
+    font.pixelSize: root.pixelSize
 }

@@ -39,6 +39,7 @@ PanelWindow {
         keepOnReload: false
         onNotification: n => {
             n.tracked = true;
+            Sound.play("notification");
         }
     }
 

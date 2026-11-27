@@ -7,13 +7,14 @@ Text {
     id: root
 
     property color textColor: "#283a32"
+    property int pixelSize: 20
     readonly property var device: UPower.displayDevice
     readonly property bool present: device !== null && device.isPresent
     readonly property bool charging: present && device.state === UPowerDeviceState.Charging
 
     visible: present
     color: root.textColor
-    font.pixelSize: 20
+    font.pixelSize: root.pixelSize
     // UPowerDevice.percentage is a 0..1 fraction in Quickshell.
     text: present ? "bat " + Math.round(device.percentage * 100) + "%" + (charging ? " +" : "") : ""
 }

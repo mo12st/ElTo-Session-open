@@ -2,10 +2,29 @@
   "name": "y2k",
   "label": "Y2K Signal",
   "version": 2,
+  "schema_version": 3,
+  "id": "y2k",
   "description": "Chrome and deep navy: signal-green accents, command index, fast linear motion. Palette estimated from the user concept art; artist refines.",
   "author": "mo12st",
   "license": "Proprietary (all rights reserved, mo12st)",
   "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+  "identity": {
+    "story": "Chrome signals in deep navy; the keyboard is the remote control.",
+    "signature": "The command index and the lime close light"
+  },
+  "compatible": {
+    "shell": "1",
+    "tool": "3"
+  },
+  "defaults": {
+    "wallpaper": "assets/wallpapers/main.jpg",
+    "dock": "island",
+    "notch": "clock",
+    "notchMode": "auto-hide",
+    "notchAutoHideMs": 250,
+    "notchRespectFullscreen": true,
+    "sounds": true
+  },
   "colors": {
     "surface": "#0e102e",
     "surfaceAlt": "#1f2357",
@@ -51,7 +70,23 @@
     "dock": "island",
     "notch": "clock",
     "wallpaper": "assets/wallpaper.jpg",
-    "motion": "soft"
+    "motion": "soft",
+    "wallpapers": [
+      {
+        "path": "assets/wallpapers/main.jpg",
+        "label": "Chrome navy"
+      }
+    ]
+  },
+  "sounds": {
+    "enabled": true,
+    "events": {
+      "session-start": "assets/sounds/session-start.wav",
+      "notification": "assets/sounds/notification.wav",
+      "drawer-open": "assets/sounds/drawer-open.wav",
+      "lock": "assets/sounds/lock.wav",
+      "unlock": "assets/sounds/unlock.wav"
+    }
   },
   "layout": {
     "bar": "bottom-tasks",
@@ -101,5 +136,52 @@
     "itemColor": "text",
     "selectedColor": "selection",
     "selectedBackground": "surfaceAlt"
-  }
+  },
+  "assets": [
+    {
+      "path": "assets/wallpapers/main.jpg",
+      "kind": "wallpaper",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/greeter-background.jpg",
+      "kind": "greeter",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/boot-background.jpg",
+      "kind": "boot",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/snail.png",
+      "kind": "boot",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/session-start.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/notification.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/drawer-open.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/lock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/unlock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    }
+  ]
 }

@@ -19,6 +19,9 @@
     "sameAsDesktop": "Same as desktop",
     "dock": "Dock",
     "notchStyle": "Notch style",
+    "notchShow": "Show",
+    "notchAutoHide": "Auto-hide",
+    "notchHidden": "Hidden",
     "softMotion": "Soft motion",
     "dockColor": "Dock color",
     "glass": "Glass",
@@ -77,7 +80,13 @@
     "guardianDesc": "Protection, recovery and diagnosis.",
     "openGuardian": "Open ElTo Guardian",
     "guardianMissing": "ElTo Guardian is not installed yet.",
-    "actionFailed": "Action failed"
+    "actionFailed": "Action failed",
+    "importBundle": "Import world bundle",
+    "bundlePathHint": "Path to a .elworld file",
+    "bundleInstall": "Install",
+    "bundleInstalling": "Installing...",
+    "bundleInstalled": "Installed",
+    "bundleFailed": "Install failed"
   },
   "ar": {
     "appTitle": "تحكم ElTo",
@@ -99,6 +108,9 @@
     "sameAsDesktop": "زي سطح المكتب",
     "dock": "الدوك",
     "notchStyle": "شكل النوتش",
+    "notchShow": "ظاهر",
+    "notchAutoHide": "إخفاء تلقائي",
+    "notchHidden": "مخفي",
     "softMotion": "الحركة الهادية",
     "dockColor": "لون الدوك",
     "glass": "زجاجي",
@@ -157,6 +169,12 @@
     "guardianDesc": "الحماية والاستعادة والتشخيص.",
     "openGuardian": "افتح حارس ElTo",
     "guardianMissing": "حارس ElTo مش متسطب لسه.",
-    "actionFailed": "الإجراء فشل"
+    "actionFailed": "الإجراء فشل",
+    "importBundle": "استيراد حزمة عالم",
+    "bundlePathHint": "مسار ملف ‎.elworld",
+    "bundleInstall": "تثبيت",
+    "bundleInstalling": "بيثبت...",
+    "bundleInstalled": "اتثبت",
+    "bundleFailed": "التثبيت فشل"
   }
 }

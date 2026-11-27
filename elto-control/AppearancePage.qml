@@ -158,9 +158,18 @@ Item {
         ElRow {
             y: 320; width: parent.width
             title: I18n.t("notchStyle")
-            Rectangle {
-                width: 100; height: 32; radius: 16; color: Theme.surface
-                Text { anchors.centerIn: parent; text: Theme.optionsT.notch === "clock" ? "Clock" : Theme.optionsT.notch; color: Theme.text; font.family: Theme.sans; font.pixelSize: 13 }
+            Repeater {
+                model: [{ id: "show", k: "notchShow" }, { id: "auto-hide", k: "notchAutoHide" }, { id: "hidden", k: "notchHidden" }]
+                Rectangle {
+                    required property var modelData
+                    readonly property bool cur: Theme.notchMode === modelData.id
+                    width: 96; height: 32; radius: 16
+                    color: cur ? Theme.selection : Theme.surface
+                    border.width: cur ? 2 : 0; border.color: Theme.accent
+                    anchors.verticalCenter: parent.verticalCenter
+                    Text { anchors.centerIn: parent; text: I18n.t(parent.modelData.k); color: Theme.text; font.family: Theme.sans; font.pixelSize: 13 }
+                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: page.setOption("notchMode", parent.modelData.id) }
+                }
             }
         }
 

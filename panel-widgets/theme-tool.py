@@ -5,11 +5,16 @@ It never executes anything from a theme package.
   save <slug>          read a theme JSON on stdin, validate, write ~/.config/elto/themes/<slug>/theme.json
   install <path>       install a theme from a folder or .zip (only theme.json is read)
   export <slug>        zip a user theme to ~/ElTo-themes/<slug>.zip
+  install-bundle <file.elworld>   install a world bundle by calling elto-world install (PR #40):
+                                  verify + staged unpack into ~/.local/share/elto/worlds/<id>/,
+                                  never overwrites, does not apply the world. Its JSON answer is
+                                  passed through unchanged.
 Every command prints one JSON object or array on stdout.
 """
-import json, os, re, sys, zipfile, glob
+import json, os, re, subprocess, sys, zipfile, glob
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+WORLD_TOOL = os.path.normpath(os.path.join(HERE, "..", "elto-worlds", "elto-world"))
 SHIPPED = os.path.normpath(os.path.join(HERE, "..", "themes"))
 HOME = os.path.expanduser("~")
 USER = os.path.join(os.environ.get("XDG_CONFIG_HOME", os.path.join(HOME, ".config")), "elto", "themes")
@@ -77,13 +82,31 @@ def cmd_export(slug):
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z: z.write(p, slug + "/theme.json")
     print(json.dumps({"ok": True, "path": out}))
 
+def cmd_install_bundle(src):
+    """Install an .elworld bundle via elto-world install (elto-worlds/elto-world, PR #40).
+    theme-tool stays data-only: elto-world does the verify/unpack, nothing from the bundle runs."""
+    src = os.path.abspath(os.path.expanduser(src))
+    if not os.path.isfile(src): raise ValueError("no such file: " + src)
+    if not os.path.isfile(WORLD_TOOL): raise ValueError("elto-world not found at " + WORLD_TOOL)
+    p = subprocess.run([sys.executable, WORLD_TOOL, "install", src],
+                       capture_output=True, text=True, timeout=180)
+    try:
+        rep = json.loads(p.stdout)
+    except Exception:
+        raise ValueError("elto-world did not answer JSON: " + (p.stderr or p.stdout).strip()[:200])
+    if not rep.get("ok"):
+        errs = rep.get("errors") or [rep.get("error", "install failed")]
+        raise ValueError("; ".join(str(e) for e in errs))
+    print(json.dumps(rep))
+
 if __name__ == "__main__":
     try:
         a = sys.argv[1:]
         if a[:1] == ["list"]: cmd_list()
         elif a[:1] == ["save"] and len(a) == 2: cmd_save(a[1])
         elif a[:1] == ["install"] and len(a) == 2: cmd_install(a[1])
+        elif a[:1] == ["install-bundle"] and len(a) == 2: cmd_install_bundle(a[1])
         elif a[:1] == ["export"] and len(a) == 2: cmd_export(a[1])
-        else: raise ValueError("usage: list | save <slug> | install <path> | export <slug>")
+        else: raise ValueError("usage: list | save <slug> | install <path> | install-bundle <file.elworld> | export <slug>")
     except Exception as e:
         print(json.dumps({"ok": False, "error": str(e)})); sys.exit(1)

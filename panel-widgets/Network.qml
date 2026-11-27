@@ -7,6 +7,7 @@ Text {
     id: root
 
     property color textColor: "#283a32"
+    property int pixelSize: 20
 
     // First connected device (wifi or wired), or null.
     readonly property var active: {
@@ -19,7 +20,7 @@ Text {
     }
 
     color: root.textColor
-    font.pixelSize: 20
+    font.pixelSize: root.pixelSize
     text: Networking.backend === NetworkBackendType.None ? "net n/a"
         : active === null ? "net off"
         : (active.type === DeviceType.Wifi ? "wifi " : "eth ") + active.name
