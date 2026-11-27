@@ -1,53 +1,55 @@
-# Dock icons: held, three richer directions as concepts
+# Dock icons: held, three Apple-style tile directions as concepts
 
-Status: **nothing implemented, nothing merged.** The dock still draws the shell's Lucide glyphs. Two
-rounds happened and neither shipped:
+Status: **nothing implemented, nothing merged.** The dock still draws the shell's Lucide glyphs. Three
+rounds happened and none shipped:
 
-1. I proposed four line-icon sets (Lucide as today, Iconoir 1.5px, Phosphor Light, Tabler) and shipped
-   Iconoir for the dock. He rejected all four as ugly, then said the problem is the look itself: too
-   plain, too simple, thin line glyphs. That change was reverted in `b68f055` and `c3cc6dd`; the branch
-   is back to the shell's icons, and the dock smoke's icon-file check went with it.
-2. Now three richer directions are prepared as concept images only, labelled CONCEPT. **He picks one, or
+1. Four line-icon sets (Lucide as today, Iconoir 1.5px, Phosphor Light, Tabler); Iconoir was shipped for
+   the dock and he rejected all four as ugly. The problem is the look itself: thin line glyphs, too plain.
+   Reverted in `b68f055` and `c3cc6dd`, including the dock smoke's icon-file check.
+2. Three richer treatments (A ink-over-wash, B palette colour, C paper wash) rendered as concept images.
+   **He rejected A/B/C too.** They are dropped and are no longer options in this PR.
+3. Now three Apple-shaped tile directions, D / E / F, drawn as concept images only. **He picks one, or
    asks for something else, before any file changes.**
+
+His brief for round 3, in his words: Apple-style icons, rounded-square app tiles with soft depth and a
+clear symbol, macOS Big Sur feel, with ElTo's own identity (paper, ink, sage, rust palette, snail
+character). Original art only, no Apple assets, free licences or self-drawn, no paid tools.
 
 ## The three directions
 
-All three use **Phosphor Fill** as the source shapes (MIT, https://github.com/phosphor-icons/core,
-`assets/fill/<name>-fill.svg`, verified by fetching every glyph on 2026-11-27), coloured from the ElTo
-palette: ink `#164437`, rust `#a05040`, deep sage `#7fa08c`, ochre `#b08246`, on paper `#f6f1e4`.
+| # | direction | plate | symbol | notes |
+| --- | --- | --- | --- | --- |
+| D | paper plate | cream gradient `#efe9d8` to `#e3dac4`, faint ink hairline, warm soft shadow | ink `#164437` | lightest; at 28 px the plate nearly melts into the paper bar, so picking D means darkening the plate one step |
+| E | ink plate | deep ink gradient `#164437` to `#0d2b22`, gloss along the top | paper `#f6f1e4` | strongest contrast against the bar, closest to the classic world's ink |
+| F | palette plates | one ElTo ink per tile: sage `#7fa08c` folder and image, ink terminal and window, ochre `#b08246` notebook and clock, rust `#a05040` settings and palette | paper | colour carries the app family; small snail watermark bottom-right carries the character |
 
-| # | direction | what it is | why it is richer |
-| --- | --- | --- | --- |
-| A | ink over wash | solid glyph silhouette filled with a sage wash, an ink edge drawn over it | two tones and a drawn edge; reads as ink line filled with colour rather than an outline icon |
-| B | palette colour | solid glyph, one ElTo ink per glyph family (ink, rust, sage, ochre) | colour carries meaning; the most character, the most risk of noise in a row of seven |
-| C | paper wash | solid glyph rendered as an aquarelle wash: uneven alpha, softened edge, paper grain, rust ink | the only one that looks painted; the closest to the world's paper walls |
+Tiles, gradients, gloss, hairline, grain and the snail are drawn here in Python/PIL from the classic-world
+palette. The symbols inside are **Phosphor Fill** (MIT, https://github.com/phosphor-icons/core,
+`assets/fill/<name>-fill.svg`), fetched and rendered on 2026-11-27.
 
-Two images were produced for the review and sent with the status report: the three directions at 44 px
-per glyph, and the same three at dock size (22 px in a 40 px tile) on the paper bar. Both were rendered
-with ImageMagick outside Quickshell, so they show the drawing, not the shell's tint path.
+Coverage: `folder`, `terminal`, `notebook`, `image`, `settings`, `palette`, `window`, plus `clock` for the
+system area in PR #46. Settings serves both the dock tile and the bar's Control entry.
 
 ## Honest limits of these concepts
 
-- A and C are **treatments**, not icon sets: I generated them from Phosphor Fill silhouettes with a wash,
-  an edge and grain. They are reproducible as a build step, but they are not hand-painted art. If he
-  wants real aquarelle glyphs, that is his own brush, or art he approves; nothing free that I could
-  verify looks like a painted ElTo glyph.
-- At 22 px the ink edge in A thins to about one pixel and the wash fill dominates, so A reads closer to
-  "soft filled" than to "outlined". That is visible in the at-size image, not hidden.
-- No icon has been checked inside the shell's `MultiEffect` tint path. A and B are single-colour shapes
-  and would tint like today's glyphs; C is multi-alpha and would need to be shipped pre-coloured rather
-  than tinted, which is a small change to `LIcon`.
-- Licences: Phosphor is MIT and covers all eight dock glyphs (`folder`, `terminal`, `globe`, `notebook`,
-  `image`, `envelope`, `palette`, `app-window`). Attribution text is ready to add to
-  `THIRD-PARTY-LICENSES.md` if a direction is picked.
+- These are renders made outside Quickshell and labelled CONCEPT. They show the drawing, not the shell's
+  tint path, and they are not screenshots of a running session.
+- The snail is a watermark drawn from the session's own `lock/assets/snail.png`, tinted to paper. At 28 px
+  it reads as a faint mark, not as a character. If he wants the snail legible at dock size it needs its own
+  silhouette rather than a scaled lock-screen image.
+- D's plate and the bar are both paper, so the tile edge is the only separation. E and F have no such
+  problem.
+- Symbol sizes are 52% of the tile. That number is a judgement, not a measurement of any system.
+- Licences: Phosphor is MIT and covers all eight symbols. Attribution text is ready for
+  `THIRD-PARTY-LICENSES.md` if a direction is picked. Nothing Apple-derived is used.
 
 ## If he picks one
 
-1. Vendor the eight Phosphor Fill SVGs into `icons/dock/<direction>/` under the logical dock names
-   (`folder`, `terminal`, `globe`, `notebook-pen`, `image`, `mail`, `palette`, `window`), pre-coloured or
-   white depending on the direction.
-2. `LIcon.qml`: `dir` property (default `lucide`) and, for C, a flag to skip the tint pass.
-3. The two dock window files pass the dock's folder.
+1. Vendor the eight Phosphor Fill SVGs under `icons/dock/<direction>/` with the logical dock names
+   (`folder`, `terminal`, `globe`, `notebook-pen`, `image`, `mail`, `palette`, `window`), pre-coloured.
+2. Ship the plate as a drawn QML item (gradient + rounded rect + shadow) rather than as raster tiles, so it
+   scales and stays crisp on every monitor scale.
+3. The dock window files pass the chosen direction; unknown or missing falls back to today's Lucide glyphs.
 4. `THIRD-PARTY-LICENSES.md` gets the Phosphor MIT text; the dock smoke's icon-file check comes back so a
    blank tile fails CI instead of showing up on screen.
 5. VM step 12 in DOCK-VARIANTS.md is the proof; nothing before that counts.
