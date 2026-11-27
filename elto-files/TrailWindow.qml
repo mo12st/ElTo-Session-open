@@ -14,6 +14,11 @@ FloatingWindow {
     visible: app.trailVisible
     onVisibleChanged: app.trailVisible = visible
 
+    // Aurorae frame (aurorae/ElToClassic): outer corner radius 10, border 10. The content sits inside the border,
+    // so its concentric radius is 10 - 10 = 0. A larger radius leaves gaps against the frame.
+    readonly property int frameRadius: 10
+    readonly property int frameBorder: 10
+    readonly property int contentRadius: Math.max(0, frameRadius - frameBorder)
     readonly property string computerPath: "computer:"
     readonly property bool computerMode: path === computerPath
     property string path: app.start === "computer" ? computerPath : app.home
@@ -67,7 +72,7 @@ FloatingWindow {
 
     Rectangle {
         anchors.fill: parent
-        radius: th.radiusWindow; color: th.surface; clip: true
+        radius: win.contentRadius; color: th.surface; clip: true
         border.width: 1; border.color: th.divider
         focus: true
         Keys.onPressed: function (ev) {
@@ -80,8 +85,8 @@ FloatingWindow {
             id: side
             width: 176; height: parent.height
             color: "transparent"
-            Rectangle { anchors.fill: parent; radius: th.radiusWindow; color: Qt.darker(th.surface, 1.025) }
-            Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: th.radiusWindow; color: Qt.darker(th.surface, 1.025) }
+            Rectangle { anchors.fill: parent; radius: win.contentRadius; color: Qt.darker(th.surface, 1.025) }
+            Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: win.contentRadius; color: Qt.darker(th.surface, 1.025) }
             Column {
                 x: 12; y: 16; width: parent.width - 24; spacing: 4
                 SideRow { label: "This computer"; icon: "computer"; selected: win.computerMode; onClicked: win.go(win.computerPath) }
