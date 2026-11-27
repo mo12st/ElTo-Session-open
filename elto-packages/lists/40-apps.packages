@@ -1,0 +1,12 @@
+# ElTo 40-apps: OPTIONAL user applications. Installed only with --with-apps.
+# Exactly the set proven in the ElTo VM spike boots; nothing was added beyond
+# it (scope discipline: new apps need the owner's approval).
+# Verified against the live Arch repos on 2026-11-27.
+
+foot              # Wayland-native terminal, tiny (used by all spike boots).
+konsole           # KDE terminal (dockfn spike boots).
+dolphin           # KDE file manager.
+kate              # KDE text editor.
+gwenview          # KDE image viewer.
+okular            # KDE document/PDF viewer.
+kcalc             # KDE calculator (earliest spike boots).
