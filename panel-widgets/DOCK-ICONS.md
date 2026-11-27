@@ -3,10 +3,11 @@
 Status: **held.** No drawn direction from the rounds below shipped. The dock draws the shell's Lucide
 glyphs, except for a temporary set of real GNOME app icons now applied for judging (see below).
 
-Temporary: `icons/dock/gnome/` holds eight real GNOME app icons, unmodified, wired through two theme keys
-(`dock.glyphDir`, `dock.glyphTint` in `themes/soft-paper/theme.json`). Five of them fill the dock slots
-that have an icon in the set; `globe` (browser) and `mail` stay on Lucide because the set has no browser
-or mail app in it. Licences and sources: THIRD-PARTY-LICENSES.md. Swap back with `"glyphDir": "lucide"`.
+Temporary: `icons/dock/gnome/` holds real GNOME app icons, unmodified, wired through two theme keys
+(`dock.glyphDir`, `dock.glyphTint` in `themes/soft-paper/theme.json`). All seven dock slots use them:
+folder, terminal, globe (Epiphany), notebook-pen, image, mail (Geary), palette. Settings, Clocks and the
+legacy windows file are vendored with no dock slot. Licences and sources: THIRD-PARTY-LICENSES.md. Swap
+back with `"glyphDir": "lucide"`.
 Twelve rounds happened and none shipped:
 
 1. Four line-icon sets (Lucide as today, Iconoir 1.5px, Phosphor Light, Tabler). Iconoir was shipped and

@@ -35,8 +35,10 @@ section of `themes/soft-paper/theme.json`, or delete both keys.
 | --- | --- | --- | --- | --- |
 | folder.svg | Files (Nautilus) | org.gnome.Nautilus.svg | github.com/GNOME/nautilus `data/icons/hicolor/scalable/apps/` | CC BY-SA 4.0 declared in the file; repository GPL-3.0 |
 | terminal.svg | Console | org.gnome.Console.svg | github.com/GNOME/console `data/` | GPL-3.0 (repository); no license declared in the file |
+| globe.svg | Web (Epiphany) | org.gnome.Epiphany.svg | github.com/GNOME/epiphany `data/icons/hicolor/scalable/apps/` | GPL-3.0 (repository); no license declared in the file |
 | notebook-pen.svg | Text Editor | org.gnome.TextEditor.svg | github.com/GNOME/gnome-text-editor `data/icons/` | GPL-3.0 (repository); no license declared in the file |
 | image.svg | Image Viewer (Loupe) | org.gnome.Loupe.svg | github.com/GNOME/loupe `data/icons/hicolor/scalable/apps/` | GPL-3.0 (repository); no license declared in the file |
+| mail.svg | Mail (Geary) | org.gnome.Geary.svg | gitlab.gnome.org/GNOME/geary `icons/hicolor/scalable/apps/` | LGPL-2.1 (repository COPYING); no license declared in the file |
 | palette.svg | Palette | org.gnome.design.Palette.svg | gitlab.gnome.org/World/design/palette `data/` | CC BY-SA 4.0 declared in the file; repository GPL-3.0 |
 | settings.svg | Settings | org.gnome.Settings.svg | github.com/GNOME/gnome-control-center `data/icons/hicolor/scalable/apps/` | GPL-2.0 (repository); no license declared in the file |
 | clock.svg | Clocks | org.gnome.clocks.svg | github.com/GNOME/gnome-clocks `data/icons/hicolor/scalable/apps/` | CC BY-SA 4.0 declared in the file; repository GPL-2.0 |
@@ -47,14 +49,15 @@ Attribution: the GNOME Project. Adwaita's COPYING says naming "GNOME Project" is
 GNOME Design Team as author in their own metadata.
 
 Licence texts are not vendored here, only named: GPL-3.0 (https://www.gnu.org/licenses/gpl-3.0.html),
-GPL-2.0 (https://www.gnu.org/licenses/gpl-2.0.html), LGPL-3.0 (https://www.gnu.org/licenses/lgpl-3.0.html),
+GPL-2.0 (https://www.gnu.org/licenses/gpl-2.0.html), LGPL-2.1 (https://www.gnu.org/licenses/lgpl-2.1.html),
+LGPL-3.0 (https://www.gnu.org/licenses/lgpl-3.0.html),
 CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/legalcode),
 CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/legalcode). The full texts can be added if this
 set stops being temporary.
 
 These files stay under their own licences. The repository LICENSE does not apply to them and cannot narrow
-them. Only `folder`, `terminal`, `notebook-pen`, `image` and `palette` are wired to dock slots today;
-`settings`, `clock` and `window` are vendored because they are part of the set but the dock has no slot for
-them. `window.svg` is the 2008 Adwaita file: the artwork is untouched, the root `width`/`height` were set to
+them. All seven dock slots are wired: `folder`, `terminal`, `globe` (Epiphany), `notebook-pen`, `image`,
+`mail` (Geary) and `palette`. `settings`, `clock` and `window` are vendored because they are part of the set
+but the dock has no slot for them. `window.svg` is the 2008 Adwaita file: the artwork is untouched, the root `width`/`height` were set to
 128 and a `viewBox` around the largest of the four size variants it contains was added, because the original
 canvas holds four sizes stacked and would draw them all.
