@@ -16,7 +16,10 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
     exclusiveZone: 0
-    visible: agent.isActive
+    // Always mapped: a visible binding to a runtime flag never showed the window under KWin (VM runs; same as NotificationPopups).
+    // The mask is empty while idle, so the window never blocks clicks.
+    visible: true
+    mask: Region { item: dim }
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: agent.isActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
@@ -28,7 +31,9 @@ PanelWindow {
     }
 
     Rectangle {
-        anchors.fill: parent
+        id: dim
+        width: agent.isActive ? parent.width : 0
+        height: agent.isActive ? parent.height : 0
         color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.35)
     }
 
@@ -40,6 +45,7 @@ PanelWindow {
         color: Theme.surface
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -20
+        visible: agent.isActive
 
         // soft shadow
         Rectangle {
@@ -146,5 +152,9 @@ PanelWindow {
             shake.restart()
         }
     }
-    onVisibleChanged: if (visible) { failedHint.visible = false; pw.text = ""; pw.forceActiveFocus() }
+    Connections {
+        target: agent
+        function onIsActiveChanged() { if (agent.isActive) { failedHint.visible = false; pw.text = ""; pw.forceActiveFocus() } }
+    }
+    onVisibleChanged: if (false) { failedHint.visible = false; pw.text = ""; pw.forceActiveFocus() }
 }
