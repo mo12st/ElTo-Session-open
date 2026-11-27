@@ -8,14 +8,16 @@ FloatingWindow {
     required property var app
     readonly property var th: app.theme
     title: "Trail"
-    implicitWidth: 760; implicitHeight: 520
+    implicitWidth: 860; implicitHeight: 540
     minimumSize: Qt.size(560, 380)
     color: "transparent"
     visible: app.trailVisible
     onVisibleChanged: app.trailVisible = visible
 
-    property string path: app.home
-    property var hist: [app.home]
+    readonly property string computerPath: "computer:"
+    readonly property bool computerMode: path === computerPath
+    property string path: app.start === "computer" ? computerPath : app.home
+    property var hist: [path]
     property int hi: 0
 
     function go(p) {
@@ -29,7 +31,7 @@ FloatingWindow {
         target: app
         function onGotoSerialChanged() { win.go(app.trailGoto) }
     }
-    Component.onCompleted: if (app.trailGoto !== app.home) { hist = [app.trailGoto]; path = app.trailGoto }
+    Component.onCompleted: if (app.start.indexOf("/") === 0) { hist = [app.trailGoto]; path = app.trailGoto }
 
     readonly property var places: [
         { label: "Home", icon: "home", path: app.home },
@@ -40,6 +42,7 @@ FloatingWindow {
     ]
     readonly property var crumbs: {
         var out = [], base, rest
+        if (path === computerPath) return [{ label: "This computer", path: computerPath }]
         if (path === app.home || path.indexOf(app.home + "/") === 0) {
             out.push({ label: "Home", path: app.home }); base = app.home; rest = path.slice(app.home.length)
         } else { out.push({ label: "/", path: "/" }); base = ""; rest = path }
@@ -81,7 +84,7 @@ FloatingWindow {
             Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: th.radiusWindow; color: Qt.darker(th.surface, 1.025) }
             Column {
                 x: 12; y: 16; width: parent.width - 24; spacing: 4
-                SideRow { label: "This computer"; icon: "computer"; selected: false; onClicked: app.showComputer() }
+                SideRow { label: "This computer"; icon: "computer"; selected: win.computerMode; onClicked: win.go(win.computerPath) }
                 Repeater {
                     model: win.places
                     SideRow {
@@ -130,22 +133,29 @@ FloatingWindow {
                 }
             }
 
+            ComputerPage {
+                visible: win.computerMode
+                anchors { top: bar.bottom; topMargin: 6; left: parent.left; right: parent.right; bottom: parent.bottom }
+                app: win.app
+            }
             Text {
                 id: heading
+                visible: !win.computerMode
                 anchors { top: bar.bottom; topMargin: 14; left: parent.left }
                 text: win.folderTitle; color: th.text
                 font.family: th.serif; font.pixelSize: 28; renderType: Text.NativeRendering
             }
-            Rectangle { id: rule; anchors { top: heading.bottom; topMargin: 4; left: parent.left; right: parent.right } height: 1; color: th.divider }
+            Rectangle { id: rule; visible: !win.computerMode; anchors { top: heading.bottom; topMargin: 4; left: parent.left; right: parent.right } height: 1; color: th.divider }
 
             FolderListModel {
                 id: fm
-                folder: "file://" + win.path
+                folder: "file://" + (win.computerMode ? app.home : win.path)
                 showDirsFirst: true; showDotAndDotDot: false; showHidden: false
                 sortField: FolderListModel.Name; caseSensitive: false
             }
             GridView {
                 id: grid
+                visible: !win.computerMode
                 anchors { top: rule.bottom; topMargin: 12; left: parent.left; right: parent.right; bottom: parent.bottom }
                 clip: true; model: fm; cellWidth: 120; cellHeight: 112
                 currentIndex: -1; boundsBehavior: Flickable.StopAtBounds
@@ -191,7 +201,7 @@ FloatingWindow {
             }
             Connections { target: win; function onPathChanged() { grid.currentIndex = -1 } }
             Text {
-                visible: fm.count === 0 && fm.status === FolderListModel.Ready
+                visible: !win.computerMode && fm.count === 0 && fm.status === FolderListModel.Ready
                 anchors.centerIn: grid; text: "Nothing here"; color: th.textMuted
                 font.family: th.serif; font.italic: true; font.pixelSize: 15
             }
