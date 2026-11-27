@@ -12,5 +12,8 @@ Call `Sound.play("lock")` from the lock integration when it exists.
 Needs `qt6-multimedia` at runtime: not confirmed on the image (implementer to check). The world tool ships no audio
 yet: free-licensed assets (CC0/CC-BY, per-asset license in CREDITS) must be supplied or approved by the owner.
 
-Verification: nothing run yet. VM can prove: shell starts, `ELTOSOUND fire notification` appears with sounds.enabled=true,
+Verification level: L0 (design). Nothing run yet, not even L1. VM can prove: shell starts, `ELTOSOUND fire notification` appears with sounds.enabled=true,
 nothing with it false, shell survives missing files/QtMultimedia. Audible quality is hardware-only.
+
+Next (not in this PR): prove first on a real Arch+KDE session with theme selection and the ElTo-internal events (L2 VM, then L3 hardware);
+mute is `sounds.enabled=false` (a quick-mute toggle in the notch/Control page is a later item); per-asset licenses go in CREDITS when assets arrive.

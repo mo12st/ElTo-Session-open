@@ -25,7 +25,7 @@ Singleton {
     }
 
     function play(ev) {
-        if (events.indexOf(ev) < 0) return
+        if (events.indexOf(ev) < 0) { console.warn("ELTOSOUND unknown event " + ev + ", ignored"); return }
         var now = Date.now()
         if (ev === "session-start" && (!enabled || worldId === "")) { startPending = true; pendingUntil = now + 5000; return }
         if (!enabled || worldId === "") return
