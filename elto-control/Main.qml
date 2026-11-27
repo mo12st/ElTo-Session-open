@@ -3,6 +3,7 @@
 // The themes page embeds the implementer's panel-widgets/ThemesPage.qml whole.
 // Pages load lazily: a broken page shows an error card and cannot break the rest.
 import Quickshell
+import Quickshell.Io
 import QtQuick
 
 ShellRoot {
@@ -22,6 +23,17 @@ ShellRoot {
     property string current: {
         var wanted = Quickshell.env("ELTO_CONTROL_PAGE")
         return validIds.indexOf(wanted) >= 0 ? wanted : "appearance"
+    }
+
+    // ---- world bundle import (theme-tool install-bundle -> elto-world install, PR #40)
+    property string bundleStatus: ""
+    property bool bundleStatusIsError: false
+    function installBundle(path) {
+        if (!path || bundleRunner.running) return
+        bundleStatus = ""
+        bundleStatusIsError = false
+        bundleRunner.command = ["python3", Quickshell.shellPath("theme-tool.py"), "install-bundle", path]
+        bundleRunner.running = true
     }
 
     FloatingWindow {
@@ -131,6 +143,113 @@ ShellRoot {
                 y: 0
                 width: parent.width - side.width
                 height: parent.height
+            }
+
+            // ---- import a world bundle (.elworld) from the themes page.
+            // Runs theme-tool install-bundle, which calls elto-world install: verify + staged
+            // unpack, never overwrites, does NOT apply the world. Errors show inline (condition 3).
+            Process {
+                id: bundleRunner
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        var o, errs
+                        try {
+                            o = JSON.parse(text)
+                            if (o.ok) {
+                                app.bundleStatusIsError = false
+                                app.bundleStatus = I18n.t("bundleInstalled") + ": " + (o.label || o.world || o.installed || "")
+                            } else {
+                                app.bundleStatusIsError = true
+                                errs = o.errors || [o.error || "?"]
+                                app.bundleStatus = I18n.t("bundleFailed") + ": " + errs.join("; ")
+                            }
+                        } catch (e) {
+                            app.bundleStatusIsError = true
+                            app.bundleStatus = I18n.t("bundleFailed") + ": " + text.trim().substring(0, 200)
+                        }
+                    }
+                }
+                stderr: StdioCollector {
+                    onStreamFinished: {
+                        if (text.trim() !== "") {
+                            app.bundleStatusIsError = true
+                            app.bundleStatus = I18n.t("bundleFailed") + ": " + text.trim().substring(0, 200)
+                        }
+                    }
+                }
+            }
+
+            ElButton {
+                visible: app.current === "themes"
+                x: side.width + 28
+                y: parent.height - 48
+                text: I18n.t("importBundle")
+                onClicked: bundlePanel.visible = !bundlePanel.visible
+            }
+
+            Rectangle {
+                id: bundlePanel
+                visible: false
+                z: 20
+                x: side.width + 28
+                y: parent.height - 48 - 116
+                width: 540
+                height: 108
+                radius: Theme.radiusCard
+                color: Theme.surface
+                border.width: 1
+                border.color: Theme.divider
+
+                Rectangle {
+                    x: 14; y: 12
+                    width: parent.width - 28 - 118
+                    height: 36
+                    radius: 18
+                    color: Theme.surfaceAlt
+                    border.width: 1
+                    border.color: Theme.divider
+                    clip: true
+                    TextInput {
+                        id: bundlePath
+                        anchors.fill: parent
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 14
+                        verticalAlignment: TextInput.AlignVCenter
+                        font.family: Theme.sans
+                        font.pixelSize: 13
+                        color: Theme.text
+                        clip: true
+                        onAccepted: app.installBundle(text)
+                        Text {
+                            visible: parent.text === ""
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: I18n.t("bundlePathHint")
+                            color: Theme.disabled
+                            font.family: Theme.sans
+                            font.pixelSize: 13
+                        }
+                    }
+                }
+                ElButton {
+                    x: parent.width - 14 - 104
+                    y: 12
+                    width: 104
+                    text: bundleRunner.running ? I18n.t("bundleInstalling") : I18n.t("bundleInstall")
+                    busy: bundleRunner.running
+                    onClicked: app.installBundle(bundlePath.text)
+                }
+                Text {
+                    x: 14; y: 58
+                    width: parent.width - 28
+                    text: app.bundleStatus
+                    visible: app.bundleStatus !== ""
+                    color: app.bundleStatusIsError ? Theme.color("rust") : Theme.textMuted
+                    font.family: Theme.sans
+                    font.pixelSize: 13
+                    wrapMode: Text.Wrap
+                    maximumLineCount: 3
+                    elide: Text.ElideRight
+                }
             }
 
             Rectangle {
