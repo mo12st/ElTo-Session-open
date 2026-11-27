@@ -20,7 +20,12 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: agent.isActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    PolkitAgent { id: agent }
+    PolkitAgent {
+        id: agent
+        Component.onCompleted: console.warn("POLKITREG completed isRegistered=" + isRegistered)
+        onIsRegisteredChanged: console.warn("POLKITREG isRegistered=" + isRegistered)
+        onAuthenticationRequestStarted: console.warn("POLKITREG request started")
+    }
 
     Rectangle {
         anchors.fill: parent
