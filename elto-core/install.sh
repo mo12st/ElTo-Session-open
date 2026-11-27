@@ -1,5 +1,5 @@
 #!/bin/bash
-# ElTo Core installer, Phase A: system identity + system defaults. Run as root, from the repo root.
+# ElTo Core installer, Phases A+B: identity + system defaults + behavior. Run as root, from the repo root.
 # Replaces the settings writes in session/install.sh; session/install.sh still owns the session
 # itself (shell, KWin, SDDM greeter config, lock package, /opt/elto-session).
 set -euo pipefail
@@ -23,4 +23,12 @@ install -m644 "$C/defaults/kwinrc" /etc/xdg/kwinrc
 install -m644 "$C/defaults/plasmashellrc" /etc/xdg/plasmashellrc
 install -m644 "$C/defaults/mimeapps.list" /etc/xdg/mimeapps.list
 install -m644 "$C/defaults/sddm.conf.d/elto.conf" /etc/sddm.conf.d/elto.conf
-echo "elto-core installed: identity + defaults (Phase A)"
+
+# --- behavior ---
+# Vendor preset: takes effect at first boot or `systemctl preset-all`, never forced here.
+install -d /usr/lib/systemd/system-preset
+install -m644 "$C/behavior/00-elto.preset" /usr/lib/systemd/system-preset/00-elto.preset
+# environment.d contract for the systemd user manager.
+install -d /usr/lib/environment.d
+install -m644 "$C/behavior/90-elto.conf" /usr/lib/environment.d/90-elto.conf
+echo "elto-core installed: identity + defaults + behavior"
