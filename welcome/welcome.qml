@@ -102,6 +102,10 @@ ShellRoot {
                 if (event.key === Qt.Key_Right && pager.page < 3) { pager.page += 1; event.accepted = true }
                 else if (event.key === Qt.Key_Left && pager.page > 0) { pager.page -= 1; event.accepted = true }
                 else if (event.key === Qt.Key_Escape) { app.finish(); event.accepted = true }
+                else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    if (pager.page < 3) pager.page += 1; else app.finish()
+                    event.accepted = true
+                }
             }
 
             QtObject { id: pager; property int page: 0 }
@@ -314,6 +318,7 @@ ShellRoot {
                 }
             }
             Rectangle {
+                id: nextBtn
                 anchors.right: parent.right; anchors.rightMargin: 40; y: parent.height - 88
                 width: 128; height: 46; radius: 23
                 visible: pager.page < 3
@@ -328,7 +333,7 @@ ShellRoot {
                 }
             }
             Text {
-                anchors.right: next2.left; anchors.rightMargin: 18; y: parent.height - 76
+                anchors.right: nextBtn.left; anchors.rightMargin: 18; y: parent.height - 76
                 visible: pager.page > 0
                 text: "Back"
                 color: backArea.containsMouse ? th.text : th.textMuted
@@ -339,7 +344,6 @@ ShellRoot {
                     onClicked: pager.page -= 1
                 }
             }
-            Item { id: next2; anchors.right: parent.right; anchors.rightMargin: 40; y: parent.height - 88; width: 0; height: 0; visible: false }
         }
     }
 }
