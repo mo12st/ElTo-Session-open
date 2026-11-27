@@ -2,10 +2,27 @@
   "name": "classic",
   "label": "ElTo Classic",
   "version": 2,
+  "schema_version": 3,
+  "id": "classic",
   "description": "The original paper-and-ink ElTo: cream, deep green, rust. Close to soft-paper; keep or merge, see report. Palette estimated from the user concept art; artist refines.",
   "author": "mo12st",
   "license": "Proprietary (all rights reserved, mo12st)",
   "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+  "identity": {
+    "story": "The original paper desk: cream sheets, green ink, a rust seal.",
+    "signature": "Paper grain and the snail"
+  },
+  "compatible": {
+    "shell": "1",
+    "tool": "3"
+  },
+  "defaults": {
+    "wallpaper": "assets/wallpaper.jpg",
+    "dock": "island",
+    "notch": "clock",
+    "notchMode": "show",
+    "sounds": true
+  },
   "colors": {
     "surface": "#f6f1e4",
     "surfaceAlt": "#efe9d8",
@@ -51,7 +68,20 @@
     "dock": "island",
     "notch": "clock",
     "wallpaper": "assets/wallpaper.jpg",
-    "motion": "soft"
+    "motion": "soft",
+    "wallpapers": [
+      "assets/wallpaper.jpg"
+    ]
+  },
+  "sounds": {
+    "enabled": true,
+    "events": {
+      "session-start": "assets/sounds/session-start.wav",
+      "notification": "assets/sounds/notification.wav",
+      "drawer-open": "assets/sounds/drawer-open.wav",
+      "lock": "assets/sounds/lock.wav",
+      "unlock": "assets/sounds/unlock.wav"
+    }
   },
   "layout": {
     "bar": "notch-island",
@@ -101,5 +131,52 @@
     "itemColor": "text",
     "selectedColor": "selection",
     "selectedBackground": "surfaceAlt"
-  }
+  },
+  "assets": [
+    {
+      "path": "assets/wallpaper.jpg",
+      "kind": "wallpaper",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/greeter-background.jpg",
+      "kind": "greeter",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/boot-background.jpg",
+      "kind": "boot",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/snail.png",
+      "kind": "boot",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/session-start.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/notification.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/drawer-open.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/lock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/unlock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    }
+  ]
 }

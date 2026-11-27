@@ -1,36 +1,62 @@
 #!/usr/bin/env python3
-"""elto-world: validate and apply ElTo world packages. Stdlib only. Never executes theme code.
+"""elto-world: validate, apply, reset and package ElTo world packages. Stdlib only.
+Never executes theme code; .elworld bundles are data-only.
 
 Commands:
-  check <worlddir>            validate world.json against the world format (world.schema.json is the contract)
-  apply <worlddir> [--dry-run]  user-level apply: shell overlay, theme package, KDE colorscheme,
-                                icon/cursor names, Aurorae variant. Every step is reversible and every
-                                missing tool is a skip, never a failure.
-  install-system <worlddir>   not implemented (Phase 2/3: SDDM, lock, Plymouth, GRUB)
+  check <worlddir>                validate world.json (schema 2 and 3; world.schema.json is the contract)
+  apply <worlddir> [--dry-run]    user-level apply, staged + rollback on mid-failure
+  reset [<worlddir>]              restore world defaults over user overrides (with no argument:
+                                  the world named in the shell overlay's _world stamp)
+  pack <worlddir> <out.elworld>   build a data-only bundle (zip + manifest.json, sha256 per file)
+  unpack <file.elworld> <destdir> validate and extract a bundle (path traversal, scripts, size
+                                  limits and checksums enforced)
+  install-system <worlddir>       not implemented (Phase 2/3: SDDM, lock, Plymouth, GRUB)
 
-World format: see world.schema.json in this directory.
+Format: world.schema.json in this directory (schema_version 3).
 Every command prints one JSON object on stdout.
 """
-import json, os, re, shutil, subprocess, sys, time
+import hashlib, json, os, re, shutil, subprocess, sys, time, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HOME = os.path.expanduser("~")
 XDG_CONFIG = os.environ.get("XDG_CONFIG_HOME", os.path.join(HOME, ".config"))
 XDG_DATA = os.environ.get("XDG_DATA_HOME", os.path.join(HOME, ".local", "share"))
-MAX = 1024 * 1024
+STATE = os.environ.get("XDG_STATE_HOME", os.path.join(HOME, ".local", "state"))
+TOOL_SCHEMA = 3
+
+MAX_WORLD_JSON = 1024 * 1024
+MAX_ASSET = 25 * 1024 * 1024
+MAX_BUNDLE_FILES = 500
+MAX_BUNDLE_BYTES = 150 * 1024 * 1024
+
 HEX = re.compile(r"^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
-NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+SLUG = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 ASSET = re.compile(r"^assets/")
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
+SCRIPT_EXT = re.compile(r"\.(sh|bash|zsh|py|pl|rb|js|exe|dll|so|bin|desktop)$", re.I)
+
 LAYOUT_KEYS = {"bar", "rail", "launcher", "windowControls", "motionProfile"}
 COLORREF_KEYS = {"frame", "frameInactive", "title", "backgroundColor", "accentColor",
                  "itemColor", "selectedColor", "selectedBackground"}
 ASSET_KEYS = {"background", "snail"}
+META_KEYS = ("name", "id", "label", "version", "schema_version", "description", "author",
+             "license", "assetsLicense", "identity", "compatible", "defaults", "assets")
 V1_SECTIONS = ("colors", "roles", "shape", "fonts", "icons", "options", "notch", "dock", "drawer")
-LAYER_SECTIONS = ("layout", "kde", "kvantum", "cursor", "aurorae", "sddm", "lock", "plymouth", "grub")
+LAYER_SECTIONS = ("layout", "kde", "kvantum", "cursor", "aurorae", "sddm", "lock",
+                  "plymouth", "grub", "sounds")
+DEFAULT_KEYS = {"wallpaper", "dock", "notch", "notchMode", "notchAutoHideMs",
+                "notchRespectFullscreen", "sounds"}
+NOTCH_MODES = ("show", "hidden", "auto-hide")
+SOUND_EVENTS = {"session-start", "session-end", "notification", "drawer-open", "drawer-close",
+                "lock", "unlock", "error", "wallpaper-change"}
+MANAGED_OPTION_KEYS = {"wallpaper", "dock", "notch", "notchMode", "notchAutoHideMs",
+                       "notchRespectFullscreen", "sounds"}
+MANAGED_SECTIONS = ("colors", "roles", "shape", "fonts", "layout")
 
 # ---------------------------------------------------------------- validation
 
 def validate(w, wdir):
+    """Returns (errors, warnings). Mirrors world.schema.json; schema 2 and 3."""
     errors, warnings = [], []
     if not isinstance(w, dict):
         return ["world.json must be an object"], warnings
@@ -39,13 +65,23 @@ def validate(w, wdir):
             errors.append("missing required key: " + key)
     if errors:
         return errors, warnings
-    if not isinstance(w["name"], str) or not NAME.match(w["name"]):
+    sv = w.get("schema_version", 2)
+    if sv not in (2, 3):
+        errors.append("schema_version must be 3 (absent means 2)")
+    if sv == 2:
+        warnings.append("no schema_version: treated as schema 2")
+    if not isinstance(w["name"], str) or not SLUG.match(w["name"]):
         errors.append("name must match ^[a-z0-9][a-z0-9-]*$")
+    if sv == 3:
+        if "id" not in w:
+            errors.append("schema_version 3 requires id")
+        elif not isinstance(w["id"], str) or not SLUG.match(w["id"]):
+            errors.append("id must match ^[a-z0-9][a-z0-9-]*$")
+        elif w["id"] != w.get("name"):
+            warnings.append("id != name; they should match")
     if not isinstance(w["label"], str) or not w["label"].strip():
         errors.append("label must be a non-empty string")
-    if w["version"] == 1:
-        warnings.append("version 1: shell-only theme, no world layers will be checked")
-    elif w["version"] != 2:
+    if w["version"] != 2:
         errors.append("version must be 2 (world format)")
     colors, roles = w.get("colors"), w.get("roles")
     if not isinstance(colors, dict) or not colors:
@@ -63,13 +99,133 @@ def validate(w, wdir):
         for k, v in roles.items():
             if v not in colors:
                 errors.append("role %s points to unknown color %s" % (k, v))
+    for key in w:
+        if key not in META_KEYS + V1_SECTIONS + LAYER_SECTIONS:
+            errors.append("unknown top-level key: " + key)
     for sec in ("shape", "fonts", "icons", "options", "notch", "dock", "drawer"):
         if sec in w and not isinstance(w[sec], dict):
             errors.append(sec + " must be an object")
-    for key in w:
-        if key not in ("name", "label", "version", "description", "author", "license", "assetsLicense") \
-                + V1_SECTIONS + LAYER_SECTIONS:
-            errors.append("unknown top-level key: " + key)
+
+    ident = w.get("identity")
+    if ident is not None:
+        if not isinstance(ident, dict) or any(k not in ("story", "signature") for k in ident):
+            errors.append("identity may only contain story and signature")
+
+    compat = w.get("compatible")
+    if compat is not None:
+        if not isinstance(compat, dict) or any(k not in ("shell", "tool") for k in compat):
+            errors.append("compatible may only contain shell and tool")
+        else:
+            tool = compat.get("tool")
+            if tool and str(tool).isdigit() and int(tool) > TOOL_SCHEMA:
+                warnings.append("world asks for tool schema %s, this tool speaks %s" % (tool, TOOL_SCHEMA))
+
+    known = set(colors or ()) | set(roles or ())
+
+    def check_colorref(sec, k, v):
+        if not isinstance(v, str) or (not HEX.match(v) and v not in known):
+            errors.append("%s.%s: unknown color token or role %r" % (sec, k, v))
+
+    def check_asset(sec, k, v, must_be=None):
+        if not isinstance(v, str) or not ASSET.match(v):
+            errors.append("%s.%s: asset path must start with assets/" % (sec, k))
+            return
+        if must_be and not v.endswith(must_be):
+            errors.append("%s.%s: asset must end with %s" % (sec, k, must_be))
+        if not os.path.isfile(os.path.join(wdir, v)):
+            warnings.append("%s.%s: asset %s not present yet" % (sec, k, v))
+
+    dfl = w.get("defaults")
+    if dfl is not None:
+        if not isinstance(dfl, dict):
+            errors.append("defaults must be an object")
+        else:
+            for k, v in dfl.items():
+                if k not in DEFAULT_KEYS:
+                    errors.append("defaults: unknown key " + k)
+                elif k == "wallpaper":
+                    check_asset("defaults", k, v)
+                elif k == "notchMode":
+                    if v not in NOTCH_MODES:
+                        errors.append("defaults.notchMode must be one of " + ",".join(NOTCH_MODES))
+                elif k in ("notchRespectFullscreen", "sounds"):
+                    if not isinstance(v, bool):
+                        errors.append("defaults.%s must be a boolean" % k)
+                elif k == "notchAutoHideMs":
+                    if not isinstance(v, int) or not 0 <= v <= 5000:
+                        errors.append("defaults.notchAutoHideMs must be an integer 0..5000")
+                elif not isinstance(v, str):
+                    errors.append("defaults.%s must be a string" % k)
+    elif sv == 3:
+        warnings.append("schema 3 world without a defaults block; apply uses built-in fallbacks")
+
+    opts = w.get("options") or {}
+    wps = opts.get("wallpapers")
+    if wps is not None:
+        if not isinstance(wps, list) or not wps:
+            errors.append("options.wallpapers must be a non-empty list")
+        else:
+            for i, p in enumerate(wps):
+                check_asset("options", "wallpapers[%d]" % i, p)
+
+    snd = w.get("sounds")
+    if snd is not None:
+        if not isinstance(snd, dict):
+            errors.append("sounds must be an object")
+        else:
+            for k in snd:
+                if k not in ("enabled", "events"):
+                    errors.append("sounds: unknown key " + k)
+            if "enabled" in snd and not isinstance(snd["enabled"], bool):
+                errors.append("sounds.enabled must be a boolean")
+            ev = snd.get("events")
+            if ev is not None:
+                if not isinstance(ev, dict):
+                    errors.append("sounds.events must be an object")
+                else:
+                    for evname, p in ev.items():
+                        if evname not in SOUND_EVENTS:
+                            warnings.append("sounds.events: unknown event %s (shell will ignore it)" % evname)
+                        check_asset("sounds.events", evname, p, must_be=".wav")
+
+    manifest = w.get("assets")
+    if manifest is not None:
+        if not isinstance(manifest, list):
+            errors.append("assets must be a list")
+        else:
+            seen = set()
+            for i, a in enumerate(manifest):
+                if not isinstance(a, dict):
+                    errors.append("assets[%d] must be an object" % i)
+                    continue
+                for k in a:
+                    if k not in ("path", "kind", "license", "sha256", "bytes"):
+                        errors.append("assets[%d]: unknown key %s" % (i, k))
+                p = a.get("path")
+                if not isinstance(p, str) or not ASSET.match(p):
+                    errors.append("assets[%d].path must start with assets/" % i)
+                elif p in seen:
+                    errors.append("assets[%d].path duplicated: %s" % (i, p))
+                else:
+                    seen.add(p)
+                if not a.get("license"):
+                    errors.append("assets[%d].license is required" % i)
+                if not a.get("kind"):
+                    errors.append("assets[%d].kind is required" % i)
+                if "sha256" in a and not (isinstance(a["sha256"], str) and SHA256.match(a["sha256"])):
+                    errors.append("assets[%d].sha256 must be 64 lowercase hex" % i)
+                if "bytes" in a and not isinstance(a["bytes"], int):
+                    errors.append("assets[%d].bytes must be an integer" % i)
+                if isinstance(p, str) and ASSET.match(p):
+                    fp = os.path.join(wdir, p)
+                    if os.path.isfile(fp):
+                        if "bytes" in a and os.path.getsize(fp) != a["bytes"]:
+                            errors.append("assets[%d].bytes does not match the file" % i)
+                        if "sha256" in a and sha256_file(fp) != a["sha256"]:
+                            errors.append("assets[%d].sha256 does not match the file" % i)
+                    else:
+                        warnings.append("assets[%d]: %s not present yet" % (i, p))
+
     lay = w.get("layout")
     if lay is not None:
         if not isinstance(lay, dict):
@@ -80,7 +236,7 @@ def validate(w, wdir):
                     errors.append("layout: unknown key " + k)
                 elif not isinstance(v, str):
                     errors.append("layout.%s must be a string" % k)
-    known = set(colors or ()) | set(roles or ())
+
     for sec in ("aurorae", "sddm", "lock", "plymouth", "grub"):
         s = w.get(sec)
         if s is None:
@@ -90,13 +246,9 @@ def validate(w, wdir):
             continue
         for k, v in s.items():
             if k in COLORREF_KEYS:
-                if not isinstance(v, str) or (not HEX.match(v) and v not in known):
-                    errors.append("%s.%s: unknown color token or role %r" % (sec, k, v))
+                check_colorref(sec, k, v)
             elif k in ASSET_KEYS:
-                if not isinstance(v, str) or not ASSET.match(v):
-                    errors.append("%s.%s: asset path must start with assets/" % (sec, k))
-                elif not os.path.isfile(os.path.join(wdir, v)):
-                    warnings.append("%s.%s: asset %s not present yet" % (sec, k, v))
+                check_asset(sec, k, v)
             elif k in ("layout", "theme", "template", "font", "spinnerFrames", "schemeName"):
                 if not isinstance(v, str):
                     errors.append("%s.%s must be a string" % (sec, k))
@@ -113,11 +265,22 @@ def validate(w, wdir):
                 errors.append("%s: unknown key %s" % (sec, k))
     return errors, warnings
 
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
 def load_world(wdir):
+    # world.json in a source/checkout directory; theme.json in an installed package
+    # (installed as theme.json for theme-tool.py compatibility, same content).
     p = os.path.join(wdir, "world.json")
     if not os.path.isfile(p):
+        p = os.path.join(wdir, "theme.json")
+    if not os.path.isfile(p):
         raise ValueError("no world.json in " + wdir)
-    if os.path.getsize(p) > MAX:
+    if os.path.getsize(p) > MAX_WORLD_JSON:
         raise ValueError("world.json too large")
     with open(p) as f:
         return json.load(f)
@@ -125,7 +288,6 @@ def load_world(wdir):
 # ---------------------------------------------------------------- helpers
 
 def resolve(w, ref):
-    """colorRef -> #hex. Token, then role, then literal hex."""
     colors, roles = w["colors"], w["roles"]
     if ref in colors:
         return colors[ref]
@@ -154,17 +316,138 @@ def run(cmd, timeout=30):
     except Exception as e:
         return False, str(e)
 
-def backup(path, steps):
-    if os.path.isfile(path):
-        dst = path + ".bak-elto-world"
-        if not os.path.isfile(dst):
-            shutil.copy2(path, dst)
-            steps.append({"step": "backup", "status": "done", "detail": dst})
+# ---------------------------------------------------------------- staged apply
+
+class Run:
+    """Stages file writes; on failure, rolls back everything written in this run.
+    Backups live in ~/.local/state/elto-world/runs/<ts>/ so any run can be inspected."""
+
+    def __init__(self, dry_run):
+        self.dry_run = dry_run
+        self.written = []      # (path, had_original)
+        self.run_dir = None
+        self.steps = []
+
+    def _prepare(self):
+        if self.run_dir is None:
+            ts = time.strftime("%Y%m%d-%H%M%S")
+            self.run_dir = os.path.join(STATE, "elto-world", "runs", ts)
+            os.makedirs(self.run_dir, exist_ok=True)
+
+    def _backup(self, path):
+        self._prepare()
+        dst = os.path.join(self.run_dir, hashlib.sha256(path.encode()).hexdigest()[:16] + ".bak")
+        shutil.copy2(path, dst)
+        return dst
+
+    def write(self, path, content, step, binary=False):
+        if self.dry_run:
+            self.steps.append({"step": step, "status": "dry-run", "detail": path})
+            return
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        had = os.path.isfile(path)
+        if had and not any(p == path for p, _ in self.written):
+            self._backup(path)
+        tmp = path + ".tmp-elto-world"
+        mode = "wb" if binary else "w"
+        with open(tmp, mode) as f:
+            f.write(content)
+        os.replace(tmp, path)  # atomic per file
+        self.written.append((path, had))
+        self.steps.append({"step": step, "status": "done", "detail": path})
+
+    def copy(self, src, path, step):
+        with open(src, "rb") as f:
+            self.write(path, f.read(), step, binary=True)
+
+    def rollback(self):
+        rolled = []
+        for path, had in reversed(self.written):
+            try:
+                if had:
+                    dst = os.path.join(self.run_dir, hashlib.sha256(path.encode()).hexdigest()[:16] + ".bak")
+                    shutil.copy2(dst, path)
+                    rolled.append({"path": path, "restored": True})
+                else:
+                    os.unlink(path)
+                    rolled.append({"path": path, "removed": True})
+            except Exception as e:
+                rolled.append({"path": path, "error": str(e)})
+        return rolled
+
+def overlay_path():
+    return os.environ.get("ELTO_THEME") or os.path.join(XDG_CONFIG, "elto", "theme.json")
+
+def read_overlay():
+    p = overlay_path()
+    if os.path.isfile(p):
+        try:
+            with open(p) as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def build_overlay(w, wdir, run, cur):
+    """World defaults over the current overlay. Managed sections are replaced;
+    managed option keys are set; unrelated user keys are kept."""
+    for sec in MANAGED_SECTIONS:
+        if sec in w:
+            cur[sec] = w[sec]
+    cur["name"] = w["name"]
+    cur["_world"] = {"id": w.get("id", w["name"]), "schema_version": w.get("schema_version", 2),
+                     "applied_at": time.strftime("%Y-%m-%dT%H:%M:%S")}
+    dfl = w.get("defaults") or {}
+    opts = dict(cur.get("options") or {})
+    opts["wallpaper"] = dfl.get("wallpaper", (w.get("options") or {}).get("wallpaper", opts.get("wallpaper")))
+    for k in ("dock", "notch", "notchMode", "notchAutoHideMs", "notchRespectFullscreen"):
+        if k in dfl:
+            opts[k] = dfl[k]
+    cur["options"] = opts
+    snd = w.get("sounds") or {}
+    cur["sounds"] = {"enabled": dfl.get("sounds", snd.get("enabled", True))}
+    return cur
+
+def install_wallpapers(w, wdir, run):
+    """Copy the wallpaper set into ~/.config/elto/wallpapers/ and point the default at it."""
+    wps = list((w.get("options") or {}).get("wallpapers") or [])
+    dflt = (w.get("defaults") or {}).get("wallpaper") or (w.get("options") or {}).get("wallpaper")
+    if dflt and dflt not in wps:
+        wps.insert(0, dflt)
+    installed = []
+    wd = os.path.join(XDG_CONFIG, "elto", "wallpapers")
+    for rel in wps:
+        src = os.path.join(wdir, rel)
+        if not os.path.isfile(src):
+            run.steps.append({"step": "wallpaper", "status": "skipped",
+                              "detail": rel + " (asset not present yet)"})
+            continue
+        dst = os.path.join(wd, os.path.basename(rel))
+        run.copy(src, dst, "wallpaper")
+        installed.append(os.path.basename(rel))
+    return installed
+
+def install_sounds(w, wdir, run):
+    """Install the freedesktop-style sound theme into ~/.local/share/sounds/<id>/."""
+    snd = w.get("sounds") or {}
+    events = snd.get("events") or {}
+    if not events:
+        return
+    wid = w.get("id", w["name"])
+    outdir = os.path.join(XDG_DATA, "sounds", wid, "stereo")
+    index = ("[Sound Theme]\nName=ElTo %s\nDirectories=stereo\n\n[stereo]\n" % w["label"])
+    run.write(os.path.join(XDG_DATA, "sounds", wid, "index.theme"), index, "sound-theme")
+    for evname, rel in events.items():
+        src = os.path.join(wdir, rel)
+        if not os.path.isfile(src):
+            run.steps.append({"step": "sound", "status": "skipped",
+                              "detail": evname + ": " + rel + " (asset not present yet)"})
+            continue
+        run.copy(src, os.path.join(outdir, evname + ".wav"), "sound")
 
 # ---------------------------------------------------------------- KDE colors
 
 def gen_colorscheme(w):
-    """World -> KDE .colors text, generalizing theme/gen_colors.py's mapping."""
     c = lambda ref: resolve(w, ref)
     surface, surfaceAlt = c("surface"), c("surfaceAlt")
     text, textMuted = c("text"), c("textMuted")
@@ -173,11 +456,7 @@ def gen_colorscheme(w):
     link = w["colors"].get("link", accent)
     positive = w["colors"].get("positive", textMuted)
     neutral = w["colors"].get("neutral", accent)
-    sel_fg = text if luminance(selection) > luminance(text) else surface
-    if luminance(selection) > 0.5:
-        sel_fg = text
-    else:
-        sel_fg = surface
+    sel_fg = text if luminance(selection) > 0.5 else surface
 
     def section(name, bg, alt, fg, inactive):
         rows = [("BackgroundAlternate", alt), ("BackgroundNormal", bg),
@@ -206,7 +485,6 @@ def gen_colorscheme(w):
 
 # ---------------------------------------------------------------- Aurorae
 
-# Template hex -> world role (the shipped ElToClassic uses the soft-paper palette).
 AURORAE_MAP = {
     "#f6f1e4": "surface", "#efe9d8": "surfaceAlt", "#283a32": "text",
     "#4c7860": "textMuted", "#cfe3d4": "selection", "#a05040": "accent",
@@ -227,7 +505,6 @@ def find_aurorae_template():
 def gen_aurorae(w, tmpl, outdir):
     os.makedirs(outdir, exist_ok=True)
     subs = {old: resolve(w, role) for old, role in AURORAE_MAP.items()}
-    # Window-button glyph colors are replaced only when the world defines those tokens.
     btn = {"#e0b84a": "windowMinimize", "#5fae7a": "windowMaximize", "#4f86c6": "windowClose"}
     for old, token in btn.items():
         if token in w["colors"]:
@@ -273,73 +550,55 @@ def cmd_check(wdir):
     print(json.dumps({"ok": ok, "world": wdir, "errors": errors, "warnings": warnings}, indent=2))
     return 0 if ok else 1
 
-def cmd_apply(wdir, dry_run):
-    w = load_world(wdir)
+def apply_world(w, wdir, dry_run, reset_mode=False):
     errors, warnings = validate(w, wdir)
     if errors:
         print(json.dumps({"ok": False, "errors": errors, "warnings": warnings}, indent=2))
         return 1
-    steps = []
+    run_obj = Run(dry_run)
     plan = {"ok": True, "world": w["name"], "label": w["label"], "dry_run": dry_run,
-            "steps": steps, "warnings": warnings}
-
-    def write_file(path, content, step, detail=""):
-        if dry_run:
-            steps.append({"step": step, "status": "dry-run", "detail": path})
-            return
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        backup(path, steps)
-        with open(path, "w") as f:
-            f.write(content)
-        steps.append({"step": step, "status": "done", "detail": path + (" " + detail if detail else "")})
-
-    # 1. install as a theme package the Themes page can list (theme-tool.py compatible)
-    pkg = os.path.join(XDG_CONFIG, "elto", "themes", w["name"], "theme.json")
-    write_file(pkg, json.dumps(w, indent=2, ensure_ascii=False) + "\n", "theme-package")
-
-    # 2. shell overlay: same sections UserTheme.apply writes, plus layout. Live-reloaded by the shell.
-    overlay = os.environ.get("ELTO_THEME") or os.path.join(XDG_CONFIG, "elto", "theme.json")
-    cur = {}
-    if os.path.isfile(overlay):
-        try:
-            with open(overlay) as f:
-                cur = json.load(f)
-        except Exception:
-            cur = {}
-    for sec in ("colors", "roles", "shape", "fonts", "layout"):
-        if sec in w:
-            cur[sec] = w[sec]
-    cur["name"] = w["name"]
-    wall = (w.get("options") or {}).get("wallpaper")
-    if wall and ASSET.match(str(wall)):
-        src = os.path.join(wdir, wall)
-        if os.path.isfile(src):
-            base = os.path.basename(wall)
-            if not dry_run:
-                wd = os.path.join(XDG_CONFIG, "elto", "wallpapers")
-                os.makedirs(wd, exist_ok=True)
-                shutil.copy2(src, os.path.join(wd, base))
-            cur.setdefault("options", {})["wallpaper"] = base
-            steps.append({"step": "wallpaper", "status": "dry-run" if dry_run else "done",
-                          "detail": "~/.config/elto/wallpapers/" + base})
+            "reset": reset_mode, "steps": run_obj.steps, "warnings": warnings}
+    try:
+        # --- file phase: staged, rolled back as a unit on failure
+        pkg = os.path.join(XDG_CONFIG, "elto", "themes", w["name"], "theme.json")
+        run_obj.write(pkg, json.dumps(w, indent=2, ensure_ascii=False) + "\n", "theme-package")
+        install_wallpapers(w, wdir, run_obj)
+        install_sounds(w, wdir, run_obj)
+        cur = build_overlay(w, wdir, run_obj, read_overlay())
+        run_obj.write(overlay_path(), json.dumps(cur, indent=2, ensure_ascii=False), "shell-overlay")
+        if (w.get("kde") or {}).get("colorscheme", {}).get("generate", True):
+            text, scheme = gen_colorscheme(w)
+            path = os.path.join(XDG_DATA, "color-schemes", scheme.replace(" ", "") + ".colors")
+            run_obj.write(path, text, "kde-colorscheme")
+        tmpl = find_aurorae_template()
+        aur_name = None
+        if tmpl:
+            aur_name = "ElTo" + w["name"]
+            outdir = os.path.join(XDG_DATA, "aurorae", "themes", aur_name)
+            if dry_run:
+                run_obj.steps.append({"step": "aurorae", "status": "dry-run", "detail": outdir})
+            else:
+                gen_aurorae(w, tmpl, outdir)
+                run_obj.steps.append({"step": "aurorae", "status": "done", "detail": outdir})
         else:
-            warnings.append("options.wallpaper asset missing, wallpaper left unchanged")
-    write_file(overlay, json.dumps(cur, indent=2, ensure_ascii=False), "shell-overlay")
+            run_obj.steps.append({"step": "aurorae", "status": "skipped",
+                                  "detail": "aurorae/ElToClassic template not found next to elto-worlds/"})
+    except Exception as e:
+        rolled = run_obj.rollback()
+        print(json.dumps({"ok": False, "error": str(e), "rolled_back": rolled,
+                          "steps": run_obj.steps, "warnings": warnings}, indent=2))
+        return 1
 
-    # 3. KDE color scheme
+    # --- activation phase: external tools, best-effort, failures do not roll back files
+    steps = run_obj.steps
     if (w.get("kde") or {}).get("colorscheme", {}).get("generate", True):
-        text, scheme = gen_colorscheme(w)
-        path = os.path.join(XDG_DATA, "color-schemes", scheme.replace(" ", "") + ".colors")
-        write_file(path, text, "kde-colorscheme")
+        scheme = ("ElTo " + w["label"]).replace(" ", "")
         if which("plasma-apply-colorscheme") and not dry_run:
-            ok, err = run(["plasma-apply-colorscheme", scheme.replace(" ", "")])
-            steps.append({"step": "kde-apply", "status": "done" if ok else "failed",
-                          "detail": err or scheme})
+            ok, err = run(["plasma-apply-colorscheme", scheme])
+            steps.append({"step": "kde-apply", "status": "done" if ok else "failed", "detail": err or scheme})
         else:
             steps.append({"step": "kde-apply", "status": "skipped",
                           "detail": "plasma-apply-colorscheme not available" if not dry_run else "dry-run"})
-
-    # 4. icon theme (name only; the theme must be installed)
     icon_theme = (w.get("icons") or {}).get("systemTheme")
     if icon_theme:
         if which("kwriteconfig6") and not dry_run:
@@ -348,9 +607,7 @@ def cmd_apply(wdir, dry_run):
             steps.append({"step": "icons", "status": "done" if ok else "failed", "detail": err or icon_theme})
         else:
             steps.append({"step": "icons", "status": "skipped",
-                          "detail": icon_theme + " (kwriteconfig6 not available)" if not dry_run else "dry-run"})
-
-    # 5. cursor theme (name only; the theme must be installed)
+                          "detail": icon_theme + (" (kwriteconfig6 not available)" if not dry_run else " (dry-run)")})
     cursor = (w.get("cursor") or {}).get("theme")
     if cursor:
         if which("plasma-apply-cursortheme") and not dry_run:
@@ -362,23 +619,13 @@ def cmd_apply(wdir, dry_run):
             steps.append({"step": "cursor", "status": "done" if ok else "failed", "detail": err or cursor})
         else:
             steps.append({"step": "cursor", "status": "skipped",
-                          "detail": cursor + " (no cursor tool available)" if not dry_run else "dry-run"})
-
-    # 6. Aurorae window decoration variant
-    tmpl = find_aurorae_template()
-    if tmpl:
-        name = "ElTo" + w["name"]
-        outdir = os.path.join(XDG_DATA, "aurorae", "themes", name)
-        if dry_run:
-            steps.append({"step": "aurorae", "status": "dry-run", "detail": outdir})
-        else:
-            gen_aurorae(w, tmpl, outdir)
-            steps.append({"step": "aurorae", "status": "done", "detail": outdir})
+                          "detail": cursor + (" (no cursor tool available)" if not dry_run else " (dry-run)")})
+    if aur_name:
         if which("kwriteconfig6") and not dry_run:
-            for key, val in (("library", "org.kde.kwin.aurorae"), ("theme", "__aurorae__svg__" + name)):
+            for key, val in (("library", "org.kde.kwin.aurorae"), ("theme", "__aurorae__svg__" + aur_name)):
                 run(["kwriteconfig6", "--file", "kwinrc", "--group", "org.kde.kdecoration2",
                      "--key", key, val])
-            steps.append({"step": "kwinrc", "status": "done", "detail": "__aurorae__svg__" + name})
+            steps.append({"step": "kwinrc", "status": "done", "detail": "__aurorae__svg__" + aur_name})
             qdbus = which("qdbus6") or which("qdbus")
             if qdbus:
                 ok, _ = run([qdbus, "org.kde.KWin", "/KWin", "reconfigure"], timeout=10)
@@ -387,12 +634,144 @@ def cmd_apply(wdir, dry_run):
         else:
             steps.append({"step": "kwinrc", "status": "skipped",
                           "detail": "kwriteconfig6 not available" if not dry_run else "dry-run"})
-    else:
-        steps.append({"step": "aurorae", "status": "skipped",
-                      "detail": "aurorae/ElToClassic template not found next to elto-worlds/"})
-
+    if run_obj.run_dir:
+        plan["backup_dir"] = run_obj.run_dir
     print(json.dumps(plan, indent=2, ensure_ascii=False))
     return 0
+
+def cmd_apply(wdir, dry_run):
+    w = load_world(wdir)
+    return apply_world(w, wdir, dry_run)
+
+def cmd_reset(wdir):
+    if wdir is None:
+        cur = read_overlay()
+        stamp = cur.get("_world") or {}
+        wid = stamp.get("id")
+        if not wid:
+            print(json.dumps({"ok": False, "error": "no _world stamp in the overlay; pass a world directory"}))
+            return 1
+        wdir = os.path.join(XDG_CONFIG, "elto", "themes", wid)
+        if not os.path.isfile(os.path.join(wdir, "theme.json")):
+            print(json.dumps({"ok": False, "error": "installed package for world %s not found" % wid}))
+            return 1
+        w = load_world(wdir)
+    else:
+        w = load_world(wdir)
+    # reset = apply with user overrides in managed sections dropped (build_overlay replaces them)
+    return apply_world(w, wdir, dry_run=False, reset_mode=True)
+
+# ---------------------------------------------------------------- bundles
+
+def cmd_pack(wdir, out):
+    w = load_world(wdir)
+    errors, warnings = validate(w, wdir)
+    if errors:
+        print(json.dumps({"ok": False, "errors": errors, "warnings": warnings}, indent=2))
+        return 1
+    files = []
+    declared = {a["path"]: a for a in (w.get("assets") or []) if isinstance(a, dict) and "path" in a}
+    assets_root = os.path.join(wdir, "assets")
+    for root, _, names in os.walk(assets_root) if os.path.isdir(assets_root) else []:
+        for n in sorted(names):
+            full = os.path.join(root, n)
+            rel = os.path.relpath(full, wdir)
+            if SCRIPT_EXT.search(rel):
+                errors.append("refusing to pack executable or script: " + rel)
+                continue
+            size = os.path.getsize(full)
+            if size > MAX_ASSET:
+                errors.append("asset over %d bytes: %s" % (MAX_ASSET, rel))
+                continue
+            entry = {"path": rel, "sha256": sha256_file(full), "bytes": size,
+                     "license": (declared.get(rel) or {}).get("license") or w.get("assetsLicense")}
+            if not entry["license"]:
+                errors.append("no license for asset " + rel)
+                continue
+            files.append(entry)
+    if errors:
+        print(json.dumps({"ok": False, "errors": errors, "warnings": warnings}, indent=2))
+        return 1
+    manifest = {"format": "elworld/1", "world": w.get("id", w["name"]), "label": w["label"],
+                "schema_version": w.get("schema_version", 2), "files": files}
+    total = sum(f["bytes"] for f in files)
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("manifest.json", json.dumps(manifest, indent=2))
+        z.write(os.path.join(wdir, "world.json"), "world.json")
+        cred = os.path.join(wdir, "CREDITS")
+        if os.path.isfile(cred):
+            z.write(cred, "CREDITS")
+        for f in files:
+            z.write(os.path.join(wdir, f["path"]), f["path"])
+    print(json.dumps({"ok": True, "bundle": out, "world": manifest["world"],
+                      "files": len(files) + 2, "asset_bytes": total, "warnings": warnings}, indent=2))
+    return 0
+
+def cmd_unpack(bundle, destdir):
+    errors = []
+    if not zipfile.is_zipfile(bundle):
+        print(json.dumps({"ok": False, "error": "not a zip file"}))
+        return 1
+    with zipfile.ZipFile(bundle) as z:
+        names = z.namelist()
+        if len(names) > MAX_BUNDLE_FILES:
+            errors.append("too many files in bundle")
+        if "world.json" not in names or "manifest.json" not in names:
+            errors.append("bundle must contain world.json and manifest.json")
+        for n in names:
+            if n.startswith("/") or n.startswith("\\") or ".." in n.split("/") or ":" in n.split("/")[0]:
+                errors.append("unsafe path in bundle: " + n)
+            elif not (n == "world.json" or n == "manifest.json" or n == "CREDITS"
+                      or n.startswith("assets/") or re.match(r"^preview\.(png|jpe?g|webp)$", n)):
+                errors.append("unexpected file in bundle: " + n)
+            elif SCRIPT_EXT.search(n):
+                errors.append("script or executable in bundle: " + n)
+            info = z.getinfo(n)
+            if info.file_size > MAX_ASSET and n != "world.json":
+                errors.append("file over %d bytes: %s" % (MAX_ASSET, n))
+            if n == "world.json" and info.file_size > MAX_WORLD_JSON:
+                errors.append("world.json too large")
+            mode = (info.external_attr >> 16) & 0o170000
+            if mode == 0o120000:
+                errors.append("symlink in bundle: " + n)
+        if errors:
+            print(json.dumps({"ok": False, "errors": errors}))
+            return 1
+        total = sum(z.getinfo(n).file_size for n in names)
+        if total > MAX_BUNDLE_BYTES:
+            print(json.dumps({"ok": False, "error": "bundle uncompressed size over %d bytes" % MAX_BUNDLE_BYTES}))
+            return 1
+        manifest = json.loads(z.read("manifest.json"))
+        if manifest.get("format") != "elworld/1":
+            print(json.dumps({"ok": False, "error": "unknown bundle format"}))
+            return 1
+        checks = {f["path"]: f for f in manifest.get("files", [])}
+        for n in names:
+            if n.startswith("assets/"):
+                if n not in checks:
+                    errors.append("asset not in manifest: " + n)
+                    continue
+                data = z.read(n)
+                if len(data) != checks[n]["bytes"] or hashlib.sha256(data).hexdigest() != checks[n]["sha256"]:
+                    errors.append("checksum mismatch: " + n)
+                if not checks[n].get("license"):
+                    errors.append("no license recorded for " + n)
+        for p in checks:
+            if p not in names:
+                errors.append("manifest asset missing from bundle: " + p)
+        if errors:
+            print(json.dumps({"ok": False, "errors": errors}))
+            return 1
+        w = json.loads(z.read("world.json"))
+        os.makedirs(destdir, exist_ok=True)
+        for n in names:
+            z.extract(n, destdir)
+    wdir = os.path.abspath(destdir)
+    verrors, warnings = validate(w, wdir)
+    ok = not verrors
+    print(json.dumps({"ok": ok, "world": w.get("name"), "extracted": wdir,
+                      "errors": verrors, "warnings": warnings}, indent=2))
+    return 0 if ok else 1
 
 def main():
     a = sys.argv[1:]
@@ -400,12 +779,17 @@ def main():
         if len(a) == 2 and a[0] == "check":
             return cmd_check(os.path.abspath(a[1]))
         if len(a) in (2, 3) and a[0] == "apply":
-            dry = "--dry-run" in a[2:]
-            return cmd_apply(os.path.abspath(a[1]), dry)
+            return cmd_apply(os.path.abspath(a[1]), "--dry-run" in a[2:])
+        if len(a) in (1, 2) and a[0] == "reset":
+            return cmd_reset(os.path.abspath(a[1]) if len(a) == 2 else None)
+        if len(a) == 3 and a[0] == "pack":
+            return cmd_pack(os.path.abspath(a[1]), os.path.abspath(a[2]))
+        if len(a) == 3 and a[0] == "unpack":
+            return cmd_unpack(os.path.abspath(a[1]), os.path.abspath(a[2]))
         if len(a) == 2 and a[0] == "install-system":
             print(json.dumps({"ok": False, "error": "install-system is Phase 2/3 (SDDM, lock, Plymouth, GRUB): not implemented"}))
             return 2
-        raise ValueError("usage: check <worlddir> | apply <worlddir> [--dry-run] | install-system <worlddir>")
+        raise ValueError("usage: check <dir> | apply <dir> [--dry-run] | reset [<dir>] | pack <dir> <out.elworld> | unpack <file.elworld> <destdir> | install-system <dir>")
     except Exception as e:
         print(json.dumps({"ok": False, "error": str(e)}))
         return 1

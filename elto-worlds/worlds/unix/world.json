@@ -2,10 +2,28 @@
   "name": "unix",
   "label": "Unix",
   "version": 2,
+  "schema_version": 3,
+  "id": "unix",
   "description": "Green phosphor terminal world: near-black, monospace everywhere, keyboard-first, motion off. Palette estimated from the user concept art; artist refines.",
   "author": "mo12st",
   "license": "Proprietary (all rights reserved, mo12st)",
   "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+  "identity": {
+    "story": "A green phosphor terminal that grew into a whole desk.",
+    "signature": "Monospace everything, motion off"
+  },
+  "compatible": {
+    "shell": "1",
+    "tool": "3"
+  },
+  "defaults": {
+    "wallpaper": "assets/wallpaper.jpg",
+    "dock": "island",
+    "notch": "clock",
+    "notchMode": "hidden",
+    "notchRespectFullscreen": true,
+    "sounds": false
+  },
   "colors": {
     "surface": "#0b120f",
     "surfaceAlt": "#14201a",
@@ -51,7 +69,20 @@
     "dock": "island",
     "notch": "clock",
     "wallpaper": "assets/wallpaper.jpg",
-    "motion": "soft"
+    "motion": "soft",
+    "wallpapers": [
+      "assets/wallpaper.jpg"
+    ]
+  },
+  "sounds": {
+    "enabled": false,
+    "events": {
+      "session-start": "assets/sounds/session-start.wav",
+      "notification": "assets/sounds/notification.wav",
+      "drawer-open": "assets/sounds/drawer-open.wav",
+      "lock": "assets/sounds/lock.wav",
+      "unlock": "assets/sounds/unlock.wav"
+    }
   },
   "layout": {
     "bar": "top-bar",
@@ -101,5 +132,52 @@
     "itemColor": "text",
     "selectedColor": "selection",
     "selectedBackground": "surfaceAlt"
-  }
+  },
+  "assets": [
+    {
+      "path": "assets/wallpaper.jpg",
+      "kind": "wallpaper",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/greeter-background.jpg",
+      "kind": "greeter",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/boot-background.jpg",
+      "kind": "boot",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/snail.png",
+      "kind": "boot",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/session-start.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/notification.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/drawer-open.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/lock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/unlock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    }
+  ]
 }

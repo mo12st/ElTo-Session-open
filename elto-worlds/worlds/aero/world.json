@@ -2,10 +2,29 @@
   "name": "aero",
   "label": "Aero Habitat",
   "version": 2,
+  "schema_version": 3,
+  "id": "aero",
   "description": "Glass panels over a bright ocean-habitat wallpaper; calm, airy, translucent. Palette estimated from the user concept art; artist refines.",
   "author": "mo12st",
   "license": "Proprietary (all rights reserved, mo12st)",
   "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+  "identity": {
+    "story": "A bright habitat over the ocean; your workspace floats in glass.",
+    "signature": "The ocean arch wallpaper and frosted panels"
+  },
+  "compatible": {
+    "shell": "1",
+    "tool": "3"
+  },
+  "defaults": {
+    "wallpaper": "assets/wallpaper.jpg",
+    "dock": "island",
+    "notch": "clock",
+    "notchMode": "auto-hide",
+    "notchAutoHideMs": 400,
+    "notchRespectFullscreen": true,
+    "sounds": true
+  },
   "colors": {
     "surface": "#eaf4f6",
     "surfaceAlt": "#d5e4df",
@@ -51,7 +70,20 @@
     "dock": "island",
     "notch": "clock",
     "wallpaper": "assets/wallpaper.jpg",
-    "motion": "soft"
+    "motion": "soft",
+    "wallpapers": [
+      "assets/wallpaper.jpg"
+    ]
+  },
+  "sounds": {
+    "enabled": true,
+    "events": {
+      "session-start": "assets/sounds/session-start.wav",
+      "notification": "assets/sounds/notification.wav",
+      "drawer-open": "assets/sounds/drawer-open.wav",
+      "lock": "assets/sounds/lock.wav",
+      "unlock": "assets/sounds/unlock.wav"
+    }
   },
   "layout": {
     "bar": "bottom-tasks",
@@ -101,5 +133,52 @@
     "itemColor": "text",
     "selectedColor": "selection",
     "selectedBackground": "surfaceAlt"
-  }
+  },
+  "assets": [
+    {
+      "path": "assets/wallpaper.jpg",
+      "kind": "wallpaper",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/greeter-background.jpg",
+      "kind": "greeter",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/boot-background.jpg",
+      "kind": "boot",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/snail.png",
+      "kind": "boot",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/session-start.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/notification.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/drawer-open.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/lock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/unlock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    }
+  ]
 }
