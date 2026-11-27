@@ -9,7 +9,11 @@ Commands:
                                   the world named in the shell overlay's _world stamp)
   pack <worlddir> <out.elworld>   build a data-only bundle (zip + manifest.json, sha256 per file)
   unpack <file.elworld> <destdir> validate and extract a bundle (path traversal, scripts, size
-                                  limits and checksums enforced)
+                                  limits and checksums enforced; staged, refuses existing destDir)
+  inspect <file.elworld>          verify a bundle and print license/size per asset, writes nothing
+  install <file.elworld> [--replace]  verify + install into ~/.local/share/elto/worlds/<id>/;
+                                  never overwrites (--replace keeps the old copy as .bak-<time>);
+                                  does not apply the world
   install-system <worlddir>       not implemented (Phase 2/3: SDDM, lock, Plymouth, GRUB)
 
 Format: world.schema.json in this directory (schema_version 3).
@@ -740,71 +744,52 @@ def cmd_pack(wdir, out):
                       "files": len(files) + 2, "asset_bytes": total, "warnings": warnings}, indent=2))
     return 0
 
-def cmd_unpack(bundle, destdir):
-    errors = []
-    if not zipfile.is_zipfile(bundle):
-        print(json.dumps({"ok": False, "error": "not a zip file"}))
+def _bundle_mod():
+    sys.path.insert(0, HERE)
+    import bundle
+    return bundle
+
+def _validate_staged(w, stage):
+    errs, _ = validate(w, stage)
+    return errs
+
+def cmd_unpack(path, destdir):
+    """Verify everything first, extract into a staging dir, validate, then atomically rename.
+    Refuses an existing destination."""
+    b = _bundle_mod()
+    try:
+        rep = b.unpack(path, destdir, _validate_staged)
+    except b.BundleError as e:
+        print(json.dumps({"ok": False, "errors": e.errors}, indent=2))
         return 1
-    with zipfile.ZipFile(bundle) as z:
-        names = z.namelist()
-        if len(names) > MAX_BUNDLE_FILES:
-            errors.append("too many files in bundle")
-        if "world.json" not in names or "manifest.json" not in names:
-            errors.append("bundle must contain world.json and manifest.json")
-        for n in names:
-            if n.startswith("/") or n.startswith("\\") or ".." in n.split("/") or ":" in n.split("/")[0]:
-                errors.append("unsafe path in bundle: " + n)
-            elif not (n == "world.json" or n == "manifest.json" or n == "CREDITS"
-                      or n.startswith("assets/") or re.match(r"^preview\.(png|jpe?g|webp)$", n)):
-                errors.append("unexpected file in bundle: " + n)
-            elif SCRIPT_EXT.search(n):
-                errors.append("script or executable in bundle: " + n)
-            info = z.getinfo(n)
-            if info.file_size > MAX_ASSET and n != "world.json":
-                errors.append("file over %d bytes: %s" % (MAX_ASSET, n))
-            if n == "world.json" and info.file_size > MAX_WORLD_JSON:
-                errors.append("world.json too large")
-            mode = (info.external_attr >> 16) & 0o170000
-            if mode == 0o120000:
-                errors.append("symlink in bundle: " + n)
-        if errors:
-            print(json.dumps({"ok": False, "errors": errors}))
-            return 1
-        total = sum(z.getinfo(n).file_size for n in names)
-        if total > MAX_BUNDLE_BYTES:
-            print(json.dumps({"ok": False, "error": "bundle uncompressed size over %d bytes" % MAX_BUNDLE_BYTES}))
-            return 1
-        manifest = json.loads(z.read("manifest.json"))
-        if manifest.get("format") != "elworld/1":
-            print(json.dumps({"ok": False, "error": "unknown bundle format"}))
-            return 1
-        checks = {f["path"]: f for f in manifest.get("files", [])}
-        for n in names:
-            if n.startswith("assets/"):
-                if n not in checks:
-                    errors.append("asset not in manifest: " + n)
-                    continue
-                data = z.read(n)
-                if len(data) != checks[n]["bytes"] or hashlib.sha256(data).hexdigest() != checks[n]["sha256"]:
-                    errors.append("checksum mismatch: " + n)
-                if not checks[n].get("license"):
-                    errors.append("no license recorded for " + n)
-        for p in checks:
-            if p not in names:
-                errors.append("manifest asset missing from bundle: " + p)
-        if errors:
-            print(json.dumps({"ok": False, "errors": errors}))
-            return 1
-        w = json.loads(z.read("world.json"))
-        os.makedirs(destdir, exist_ok=True)
-        for n in names:
-            z.extract(n, destdir)
-    wdir = os.path.abspath(destdir)
-    verrors, warnings = validate(w, wdir)
-    ok = not verrors
-    print(json.dumps({"ok": ok, "world": w.get("name"), "extracted": wdir,
-                      "errors": verrors, "warnings": warnings}, indent=2))
-    return 0 if ok else 1
+    _, warnings = validate(json.load(open(os.path.join(destdir, "world.json"))), destdir)
+    print(json.dumps({"ok": True, "world": rep["name"], "extracted": rep["extracted"], "errors": [], "warnings": warnings}, indent=2))
+    return 0
+
+def cmd_inspect(path):
+    b = _bundle_mod()
+    try:
+        rep = b.verify(path)
+    except b.BundleError as e:
+        print(json.dumps({"ok": False, "errors": e.errors}, indent=2))
+        return 1
+    rep["ok"] = True
+    print(json.dumps(rep, indent=2))
+    return 0
+
+def cmd_install(path, replace):
+    """Install a bundle into ~/.local/share/elto/worlds/<id>/. Never overwrites without --replace
+    (old copy kept as .bak-<time>). Does not apply: run `apply` on the installed directory."""
+    b = _bundle_mod()
+    try:
+        rep = b.install(path, os.path.join(XDG_DATA, "elto", "worlds"), replace, _validate_staged)
+    except b.BundleError as e:
+        print(json.dumps({"ok": False, "errors": e.errors}, indent=2))
+        return 1
+    rep["ok"] = True
+    rep["next"] = "elto-world apply " + rep["installed"]
+    print(json.dumps(rep, indent=2))
+    return 0
 
 def main():
     a = sys.argv[1:]
@@ -819,10 +804,14 @@ def main():
             return cmd_pack(os.path.abspath(a[1]), os.path.abspath(a[2]))
         if len(a) == 3 and a[0] == "unpack":
             return cmd_unpack(os.path.abspath(a[1]), os.path.abspath(a[2]))
+        if len(a) == 2 and a[0] == "inspect":
+            return cmd_inspect(os.path.abspath(a[1]))
+        if len(a) in (2, 3) and a[0] == "install" and (len(a) == 2 or a[2] == "--replace"):
+            return cmd_install(os.path.abspath(a[1]), len(a) == 3)
         if len(a) == 2 and a[0] == "install-system":
             print(json.dumps({"ok": False, "error": "install-system is Phase 2/3 (SDDM, lock, Plymouth, GRUB): not implemented"}))
             return 2
-        raise ValueError("usage: check <dir> | apply <dir> [--dry-run] | reset [<dir>] | pack <dir> <out.elworld> | unpack <file.elworld> <destdir> | install-system <dir>")
+        raise ValueError("usage: check <dir> | apply <dir> [--dry-run] | reset [<dir>] | pack <dir> <out.elworld> | inspect <file.elworld> | unpack <file.elworld> <destdir> | install <file.elworld> [--replace] | install-system <dir>")
     except Exception as e:
         print(json.dumps({"ok": False, "error": str(e)}))
         return 1
