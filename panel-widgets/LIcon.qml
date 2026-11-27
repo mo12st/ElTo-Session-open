@@ -13,15 +13,19 @@ Item {
     property int size: 20
     // a multi-colour file that is not in its folder falls back to the Lucide glyph, tinted so it stays visible
     property bool fallback: false
-    // name is a glyph name (folder) or a file name with an extension (image.png) for art that ships pre-rendered
+    // name is a glyph name (folder) or a file name with an extension (image.png) for art that ships pre-rendered.
+    // The extension only matters for the multi-colour folder: a tinted folder always uses <stem>.svg, so going
+    // back to lucide never asks for a .png and never falls into the error path.
     readonly property string file: root.name.indexOf(".") >= 0 ? root.name : root.name + ".svg"
     readonly property string stem: root.name.indexOf(".") >= 0 ? root.name.substring(0, root.name.lastIndexOf(".")) : root.name
+    readonly property string folder: root.fallback ? "lucide" : root.dir
+    readonly property string leaf: (root.fallback || root.tintArt || root.dir === "lucide") ? root.stem + ".svg" : root.file
     implicitWidth: size
     implicitHeight: size
     Image {
         id: img
         anchors.fill: parent
-        source: root.name ? "file://" + Quickshell.shellPath("../icons/" + (root.fallback ? "lucide" : root.dir) + "/" + (root.fallback ? root.stem + ".svg" : root.file)) : ""
+        source: root.name ? "file://" + Quickshell.shellPath("../icons/" + root.folder + "/" + root.leaf) : ""
         sourceSize.width: root.size * 2
         sourceSize.height: root.size * 2
         visible: !root.tintArt || root.fallback

@@ -18,13 +18,31 @@ Scope {
     property var openApps: ({})
     property bool blurBroken: false
 
+    // Pinned ids are reverse-DNS on some distros (org.mozilla.firefox) and plain on others (firefox), so an exact
+    // byId miss falls back to the last segment of the id, then to the app name. Without this a pinned app that is
+    // installed still drops out of the dock and its slot disappears.
+    function pinnedEntry(id) {
+        var e = DesktopEntries.byId(id)
+        if (e) return e
+        var short = String(id).toLowerCase().split(".").pop()
+        var vals = DesktopEntries.applications.values
+        for (var i = 0; i < vals.length; i++) {
+            var vid = String(vals[i].id || "").toLowerCase()
+            if (vid === short || vid === short + ".desktop" || vid.split(".").pop() === short) return vals[i]
+        }
+        for (var j = 0; j < vals.length; j++) {
+            if (String(vals[j].name || "").toLowerCase() === short) return vals[j]
+        }
+        return null
+    }
+
     // ---- pinned apps: ids of desktop entries, kept in dock.pinned of the user theme. Entries that are not installed are skipped.
     readonly property var pinnedItems: {
         var n = DesktopEntries.applications.values.length   // re-evaluate when entries finish loading
         var out = []
         var ids = root.dk.pinned || []
         for (var i = 0; i < ids.length; i++) {
-            var e = DesktopEntries.byId(ids[i])
+            var e = root.pinnedEntry(ids[i])
             if (e) out.push({ id: ids[i], entry: e, glyph: (root.dk.glyphs || {})[ids[i]] || "" })
         }
         return out
