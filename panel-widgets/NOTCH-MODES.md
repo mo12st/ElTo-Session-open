@@ -20,6 +20,10 @@ Behavior (Notch.qml):
 
 Verification level of this PR: code written, NOT run. No qmllint or Quickshell available where it was written. Everything below is unproven until the VM runs it.
 
+Phasing (user-approved review advice): run Phase A first (show + hidden, steps 1, 2, 4, 6, 9). Edge auto-hide and fullscreen (steps 3, 5, 7, 8) are Phase B, tested and reported separately so a Phase B failure does not block A.
+Levels: this PR is L0 (written, not run). Phase A VM pass = L2 for show/hidden only. Do not report auto-hide as proven from Phase A. L3 = hardware, not covered.
+Unknown `notchMode` falls back to show and logs `ELTONOTCH unknown options.notchMode ...` as a warning in the session log (step 4 should grep for it). Soft motion off (`options.motion: "off"`) makes the slide instant.
+
 Setup: in the VM session, edit `~/.config/elto/theme.json` (merge into `options`), or use the Control buttons.
 
 1. Default: no `notchMode` key. Notch visible as before. Screenshot.

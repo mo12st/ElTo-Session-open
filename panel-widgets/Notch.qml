@@ -47,6 +47,10 @@ Scope {
 
     // ---- notch modes (options.notchMode: show | hidden | auto-hide, fallback show) ----
     readonly property string mode: Theme.notchMode
+    // Unknown value: warn visibly (session log), then fall back to show (Theme already did the fallback).
+    readonly property string rawMode: Theme.optionsT.notchMode === undefined ? "" : String(Theme.optionsT.notchMode)
+    onRawModeChanged: if (rawMode !== "" && rawMode !== mode) console.warn("ELTONOTCH unknown options.notchMode '" + rawMode + "', falling back to 'show'")
+    Component.onCompleted: if (rawMode !== "" && rawMode !== mode) console.warn("ELTONOTCH unknown options.notchMode '" + rawMode + "', falling back to 'show'")
     // Fullscreen info comes from the elto-windowlist helper (no per-screen data), so it applies to all screens.
     // The helper is only started when notchRespectFullscreen is on.
     WindowList { id: wlf; enabled: Theme.notchRespectFullscreen }
