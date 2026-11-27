@@ -1,7 +1,7 @@
 # Dock icons: held, illustrated round as concepts
 
-Status: **nothing implemented, nothing merged.** The dock still draws the shell's Lucide glyphs. Seven
-rounds happened and none shipped:
+Status: **held. Nothing implemented, nothing merged.** The dock still draws the shell's Lucide glyphs.
+Twelve rounds happened and none shipped:
 
 1. Four line-icon sets (Lucide as today, Iconoir 1.5px, Phosphor Light, Tabler). Iconoir was shipped and
    he rejected all four: thin line glyphs, too plain. Reverted in `b68f055` and `c3cc6dd`.
@@ -20,8 +20,26 @@ rounds happened and none shipped:
 7. Green is rejected for dock icons: no sage and no ink-green in plates, objects or details. Spec v2 keeps
    its sizes, depth, shadow and legibility rules, and its palette is now paper, cream, rust, ochre, warm
    brown, charcoal and clay rose, with charcoal, warm brown and dark ochre plates. Concept 3 was redrawn
-   with that palette and checked at 22 and 30 px. **He picks, or asks for something else, before any file
-   changes.**
+   with that palette and checked at 22 and 30 px. **Rejected: the shapes themselves read crude, not only
+   the colours.**
+8. Concept 4 redraws the objects with continuous curves, one radius per role, even negative space, inset
+   rules and deliberate overlaps (spec v2 section 11). Terminal, notebook, image, settings, palette and
+   window were rebuilt; the rosette replaced the polygon gear. Checked at 22 and 30 px. **Rejected: he wants
+   a different design.**
+9. Icon work was held until he picked a style family. **He picked macOS Big Sur**: rounded-square tile with a
+   colourful gradient, soft gloss, depth, a clear symbol.
+10. Concept 5 is drawn in that language: one gradient tile per icon, a cream symbol with a contact shadow,
+   no green anywhere, and every symbol measured against its own tile. Checked at 22 and 30 px. **Rejected
+   as well.**
+11. **Held again.** No new concept is drawn until he says what specifically is wrong with concept 5. Ten
+    drawings across five languages have now been rejected without a stated reason, so the next round waits
+    for that feedback rather than guessing again.
+12. He then gave the reason for concept 5: **ugly, very primitive**, and **use better colours**. A richer
+    Big Sur revision was drawn to that note but never sent, because he replaced the direction before it
+    went out. The new direction, in his words: **imitate Notion and Claude**. Concept 6 is drawn in that
+    language: a warm off-white card, soft ink drawing with cream and terracotta/clay fills, friendly
+    rounded shapes, no green, and three to five detail elements per icon instead of concept 5's single
+    flat symbol. Checked at 22 and 30 px and as an on-dock strip. Awaiting his read.
 
 The brief, as relayed: Apple-style dimensional icons, layered shapes, soft gradients, highlights and
 depth, each drawn originally in the ElTo palette with the snail and paper identity. Self-drawn, free
@@ -31,7 +49,33 @@ licences only, no Apple assets, no paid tools.
 
 | # | concept | what it is |
 | --- | --- | --- |
+| 6 | Notion / Claude language | warm off-white card with a hairline warm border, soft ink drawing (#2b2521) with cream (#f6efdf), terracotta (#c0603c), clay (#b98a6f) and muted ochre fills, rounded organic shapes, small friendly illustration symbols, no green. Concept only |
+| 5 | Big Sur language | one gradient squircle per icon (amber to rust, warm brown to charcoal, clay to rust, mauve to plum, grey to slate, ochre-clay to rust-brown, slate blue, brown), soft gloss and highlight, cream symbol with a contact shadow, no green. Rejected |
+| 4 | refined artifacts | concept 3's palette and structure with rebuilt geometry: continuous curves, one radius per role, even negative space, inset rules, rosette instead of polygon gear. Rejected |
 | 3 | illustrated artifacts | paper objects on charcoal, warm brown and dark ochre plates; variable depth; one overlap per object as the family gesture; per-icon redesigns; no green anywhere |
+
+### Concept 6: the Notion / Claude language
+
+He named the reference himself, so this round copies a language rather than guessing one. What was taken
+from each:
+
+- **Notion**: the warm off-white ground instead of a saturated plate, the soft near-black ink of the
+  drawing, hairline warm borders, and small friendly objects rather than abstract glyphs.
+- **Claude**: cream and terracotta/clay as the only colour, soft rounded organic silhouettes, and a calm
+  low-contrast feel.
+
+Palette: card `#fdfaf3` to `#f4ecdc` with a `#e3d9c4` hairline, ink `#2b2521`, cream `#f6efdf`, terracotta
+`#c0603c` with a darker `#9c4730`, clay `#b98a6f`, muted ochre `#c99a5a`. Ink on the card measures 14.5:1
+and terracotta 4.1:1, so the accents survive the card at dock size.
+
+Per icon: `folder` ink folder with a terracotta tab and a cream sheet inside; `terminal` ink screen with a
+clay title rule, cream chevron and cursor; `notebook` cream cover with an ink spine, terracotta ribbon and
+rule lines; `image` ink frame with cream mount, clay and ochre hills, terracotta sun; `settings` ink
+six-lobed gear with a cream ring and terracotta hub; `palette` cream palette with ink thumb hole and
+terracotta, ochre and clay pigment; `window` clay card behind a cream card with a terracotta rule and
+control dot; `clock` cream face, ink rim and hands, terracotta second hand.
+
+Nothing here is implemented, vendored or wired. The same open questions below still apply.
 
 Built to `DOCK-ICON-SPEC.md` v2. Concept 1 (cream plates) is rejected: its plate disappears against the
 cream dock. Concept 2's value structure survives inside concept 3, with the plate no longer dominant and
