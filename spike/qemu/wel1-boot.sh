@@ -89,7 +89,7 @@ shot /tmp/k1.ppm dk1_default
 echo "== right-click Terminal"
 echo "== welcome after first login"
 sleep 15
-$S 'pgrep -a quickshell | cut -c1-120; echo DESK=$(cat /proc/$(pgrep -n kwin_wayland)/environ | tr "\0" "\n" | grep -e XDG_SESSION_DESKTOP -e XDG_CURRENT_DESKTOP); ls ~/.local/state/elto/ 2>&1; grep -i -e welcome -e "LIcon\|error" ~/.local/state/elto-session.log | tail -8'
+$S 'pgrep -a quickshell | cut -c1-120; echo DESK=$XDG_SESSION_DESKTOP; ls ~/.local/state/elto/ 2>&1; grep -i -e welcome -e "LIcon\|error" ~/.local/state/elto-session.log | tail -8'
 shot /tmp/w1.ppm w1_first
 key right; sleep 2; shot /tmp/w2.ppm w2_tour
 key right; sleep 2; shot /tmp/w3.ppm w3_yours
@@ -98,7 +98,7 @@ $S 'pgrep -a quickshell | cut -c1-100'
 echo "== finish"
 key ret; sleep 3
 $S 'pgrep -af welcome.qml | cut -c1-100; ls -la ~/.local/state/elto/; cat ~/.local/state/elto/welcome-v1.done'
-$S 'sh /opt/elto-session/welcome/elto-welcome-autostart.sh; echo guard-rc=$? (should exit at once)'
+$S 'sh /opt/elto-session/welcome/elto-welcome-autostart.sh; echo guard-rc=$?'
 echo "== reopen via launcher"
 $S 'sudo -u dev WAYLAND_DISPLAY=wayland-0 XDG_RUNTIME_DIR=/run/user/1000 sh -c "setsid quickshell -p /opt/elto-session/welcome/welcome.qml >/tmp/wl.log 2>&1 </dev/null &"; sleep 6; pgrep -af welcome.qml | cut -c1-100; cat /tmp/wl.log | tail -5'
 shot /tmp/w5.ppm w5_reopen

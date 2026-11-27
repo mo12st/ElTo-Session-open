@@ -20,7 +20,7 @@ cp "$R/lock/metadata.json" $D/; cp -r "$R/lock/LockScreen.qml" "$R/lock/Exec.qml
 # identity + system defaults (kdeglobals, kwinrc, plasmashellrc, mimeapps, sddm conf) live in elto-core/
 # welcome (first-run tour)
 install -d /opt/elto-session/welcome
-cp "$R/welcome/welcome.qml" "$R/welcome/elto-welcome-autostart.sh" /opt/elto-session/welcome/
+cp "$R/welcome/welcome.qml" "$R/welcome/LIcon.qml" "$R/welcome/elto-welcome-autostart.sh" /opt/elto-session/welcome/
 chmod 755 /opt/elto-session/welcome/elto-welcome-autostart.sh
 install -m644 "$R/welcome/elto-welcome.desktop" /usr/share/applications/elto-welcome.desktop
 install -d /etc/xdg/autostart

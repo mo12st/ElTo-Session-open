@@ -8,11 +8,10 @@
 // overlay ~/.config/elto/theme.json) and merges them the same way. It is inlined here on
 // purpose: panel-widgets/Theme.qml is a QML singleton local to its directory and cannot be
 // imported across directories without a qmldir file (which belongs to the implementer's track).
-// LIcon is a plain component, so it IS reused from panel-widgets.
+// LIcon.qml is a local copy (the panel-widgets one needs the Theme singleton, which does not resolve across directories).
 import Quickshell
 import Quickshell.Io
 import QtQuick
-import "../panel-widgets" as Shell
 
 ShellRoot {
     id: app
@@ -219,7 +218,7 @@ ShellRoot {
             // ================= page 2: make it yours =================
             Item {
                 anchors.fill: parent; visible: pager.page === 2
-                Shell.LIcon { x: 60; y: 56; name: "palette"; size: 44; tint: th.accent }
+                LIcon { x: 60; y: 56; name: "palette"; size: 44; tint: th.accent }
                 Text {
                     x: 128; y: 58; text: "Make it yours"
                     color: th.text; font.family: th.serif; font.pixelSize: 34
@@ -236,7 +235,7 @@ ShellRoot {
                     Behavior on color { ColorAnimation { duration: th.ms(120) } }
                     Row {
                         anchors.centerIn: parent; spacing: 10
-                        Shell.LIcon { name: "palette"; size: 20; tint: th.text }
+                        LIcon { name: "palette"; size: 20; tint: th.text }
                         Text { text: "Open Customize"; color: th.text; font.family: th.sans; font.pixelSize: 16 }
                     }
                     MouseArea {
