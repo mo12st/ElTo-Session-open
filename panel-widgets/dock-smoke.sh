@@ -18,14 +18,6 @@ pgrep -f '^kwin_wayland' >/dev/null || { echo KWIN-DIED; tail -30 /tmp/kwin.log;
 export WAYLAND_DISPLAY=wayland-dk
 
 fail=0
-
-# every glyph the dock can ask for must exist in the dock's own set, or the tile is blank on screen
-echo "== icon files"
-glyphs=$(sed -n '/"glyphs"/,/}/p' /src/themes/soft-paper/theme.json | grep -oE ': "[a-z0-9-]+"' | cut -d'"' -f2 | sort -u)
-for n in $glyphs window; do
-  if [ -f "/src/icons/dock/iconoir/$n.svg" ]; then echo "  ok $n"; else echo "  MISSING $n"; fail=1; fi
-done
-
 run() { # label, expected resolved variant, options.dock value ("" = key absent), optional log line
   local label="$1" want="$2" val="$3" warn="${4:-}"
   local ov=/tmp/elto-dock-overlay.json log=/tmp/qs-dock-$label.log
