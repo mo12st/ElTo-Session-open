@@ -46,6 +46,9 @@ Scope {
     // ---- variant: options.dock resolved through the registry, so an unknown or still-concept id always
     // lands on island and the session always has a dock.
     readonly property string style: DockStyle.resolve(Theme.dockStyle)
+    // one log line per resolution, so the dock smoke test can prove which variant was chosen
+    Component.onCompleted: console.log("ELTODOCK variant " + root.style)
+    onStyleChanged: console.log("ELTODOCK variant " + root.style)
 
     Variants {
         model: Quickshell.screens

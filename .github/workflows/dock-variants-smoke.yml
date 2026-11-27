@@ -1,0 +1,32 @@
+name: dock-variants-smoke
+
+on:
+  pull_request:
+    paths:
+      - "panel-widgets/Dock*.qml"
+      - "panel-widgets/dock-smoke.*"
+      - ".github/workflows/dock-variants-smoke.yml"
+  push:
+    branches: ["agent/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Load island and bar in Quickshell under nested KWin
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dock variants in a disposable Arch container
+        run: |
+          docker run --rm -v "$PWD:/src:ro" archlinux:base-devel bash -c '
+            pacman -Sy --noconfirm >/dev/null 2>&1
+            pacman -S --noconfirm --needed kwin quickshell qt6-wayland qt6-declarative mesa dbus ttf-dejavu libcap >/tmp/pacman.log 2>&1 || { tail -30 /tmp/pacman.log; exit 1; }
+            getcap $(readlink -f /usr/bin/kwin_wayland); setcap -r $(readlink -f /usr/bin/kwin_wayland) 2>&1
+            pacman -Q quickshell qt6-declarative kwin
+            useradd -m dev
+            su dev -c "dbus-run-session -- bash /src/panel-widgets/dock-smoke.sh" 2>&1
+          '
