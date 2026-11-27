@@ -92,8 +92,9 @@ Item {
                             readonly property int pc: page.pct(modelData)
                             readonly property color tone: pc >= 85 ? th.accent : th.textMuted
                             width: Math.max(170, (page.width - 28) / 3 / page.cardScale - 6); height: 156; radius: th.radiusCard + 2
-                            color: Qt.lighter(th.surface, 1.35)
+                            color: Qt.alpha(Qt.lighter(th.surface, 1.35), th.surfaceAlpha < 1 ? th.surfaceAlpha * 0.8 : 1)
                             border.width: 1; border.color: Qt.alpha(th.text, 0.07)
+                            Bevel { th: page.th }
                             Canvas {          // dashed inner outline
                                 anchors.fill: parent; anchors.margins: 6
                                 onPaint: {
@@ -121,6 +122,7 @@ Item {
                                 anchors { right: parent.right; rightMargin: 16; top: parent.top; topMargin: 66 }
                                 width: 64; height: 22; radius: th.radiusPill; color: th.surface
                                 border.width: 1; border.color: th.divider
+                                Bevel { th: page.th }
                                 Row {
                                     anchors.centerIn: parent; spacing: 4
                                     LIcon { size: 8; anchors.verticalCenter: parent.verticalCenter; name: "close"; tint: th.text }

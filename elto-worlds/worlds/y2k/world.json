@@ -52,7 +52,9 @@
     "shadowAlpha": 0.28,
     "shadowBlur": 24,
     "shadowOffsetY": 12,
-    "paperGrain": 0.0
+    "paperGrain": 0.0,
+    "folderArt": "outline",
+    "snail": "outline"
   },
   "fonts": {
     "serif": "Exo 2",

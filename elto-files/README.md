@@ -19,3 +19,15 @@ Trail has no styling of its own. Every colour, radius and font comes from the El
 Tokens used: roles `surface`, `surfaceAlt`, `text`, `textMuted`, `accent`, `selection`, `divider`, `disabled`; shape `radiusWindow` (window and sidebar), `radiusCard` (tiles, rows, cards, art corners), `radiusPill` (breadcrumb, buttons, bars); fonts `serif` and `sans`; option `motion`. The folder, drive and snail art is drawn in QML from these roles (`FolderArt.qml`, `DriveArt.qml`, `SnailArt.qml`). Mono icons (`icons/`, white SVG) are tinted with `LIcon.qml`, the same method as Welcome.
 
 Limits: the schema has no spacing or icon-stroke tokens yet, so layout sizes and icon stroke width are fixed constants in the QML. Derived shades (hover, art shading, stripes) are computed from the roles with `Qt.alpha`, `Qt.darker`, `Qt.lighter`, `Qt.tint`.
+
+### Structural tokens (optional, all in `shape`, so a world apply carries them)
+
+| Token | Values | Default | Effect in Trail |
+| --- | --- | --- | --- |
+| `shape.bevel` | 0 to 3 (px) | 0 | Raised or inset 3D edge on the window, nav buttons, breadcrumb (inset), file tiles, drive cards, Eject (Bevel.qml) |
+| `shape.glass` | true or false | false | Light sheen and edge highlight (translucent window; real blur is a KWin effect, not set by Trail) |
+| `shape.surfaceAlpha` | 0.3 to 1 | 1 | Window, sidebar and card opacity |
+| `shape.folderArt` | manila, flat, outline, glass | manila | Style of the folder and drive art |
+| `shape.snail` | solid, outline, pixel, glass | solid | Style of the snail only |
+
+Fonts come from `fonts.serif` and `fonts.sans`. Worlds use free OFL fonts (VT323, Exo 2, Inter, IBM Plex Mono, Noto). A font that is not installed falls back through fontconfig to the default sans; install the font package in the image to get the real face. No font scale token exists, so pixel fonts such as VT323 look small.

@@ -69,9 +69,15 @@ FloatingWindow {
 
     Rectangle {
         anchors.fill: parent
-        radius: win.contentRadius; color: th.surface; clip: true
+        radius: win.contentRadius; color: Qt.alpha(th.surface, th.surfaceAlpha); clip: true
         border.width: 1; border.color: th.divider
         focus: true
+        Bevel { th: win.th; z: 10 }
+        Rectangle {   // glass sheen, only when the theme asks for glass
+            visible: th.glass; z: 9; anchors.fill: parent; radius: win.contentRadius
+            border.width: 1; border.color: Qt.alpha(th.surface, 0.85)
+            gradient: Gradient { GradientStop { position: 0; color: Qt.alpha(th.surface, 0.35) } GradientStop { position: 0.35; color: "transparent" } }
+        }
         Keys.onPressed: function (ev) {
             if (ev.key === Qt.Key_Backspace || (ev.modifiers & Qt.AltModifier && ev.key === Qt.Key_Left)) { win.back(); ev.accepted = true }
             else if (ev.modifiers & Qt.AltModifier && ev.key === Qt.Key_Right) { win.forward(); ev.accepted = true }
@@ -82,8 +88,8 @@ FloatingWindow {
             id: side
             width: 176; height: parent.height
             color: "transparent"
-            Rectangle { anchors.fill: parent; radius: win.contentRadius; color: Qt.darker(th.surface, 1.025) }
-            Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: win.contentRadius; color: Qt.darker(th.surface, 1.025) }
+            Rectangle { anchors.fill: parent; radius: win.contentRadius; color: Qt.alpha(Qt.darker(th.surface, 1.025), th.surfaceAlpha) }
+            Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: win.contentRadius; color: Qt.alpha(Qt.darker(th.surface, 1.025), th.surfaceAlpha) }
             Column {
                 x: 12; y: 16; width: parent.width - 24; spacing: 4
                 SideRow { label: "This computer"; icon: "computer"; selected: win.computerMode; onClicked: win.go(win.computerPath) }
@@ -111,6 +117,7 @@ FloatingWindow {
                 Rectangle {
                     width: parent.width - 80; height: 32; radius: th.radiusPill; color: th.surfaceAlt
                     clip: true
+                    Bevel { th: win.th; raised: false }
                     Row {
                         anchors { left: parent.left; leftMargin: 16; verticalCenter: parent.verticalCenter }
                         spacing: 6
@@ -177,6 +184,7 @@ FloatingWindow {
                         radius: th.radiusCard
                         color: cell.sel ? th.selection : (cell.fileIsDir ? "transparent" : th.surfaceAlt)
                         Behavior on color { ColorAnimation { duration: th.ms(120) } }
+                        Bevel { th: win.th; visible: !cell.fileIsDir && th.bevel > 0 }
                         FolderArt { th: win.th; visible: cell.fileIsDir; anchors.centerIn: parent }
                         LIcon { visible: !cell.fileIsDir; anchors.centerIn: parent; size: 26; name: win.fileIcon(cell.fileName); tint: cell.sel ? th.onSelection : th.text }
                     }
@@ -227,6 +235,7 @@ FloatingWindow {
         signal clicked()
         width: 32; height: 32; radius: th.radiusPill; color: th.surfaceAlt
         opacity: enabled ? 1 : 0.4
+        Bevel { th: win.th }
         LIcon { anchors.centerIn: parent; size: 14; name: nb.icon; tint: th.text }
         MouseArea { anchors.fill: parent; enabled: nb.enabled; cursorShape: Qt.PointingHandCursor; onClicked: nb.clicked() }
     }

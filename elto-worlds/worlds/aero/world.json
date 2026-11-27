@@ -52,7 +52,11 @@
     "shadowAlpha": 0.28,
     "shadowBlur": 24,
     "shadowOffsetY": 12,
-    "paperGrain": 0.0
+    "paperGrain": 0.0,
+    "glass": true,
+    "surfaceAlpha": 0.72,
+    "folderArt": "glass",
+    "snail": "glass"
   },
   "fonts": {
     "serif": "Noto Serif Display",

@@ -51,6 +51,12 @@ ShellRoot {
         readonly property color disabled: role("disabled")
         readonly property int radiusPill: shapeT.radiusPill !== undefined ? shapeT.radiusPill : 999
         readonly property int radiusCard: shapeT.radiusCard !== undefined ? shapeT.radiusCard : 14
+        // Optional structural tokens (all in `shape`, so world apply carries them). Defaults keep the soft-paper look.
+        readonly property int bevel: typeof shapeT.bevel === "number" ? Math.max(0, Math.min(3, Math.round(shapeT.bevel))) : 0
+        readonly property bool glass: shapeT.glass === true
+        readonly property real surfaceAlpha: typeof shapeT.surfaceAlpha === "number" ? Math.max(0.3, Math.min(1, shapeT.surfaceAlpha)) : 1
+        readonly property string folderArt: ["manila", "flat", "outline", "glass"].indexOf(shapeT.folderArt) >= 0 ? shapeT.folderArt : "manila"
+        readonly property string snailStyle: ["solid", "outline", "pixel", "glass"].indexOf(shapeT.snail) >= 0 ? shapeT.snail : "solid"
         readonly property string serif: fonts.serif || "Noto Serif Display"
         readonly property string sans: fonts.sans || "Noto Sans"
         readonly property bool motion: options.motion !== "off"
