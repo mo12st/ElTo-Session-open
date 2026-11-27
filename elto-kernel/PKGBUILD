@@ -1,0 +1,114 @@
+# linux-elto - ElTo kernel: CachyOS 7.3.6-3 base + ElTo config fragments.
+# Build: place this PKGBUILD next to the config fragments and run makepkg.
+# Maintainer: mo12st <124637036+mo12st@users.noreply.github.com>
+pkgbase=linux-elto
+pkgver=7.3.6.elto
+pkgrel=1
+pkgdesc='ElTo kernel (CachyOS 7.3.6-3 base, ElTo branding and trim)'
+arch=('x86_64')
+url='https://github.com/mo12st/ElTo-Session-open'
+license=('GPL-2.0-only')
+makedepends=('bc' 'cpio' 'gettext' 'libelf' 'pahole' 'perl' 'python' 'tar' 'xz' 'flex' 'bison')
+options=('!strip')
+
+_kernver=7.3.6
+_tagrel=3
+_srcname=cachyos-${_kernver}-${_tagrel}
+_config_commit=25259ced6c7c8c68796d2a47d98cafb96ccdd603
+
+source=(
+  "https://github.com/CachyOS/linux/releases/download/${_srcname}/${_srcname}.tar.gz"
+  "https://raw.githubusercontent.com/CachyOS/linux-cachyos/${_config_commit}/linux-cachyos/config"
+  "config-elto.fragment"
+  "config-elto-trim.fragment"
+  "linux-elto.preset"
+)
+sha256sums=(
+  'e82ccb70388414378ccb559fb6aa5bea525127c89ceb01b75d4b3ab960049893'
+  '32b3c2004bf8640a1a280f0ceeab7a434765eb4d246cb81911ecff112dde6f50'
+  'SKIP'  # local fragment files: verified by review, not by hash
+  'SKIP'
+  'SKIP'
+)
+
+export KBUILD_BUILD_HOST=elto
+export KBUILD_BUILD_USER=$pkgbase
+
+prepare() {
+  cd "$_srcname"
+  cp "$srcdir/config" .config
+  ./scripts/kconfig/merge_config.sh -m .config \
+    "$srcdir/config-elto.fragment" "$srcdir/config-elto-trim.fragment"
+  make olddefconfig
+}
+
+build() {
+  cd "$_srcname"
+  make all
+}
+
+_package() {
+  pkgdesc="The $pkgdesc kernel and modules"
+  depends=('coreutils' 'kmod' 'initramfs')
+  optdepends=('wireless-regdb: to set the correct wireless channels of your country')
+  provides=("linux=${pkgver}" VIRTUALBOX-GUEST-MODULES WIREGUARD-MODULE KSMBD-MODULE NTSYNC-MODULE)
+
+  cd "$_srcname"
+  local modulesdir="$pkgdir/usr/lib/modules/$(make -s kernelrelease)"
+
+  install -Dm644 arch/x86/boot/bzImage "$modulesdir/vmlinuz"
+  echo "$pkgbase" | install -Dm644 /dev/stdin "$pkgdir/usr/lib/modules/$pkgbase/pkgbase"
+
+  make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
+    DEPMOD=/doesnt/exist modules_install
+  rm -f "$modulesdir"/{source,build}
+
+  install -Dm644 "$srcdir/linux-elto.preset" \
+    "$pkgdir/etc/mkinitcpio.d/$pkgbase.preset"
+}
+
+_package-headers() {
+  pkgdesc="Headers and scripts for building modules for the $pkgdesc kernel"
+  depends=('pahole')
+
+  cd "$_srcname"
+  local builddir="$pkgdir/usr/lib/modules/$(make -s kernelrelease)/build"
+
+  install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map \
+    version vmlinux
+  install -Dt "$builddir/kernel" -m644 kernel/Makefile
+  install -Dt "$builddir/arch/x86" -m644 arch/x86/Makefile
+  cp -t "$builddir" -a scripts
+  ln -srt "$builddir" "$builddir/scripts/gdb/vmlinux-gdb.py" 2>/dev/null || true
+
+  install -Dt "$builddir/tools/objtool" tools/objtool/objtool
+  install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids 2>/dev/null || true
+
+  install -Dt "$builddir/drivers/md" -m644 drivers/md/*.h 2>/dev/null || true
+  install -Dt "$builddir/net/mac80211" -m644 net/mac80211/*.h 2>/dev/null || true
+  install -Dt "$builddir/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h 2>/dev/null || true
+  install -Dt "$builddir/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h 2>/dev/null || true
+  install -Dt "$builddir/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h 2>/dev/null || true
+  install -Dt "$builddir/drivers/media/tuners" -m644 drivers/media/tuners/*.h 2>/dev/null || true
+  install -Dt "$builddir/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h 2>/dev/null || true
+
+  install -Dt "$builddir/arch/x86" -m644 arch/x86/entry/syscalls/syscall_64.tbl
+
+  cp -t "$builddir/arch/x86" -a arch/x86/include
+  install -Dt "$builddir/arch/x86/crypto" -m644 arch/x86/crypto/Makefile
+
+  cp -t "$builddir" -a include
+
+  find . -name 'Kconfig*' -exec install -Dm644 {} "$builddir/{}" \;
+
+  mkdir -p "$pkgdir/usr/src"
+  ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
+}
+
+pkgname=("$pkgbase" "$pkgbase-headers")
+package_linux-elto() {
+  _package
+}
+package_linux-elto-headers() {
+  _package-headers
+}

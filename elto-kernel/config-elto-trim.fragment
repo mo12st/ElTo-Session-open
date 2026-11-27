@@ -1,0 +1,148 @@
+# ElTo kernel - trim fragment (stability).
+# Target: QEMU/KVM VMs and ordinary desktop/laptop hardware. What is removed is
+# hardware and subsystems outside that target. Every line is "# CONFIG_X is not set";
+# merge_config.sh applies it after the CachyOS config and config-elto.fragment.
+# Rationale per group is in each comment. Revert any line if real hardware needs it.
+
+# Other hypervisors: ElTo runs on bare metal or QEMU/KVM only.
+# CONFIG_XEN is not set
+# CONFIG_HYPERV is not set
+# CONFIG_VMWARE_PVSCSI is not set
+# CONFIG_VMWARE_BALLOON is not set
+# CONFIG_VMWARE_VMCI is not set
+# CONFIG_VMWARE_VMCI_VSOCKETS is not set
+# CONFIG_HYPERV_VSOCKETS is not set
+
+# SAN / enterprise storage: no Fibre Channel, SAS HBAs, iSCSI offload, NVMe fabrics or target mode, NVDIMM/CXL persistent memory.
+# CONFIG_INFINIBAND is not set
+# CONFIG_NVME_FABRICS is not set
+# CONFIG_NVME_RDMA is not set
+# CONFIG_NVME_FC is not set
+# CONFIG_NVME_TCP is not set
+# CONFIG_NVME_TARGET is not set
+# CONFIG_SCSI_FC_ATTRS is not set
+# CONFIG_SCSI_SAS_ATTRS is not set
+# CONFIG_SCSI_SAS_LIBSAS is not set
+# CONFIG_SCSI_SPI_ATTRS is not set
+# CONFIG_MEGARAID_MM is not set
+# CONFIG_MEGARAID_MAILBOX is not set
+# CONFIG_MEGARAID_LEGACY is not set
+# CONFIG_MEGARAID_SAS is not set
+# CONFIG_SCSI_MPT2SAS is not set
+# CONFIG_SCSI_MPT3SAS is not set
+# CONFIG_SCSI_AACRAID is not set
+# CONFIG_SCSI_HPSA is not set
+# CONFIG_SCSI_QLA_FC is not set
+# CONFIG_SCSI_QLA_ISCSI is not set
+# CONFIG_SCSI_BFA_FC is not set
+# CONFIG_SCSI_IPS is not set
+# CONFIG_SCSI_AIC7XXX is not set
+# CONFIG_SCSI_AIC79XX is not set
+# CONFIG_SCSI_SYM53C8XX_2 is not set
+# CONFIG_SCSI_MVSAS is not set
+# CONFIG_SCSI_PMCRAID is not set
+# CONFIG_SCSI_DH_RDAC is not set
+# CONFIG_SCSI_DH_HP_SW is not set
+# CONFIG_SCSI_DH_EMC is not set
+# CONFIG_SCSI_DH_ALUA is not set
+# CONFIG_SCSI_LOWLEVEL is not set
+# CONFIG_SCSI_LOWLEVEL_PCMCIA is not set
+# CONFIG_CHR_DEV_ST is not set
+# CONFIG_LIBNVDIMM is not set
+# CONFIG_CXL_BUS is not set
+# CONFIG_DEV_DAX is not set
+
+# Server / datacenter NICs (10G+ and offload engines). Desktop parts (r8169, e1000/e1000e, igb/igc, atlantic, alx, tg3, USB adapters) stay.
+# CONFIG_MLX4_EN is not set
+# CONFIG_MLX5_CORE is not set
+# CONFIG_I40E is not set
+# CONFIG_I40EVF is not set
+# CONFIG_ICE is not set
+# CONFIG_BNXT is not set
+# CONFIG_QED is not set
+# CONFIG_QEDE is not set
+# CONFIG_QEDI is not set
+# CONFIG_QEDF is not set
+# CONFIG_CHELSIO_T1 is not set
+# CONFIG_CHELSIO_T3 is not set
+# CONFIG_CHELSIO_T4 is not set
+# CONFIG_CHELSIO_T4VF is not set
+# CONFIG_CHELSIO_LIB is not set
+# CONFIG_SFC is not set
+# CONFIG_SFC_MTD is not set
+# CONFIG_BNA is not set
+# CONFIG_BE2NET is not set
+# CONFIG_NIU is not set
+# CONFIG_MYRI10GE is not set
+# CONFIG_NETXEN_NIC is not set
+# CONFIG_QLCNIC is not set
+# CONFIG_BNX2X is not set
+# CONFIG_AMD_XGBE is not set
+# CONFIG_LIQUIDIO is not set
+# CONFIG_NFP is not set
+# CONFIG_ENA_ETHERNET is not set
+# CONFIG_GVE is not set
+# CONFIG_FUN_ETH is not set
+
+# 10/100 Mbps and nForce-era ethernet, long replaced on the target hardware.
+# CONFIG_E100 is not set
+# CONFIG_PCNET32 is not set
+# CONFIG_AMD8111_ETH is not set
+# CONFIG_B44 is not set
+# CONFIG_DE2104X is not set
+# CONFIG_TULIP is not set
+# CONFIG_DL2K is not set
+# CONFIG_SUNDANCE is not set
+# CONFIG_TYPHOON is not set
+# CONFIG_VIA_RHINE is not set
+# CONFIG_VIA_VELOCITY is not set
+# CONFIG_SKGE is not set
+# CONFIG_SKY2 is not set
+# CONFIG_JME is not set
+# CONFIG_R6040 is not set
+# CONFIG_FEALNX is not set
+# CONFIG_8139CP is not set
+# CONFIG_8139TOO is not set
+# CONFIG_FORCEDETH is not set
+# CONFIG_CASSINI is not set
+# CONFIG_EPIC100 is not set
+# CONFIG_NE2K_PCI is not set
+# CONFIG_WINBOND_840 is not set
+# CONFIG_SIS900 is not set
+# CONFIG_SIS190 is not set
+# CONFIG_NATSEMI is not set
+
+# Cluster / network filesystems not used by a desktop (NFS client and CIFS stay for NAS mounts).
+# CONFIG_OCFS2_FS is not set
+# CONFIG_GFS2_FS is not set
+# CONFIG_CEPH_FS is not set
+# CONFIG_CEPH_LIB is not set
+# CONFIG_AFS_FS is not set
+# CONFIG_CODA_FS is not set
+# CONFIG_NFSD is not set
+# CONFIG_ORANGEFS_FS is not set
+# CONFIG_UBIFS_FS is not set
+# CONFIG_JFFS2_FS is not set
+
+# Non-desktop subsystems: ham radio, CAN bus, mesh/OVS networking, ATM/FDDI, PCMCIA, GPS serial, parallel port, FPGA, Chromebook platform, DVB TV tuners (USB webcams stay).
+# CONFIG_CAN is not set
+# CONFIG_BATMAN_ADV is not set
+# CONFIG_OPENVSWITCH is not set
+# CONFIG_ATM is not set
+# CONFIG_FDDI is not set
+# CONFIG_PCCARD is not set
+# CONFIG_GNSS is not set
+# CONFIG_PARPORT is not set
+# CONFIG_FPGA is not set
+# CONFIG_CHROME_PLATFORMS is not set
+# CONFIG_MEDIA_DIGITAL_TV_SUPPORT is not set
+# CONFIG_MEDIA_RADIO_SUPPORT is not set
+# CONFIG_MEDIA_SDR_SUPPORT is not set
+# CONFIG_MEDIA_TEST_SUPPORT is not set
+# CONFIG_DVB_CORE is not set
+# CONFIG_ACPI_NFIT is not set
+# CONFIG_FUSION is not set
+# CONFIG_SCSI_SMARTPQI is not set
+# CONFIG_SCSI_LEAPRAID is not set
+# CONFIG_BLK_DEV_RBD is not set
+# CONFIG_X86_PMEM_LEGACY is not set
