@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://elto.local/world.schema.json",
+  "title": "ElTo World",
+  "description": "One ElTo world: a complete theme package from bootloader to mouse cursor. Extends the shell theme.json format (version 1) with optional per-layer sections. Every layer section is optional; a missing layer stays at its default.",
+  "type": "object",
+  "required": ["name", "label", "version", "colors", "roles"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "World id, matches the directory name under elto-worlds/."
+    },
+    "label": { "type": "string", "description": "Human name shown in the Themes page." },
+    "version": { "const": 2, "description": "2 = world format. Version 1 files (shell-only theme.json) are still accepted by the shell." },
+    "description": { "type": "string" },
+    "author": { "type": "string" },
+    "license": { "type": "string", "description": "License of the world definition itself." },
+    "assetsLicense": { "type": "string", "description": "License of bundled art. Every asset must also appear in the world directory CREDITS file." },
+
+    "colors": {
+      "type": "object",
+      "description": "Palette tokens. Same semantics as theme.json v1.",
+      "additionalProperties": { "$ref": "#/$defs/hex" },
+      "minProperties": 1
+    },
+    "roles": {
+      "type": "object",
+      "description": "Role -> palette token mapping. Same semantics as theme.json v1.",
+      "additionalProperties": { "type": "string" },
+      "required": ["surface", "surfaceAlt", "text", "textMuted", "accent", "selection", "divider", "disabled"]
+    },
+    "shape": { "type": "object", "description": "Radii, shadows, grain. Unchanged from theme.json v1." },
+    "fonts": {
+      "type": "object",
+      "description": "Font family names. Unchanged from theme.json v1.",
+      "properties": {
+        "serif": { "type": "string" },
+        "serifItalic": { "type": "string" },
+        "sans": { "type": "string" },
+        "mono": { "type": "string" }
+      }
+    },
+    "icons": {
+      "type": "object",
+      "description": "Shell icon set (unchanged) plus the system icon theme choice.",
+      "properties": {
+        "set": { "type": "string", "description": "Shell glyph set, e.g. lucide." },
+        "strokeWidth": { "type": "number" },
+        "size": { "type": "integer" },
+        "systemTheme": { "type": "string", "description": "Installed icon theme name for KDE apps. Default breeze (recolors from the color scheme).", "default": "breeze" }
+      }
+    },
+    "options": { "type": "object", "description": "Shell options (dock style, notch, wallpaper, motion). Unchanged from theme.json v1." },
+    "notch": { "type": "object" },
+    "dock": { "type": "object" },
+    "drawer": { "type": "object" },
+
+    "layout": {
+      "type": "object",
+      "description": "World behavior and arrangement, not recolor (per the concept art: each world differs in layout and behavior). Values are strings the shell defines and implements; the shell must ignore values it does not know and fall back to the default layout, so a world file never breaks the session. These fields declare intent only - shell support per value is tracked in the Worlds gap report and is the implementer's domain.",
+      "additionalProperties": false,
+      "properties": {
+        "bar": { "type": "string", "description": "Primary bar arrangement. Seen in the art: 'notch-island' (current default), 'top-bar', 'bottom-taskbar', 'bottom-console', 'bottom-tasks'" },
+        "rail": { "type": "string", "description": "Side rail: 'none' (default), 'left' (aero habitat rail, retro95 project shelf), 'right' (y2k command rail)" },
+        "launcher": { "type": "string", "description": "Launcher style: 'drawer' (default), 'cascading-menu' (retro95), 'capsules' (retroaero), 'keyboard-index' (y2k)" },
+        "windowControls": { "type": "string", "description": "Titlebar button placement: 'right' (default), 'close-left' (retroaero), 'menu-left-close-right' (aero), 'menu-left-square-right' (retro95), 'left-close-right' (y2k)" },
+        "motionProfile": { "type": "string", "description": "Motion target: 'soft' (default), 'immediate-stepped' (retro95), 'linear' (y2k), 'dissolve' (aero), 'glossy-pulse' (retroaero), 'off'" }
+      }
+    },
+
+    "kde": {
+      "type": "object",
+      "description": "KDE applications layer.",
+      "additionalProperties": false,
+      "properties": {
+        "colorscheme": {
+          "type": "object",
+          "description": "Generate a .colors file from colors+roles and apply with plasma-apply-colorscheme.",
+          "additionalProperties": false,
+          "properties": {
+            "generate": { "type": "boolean", "default": true },
+            "schemeName": { "type": "string", "description": "Display name of the generated scheme, e.g. 'ElTo Soft Paper'." }
+          }
+        }
+      }
+    },
+
+    "kvantum": {
+      "type": "object",
+      "description": "Optional Kvantum layer. Deferred until the colorscheme-only look is VM-checked.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "template": { "type": "string", "description": "Template name under elto-worlds/templates/kvantum/." }
+      }
+    },
+
+    "cursor": {
+      "type": "object",
+      "description": "Mouse cursor layer.",
+      "additionalProperties": false,
+      "properties": {
+        "theme": { "type": "string", "description": "Installed xcursor theme name. Default breeze_cursors.", "default": "breeze_cursors" },
+        "size": { "type": "integer", "default": 24 },
+        "custom": {
+          "type": "object",
+          "description": "Build an ElTo cursor set from SVG sources with xcursorgen, once art exists.",
+          "additionalProperties": false,
+          "properties": {
+            "sourceDir": { "type": "string", "description": "Asset-relative dir with cursor SVGs + index.theme manifest." }
+          },
+          "required": ["sourceDir"]
+        }
+      }
+    },
+
+    "aurorae": {
+      "type": "object",
+      "description": "Window titlebar: per-world variant generated from the ElToClassic template.",
+      "additionalProperties": false,
+      "properties": {
+        "template": { "type": "string", "default": "ElToClassic" },
+        "frame": { "$ref": "#/$defs/colorRef", "description": "Frame color: palette token or #hex." },
+        "frameInactive": { "$ref": "#/$defs/colorRef" },
+        "title": { "$ref": "#/$defs/colorRef", "description": "Title text color." }
+      }
+    },
+
+    "sddm": {
+      "type": "object",
+      "description": "Login screen. Applied system-wide by elto-world install-system.",
+      "additionalProperties": false,
+      "properties": {
+        "theme": { "type": "string", "default": "elto-classic", "description": "QML theme base from the sddm spike." },
+        "layout": { "type": "string", "description": "Greeter arrangement. Seen in the art: 'card-center' (aero, classic, flow, mono), 'card-left' (retro95), 'dialog-center' (faithful), 'terminal' (unix, y2k), 'pill-center' (retroaero). The QML theme must ignore unknown layouts and use its default." },
+        "background": { "$ref": "#/$defs/asset", "description": "Background image, asset-relative path." },
+        "backgroundColor": { "$ref": "#/$defs/colorRef" },
+        "accentColor": { "$ref": "#/$defs/colorRef" }
+      }
+    },
+
+    "lock": {
+      "type": "object",
+      "description": "Lock screen package.",
+      "additionalProperties": false,
+      "properties": {
+        "layout": { "type": "string", "description": "Same layout vocabulary as sddm.layout; defaults to the world's sddm layout when absent." },
+        "background": { "$ref": "#/$defs/asset", "description": "Defaults to the sddm background when absent." },
+        "backgroundColor": { "$ref": "#/$defs/colorRef" },
+        "accentColor": { "$ref": "#/$defs/colorRef" }
+      }
+    },
+
+    "plymouth": {
+      "type": "object",
+      "description": "Boot splash. Root layer, Phase 3, applied only by install-system after explicit approval.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "background": { "$ref": "#/$defs/asset" },
+        "backgroundColor": { "$ref": "#/$defs/colorRef" },
+        "snail": { "$ref": "#/$defs/asset", "description": "Center emblem." },
+        "spinnerFrames": { "type": "string", "description": "Asset-relative glob, e.g. assets/plymouth/spinner-*.png. Keep frames few." }
+      }
+    },
+
+    "grub": {
+      "type": "object",
+      "description": "Bootloader menu theme. Root layer, Phase 3. Only when ElTo-OS boots with GRUB.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "background": { "$ref": "#/$defs/asset" },
+        "font": { "type": "string", "description": "Font family converted with grub-mkfont." },
+        "itemColor": { "$ref": "#/$defs/colorRef" },
+        "selectedColor": { "$ref": "#/$defs/colorRef" },
+        "selectedBackground": { "$ref": "#/$defs/colorRef" }
+      }
+    }
+  },
+  "$defs": {
+    "hex": { "type": "string", "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$" },
+    "colorRef": {
+      "type": "string",
+      "description": "A palette token from colors, a role name from roles (resolved role -> token -> hex), or a literal #hex value."
+    },
+    "asset": {
+      "type": "string",
+      "pattern": "^assets/",
+      "description": "Path relative to the world directory, always under assets/."
+    }
+  }
+}

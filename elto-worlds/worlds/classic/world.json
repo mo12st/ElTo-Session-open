@@ -1,0 +1,105 @@
+{
+  "name": "classic",
+  "label": "ElTo Classic",
+  "version": 2,
+  "description": "The original paper-and-ink ElTo: cream, deep green, rust. Close to soft-paper; keep or merge, see report. Palette estimated from the user concept art; artist refines.",
+  "author": "mo12st",
+  "license": "Proprietary (all rights reserved, mo12st)",
+  "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+  "colors": {
+    "surface": "#f6f1e4",
+    "surfaceAlt": "#efe9d8",
+    "ink": "#164437",
+    "inkSoft": "#4c7860",
+    "rust": "#a05040",
+    "sage": "#cfe3d4",
+    "line": "#e0d9c4",
+    "fade": "#8a9a90"
+  },
+  "roles": {
+    "surface": "surface",
+    "surfaceAlt": "surfaceAlt",
+    "text": "ink",
+    "textMuted": "inkSoft",
+    "accent": "rust",
+    "selection": "sage",
+    "divider": "line",
+    "disabled": "fade"
+  },
+  "shape": {
+    "radiusWindow": 22,
+    "radiusCard": 14,
+    "radiusPill": 999,
+    "shadowAlpha": 0.28,
+    "shadowBlur": 24,
+    "shadowOffsetY": 12,
+    "paperGrain": 0.0
+  },
+  "fonts": {
+    "serif": "Noto Serif Display",
+    "serifItalic": "Noto Serif Display Italic",
+    "sans": "Noto Sans",
+    "mono": "DejaVu Sans Mono"
+  },
+  "icons": {
+    "set": "lucide",
+    "strokeWidth": 2,
+    "size": 24,
+    "systemTheme": "breeze"
+  },
+  "options": {
+    "dock": "island",
+    "notch": "clock",
+    "wallpaper": "assets/wallpaper.jpg",
+    "motion": "soft"
+  },
+  "layout": {
+    "bar": "notch-island",
+    "rail": "none",
+    "launcher": "drawer",
+    "windowControls": "right",
+    "motionProfile": "soft"
+  },
+  "kde": {
+    "colorscheme": {
+      "generate": true,
+      "schemeName": "ElTo ElTo Classic"
+    }
+  },
+  "kvantum": {
+    "enabled": false,
+    "template": "elto-default"
+  },
+  "cursor": {
+    "theme": "breeze_cursors",
+    "size": 24
+  },
+  "aurorae": {
+    "template": "ElToClassic",
+    "frame": "surfaceAlt",
+    "frameInactive": "divider",
+    "title": "text"
+  },
+  "sddm": {
+    "theme": "elto-classic",
+    "layout": "split",
+    "background": "assets/greeter-background.jpg",
+    "backgroundColor": "surface",
+    "accentColor": "accent"
+  },
+  "lock": {},
+  "plymouth": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "backgroundColor": "surface",
+    "snail": "assets/snail.png"
+  },
+  "grub": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "font": "Noto Sans",
+    "itemColor": "text",
+    "selectedColor": "selection",
+    "selectedBackground": "surfaceAlt"
+  }
+}

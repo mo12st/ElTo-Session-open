@@ -1,0 +1,105 @@
+{
+  "name": "mono",
+  "label": "Mono",
+  "version": 2,
+  "description": "Black and white brutalism: huge light type, concrete photography, no color at all. Palette estimated from the user concept art; artist refines.",
+  "author": "mo12st",
+  "license": "Proprietary (all rights reserved, mo12st)",
+  "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+  "colors": {
+    "surface": "#f6f6f6",
+    "surfaceAlt": "#eaeaea",
+    "ink": "#151514",
+    "inkSoft": "#5a5959",
+    "pitch": "#151514",
+    "fog": "#d4d4d4",
+    "line": "#c8c8c8",
+    "fade": "#a8a7a6"
+  },
+  "roles": {
+    "surface": "surface",
+    "surfaceAlt": "surfaceAlt",
+    "text": "ink",
+    "textMuted": "inkSoft",
+    "accent": "pitch",
+    "selection": "fog",
+    "divider": "line",
+    "disabled": "fade"
+  },
+  "shape": {
+    "radiusWindow": 0,
+    "radiusCard": 0,
+    "radiusPill": 0,
+    "shadowAlpha": 0.28,
+    "shadowBlur": 24,
+    "shadowOffsetY": 12,
+    "paperGrain": 0.0
+  },
+  "fonts": {
+    "serif": "Inter",
+    "serifItalic": "Inter Italic",
+    "sans": "Inter",
+    "mono": "IBM Plex Mono"
+  },
+  "icons": {
+    "set": "lucide",
+    "strokeWidth": 2,
+    "size": 24,
+    "systemTheme": "breeze"
+  },
+  "options": {
+    "dock": "island",
+    "notch": "clock",
+    "wallpaper": "assets/wallpaper.jpg",
+    "motion": "soft"
+  },
+  "layout": {
+    "bar": "top-bar",
+    "rail": "none",
+    "launcher": "drawer",
+    "windowControls": "right",
+    "motionProfile": "soft"
+  },
+  "kde": {
+    "colorscheme": {
+      "generate": true,
+      "schemeName": "ElTo Mono"
+    }
+  },
+  "kvantum": {
+    "enabled": false,
+    "template": "elto-default"
+  },
+  "cursor": {
+    "theme": "breeze_cursors",
+    "size": 24
+  },
+  "aurorae": {
+    "template": "ElToClassic",
+    "frame": "surfaceAlt",
+    "frameInactive": "divider",
+    "title": "text"
+  },
+  "sddm": {
+    "theme": "elto-classic",
+    "layout": "split",
+    "background": "assets/greeter-background.jpg",
+    "backgroundColor": "surface",
+    "accentColor": "accent"
+  },
+  "lock": {},
+  "plymouth": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "backgroundColor": "pitch",
+    "snail": "assets/snail.png"
+  },
+  "grub": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "font": "Inter",
+    "itemColor": "text",
+    "selectedColor": "selection",
+    "selectedBackground": "surfaceAlt"
+  }
+}

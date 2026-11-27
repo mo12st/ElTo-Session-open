@@ -1,0 +1,414 @@
+#!/usr/bin/env python3
+"""elto-world: validate and apply ElTo world packages. Stdlib only. Never executes theme code.
+
+Commands:
+  check <worlddir>            validate world.json against the world format (world.schema.json is the contract)
+  apply <worlddir> [--dry-run]  user-level apply: shell overlay, theme package, KDE colorscheme,
+                                icon/cursor names, Aurorae variant. Every step is reversible and every
+                                missing tool is a skip, never a failure.
+  install-system <worlddir>   not implemented (Phase 2/3: SDDM, lock, Plymouth, GRUB)
+
+World format: see world.schema.json in this directory.
+Every command prints one JSON object on stdout.
+"""
+import json, os, re, shutil, subprocess, sys, time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+HOME = os.path.expanduser("~")
+XDG_CONFIG = os.environ.get("XDG_CONFIG_HOME", os.path.join(HOME, ".config"))
+XDG_DATA = os.environ.get("XDG_DATA_HOME", os.path.join(HOME, ".local", "share"))
+MAX = 1024 * 1024
+HEX = re.compile(r"^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
+NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+ASSET = re.compile(r"^assets/")
+LAYOUT_KEYS = {"bar", "rail", "launcher", "windowControls", "motionProfile"}
+COLORREF_KEYS = {"frame", "frameInactive", "title", "backgroundColor", "accentColor",
+                 "itemColor", "selectedColor", "selectedBackground"}
+ASSET_KEYS = {"background", "snail"}
+V1_SECTIONS = ("colors", "roles", "shape", "fonts", "icons", "options", "notch", "dock", "drawer")
+LAYER_SECTIONS = ("layout", "kde", "kvantum", "cursor", "aurorae", "sddm", "lock", "plymouth", "grub")
+
+# ---------------------------------------------------------------- validation
+
+def validate(w, wdir):
+    errors, warnings = [], []
+    if not isinstance(w, dict):
+        return ["world.json must be an object"], warnings
+    for key in ("name", "label", "version", "colors", "roles"):
+        if key not in w:
+            errors.append("missing required key: " + key)
+    if errors:
+        return errors, warnings
+    if not isinstance(w["name"], str) or not NAME.match(w["name"]):
+        errors.append("name must match ^[a-z0-9][a-z0-9-]*$")
+    if not isinstance(w["label"], str) or not w["label"].strip():
+        errors.append("label must be a non-empty string")
+    if w["version"] == 1:
+        warnings.append("version 1: shell-only theme, no world layers will be checked")
+    elif w["version"] != 2:
+        errors.append("version must be 2 (world format)")
+    colors, roles = w.get("colors"), w.get("roles")
+    if not isinstance(colors, dict) or not colors:
+        errors.append("colors must be a non-empty object")
+    else:
+        for k, v in colors.items():
+            if not isinstance(v, str) or not HEX.match(v):
+                errors.append("color %s must be #rrggbb or #rrggbbaa" % k)
+    if not isinstance(roles, dict) or not roles:
+        errors.append("roles must be a non-empty object")
+    elif isinstance(colors, dict):
+        for r in ("surface", "surfaceAlt", "text", "textMuted", "accent", "selection", "divider", "disabled"):
+            if r not in roles:
+                errors.append("roles missing required role: " + r)
+        for k, v in roles.items():
+            if v not in colors:
+                errors.append("role %s points to unknown color %s" % (k, v))
+    for sec in ("shape", "fonts", "icons", "options", "notch", "dock", "drawer"):
+        if sec in w and not isinstance(w[sec], dict):
+            errors.append(sec + " must be an object")
+    for key in w:
+        if key not in ("name", "label", "version", "description", "author", "license", "assetsLicense") \
+                + V1_SECTIONS + LAYER_SECTIONS:
+            errors.append("unknown top-level key: " + key)
+    lay = w.get("layout")
+    if lay is not None:
+        if not isinstance(lay, dict):
+            errors.append("layout must be an object")
+        else:
+            for k, v in lay.items():
+                if k not in LAYOUT_KEYS:
+                    errors.append("layout: unknown key " + k)
+                elif not isinstance(v, str):
+                    errors.append("layout.%s must be a string" % k)
+    known = set(colors or ()) | set(roles or ())
+    for sec in ("aurorae", "sddm", "lock", "plymouth", "grub"):
+        s = w.get(sec)
+        if s is None:
+            continue
+        if not isinstance(s, dict):
+            errors.append(sec + " must be an object")
+            continue
+        for k, v in s.items():
+            if k in COLORREF_KEYS:
+                if not isinstance(v, str) or (not HEX.match(v) and v not in known):
+                    errors.append("%s.%s: unknown color token or role %r" % (sec, k, v))
+            elif k in ASSET_KEYS:
+                if not isinstance(v, str) or not ASSET.match(v):
+                    errors.append("%s.%s: asset path must start with assets/" % (sec, k))
+                elif not os.path.isfile(os.path.join(wdir, v)):
+                    warnings.append("%s.%s: asset %s not present yet" % (sec, k, v))
+            elif k in ("layout", "theme", "template", "font", "spinnerFrames", "schemeName"):
+                if not isinstance(v, str):
+                    errors.append("%s.%s must be a string" % (sec, k))
+            elif k in ("enabled", "generate"):
+                if not isinstance(v, bool):
+                    errors.append("%s.%s must be a boolean" % (sec, k))
+            elif k == "size":
+                if not isinstance(v, int):
+                    errors.append("%s.%s must be an integer" % (sec, k))
+            elif k in ("custom", "colorscheme"):
+                if not isinstance(v, dict):
+                    errors.append("%s.%s must be an object" % (sec, k))
+            else:
+                errors.append("%s: unknown key %s" % (sec, k))
+    return errors, warnings
+
+def load_world(wdir):
+    p = os.path.join(wdir, "world.json")
+    if not os.path.isfile(p):
+        raise ValueError("no world.json in " + wdir)
+    if os.path.getsize(p) > MAX:
+        raise ValueError("world.json too large")
+    with open(p) as f:
+        return json.load(f)
+
+# ---------------------------------------------------------------- helpers
+
+def resolve(w, ref):
+    """colorRef -> #hex. Token, then role, then literal hex."""
+    colors, roles = w["colors"], w["roles"]
+    if ref in colors:
+        return colors[ref]
+    if ref in roles and roles[ref] in colors:
+        return colors[roles[ref]]
+    return ref
+
+def rgb(h):
+    return ",".join(str(int(h[i:i + 2], 16)) for i in (1, 3, 5))
+
+def rgba255(h):
+    a = int(h[7:9], 16) if len(h) == 9 else 255
+    return rgb(h) + "," + str(a)
+
+def luminance(h):
+    r, g, b = (int(h[i:i + 2], 16) / 255.0 for i in (1, 3, 5))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+def which(name):
+    return shutil.which(name)
+
+def run(cmd, timeout=30):
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, timeout=timeout)
+        return True, None
+    except Exception as e:
+        return False, str(e)
+
+def backup(path, steps):
+    if os.path.isfile(path):
+        dst = path + ".bak-elto-world"
+        if not os.path.isfile(dst):
+            shutil.copy2(path, dst)
+            steps.append({"step": "backup", "status": "done", "detail": dst})
+
+# ---------------------------------------------------------------- KDE colors
+
+def gen_colorscheme(w):
+    """World -> KDE .colors text, generalizing theme/gen_colors.py's mapping."""
+    c = lambda ref: resolve(w, ref)
+    surface, surfaceAlt = c("surface"), c("surfaceAlt")
+    text, textMuted = c("text"), c("textMuted")
+    accent, selection = c("accent"), c("selection")
+    disabled = c("disabled")
+    link = w["colors"].get("link", accent)
+    positive = w["colors"].get("positive", textMuted)
+    neutral = w["colors"].get("neutral", accent)
+    sel_fg = text if luminance(selection) > luminance(text) else surface
+    if luminance(selection) > 0.5:
+        sel_fg = text
+    else:
+        sel_fg = surface
+
+    def section(name, bg, alt, fg, inactive):
+        rows = [("BackgroundAlternate", alt), ("BackgroundNormal", bg),
+                ("DecorationFocus", textMuted), ("DecorationHover", accent),
+                ("ForegroundActive", accent), ("ForegroundInactive", inactive),
+                ("ForegroundLink", link), ("ForegroundNegative", accent),
+                ("ForegroundNeutral", neutral), ("ForegroundNormal", fg),
+                ("ForegroundPositive", positive), ("ForegroundVisited", textMuted)]
+        return "[Colors:%s]\n" % name + "".join("%s=%s\n" % (k, rgb(v)) for k, v in rows) + "\n"
+
+    out = ""
+    out += "[ColorEffects:Disabled]\nColor=%s\nColorAmount=0\nColorEffect=0\nContrastAmount=0.65\nContrastEffect=1\nIntensityAmount=0.1\nIntensityEffect=2\n\n" % rgb(c("divider"))
+    out += "[ColorEffects:Inactive]\nChangeSelectionColor=true\nColor=%s\nColorAmount=0.025\nColorEffect=2\nContrastAmount=0.1\nContrastEffect=2\nEnable=false\nIntensityAmount=0\nIntensityEffect=0\n\n" % rgb(disabled)
+    out += section("Button", surfaceAlt, surface, text, disabled)
+    out += section("Complementary", text, text, surface, disabled)
+    out += section("Header", surfaceAlt, surface, text, disabled)
+    out += section("Selection", selection, textMuted, sel_fg, disabled)
+    out += section("Tooltip", text, text, surface, disabled)
+    out += section("View", surface, surfaceAlt, text, disabled)
+    out += section("Window", surfaceAlt, surface, text, disabled)
+    name = "ElTo " + w["label"]
+    out += "[General]\nColorScheme=%s\nName=%s\nshadeSortColumn=true\n\n[KDE]\ncontrast=4\n\n" % (name, name)
+    out += "[WM]\nactiveBackground=%s\nactiveBlend=%s\nactiveForeground=%s\ninactiveBackground=%s\ninactiveBlend=%s\ninactiveForeground=%s\n" % (
+        rgb(surface), rgb(text), rgb(text), rgb(c("divider")), rgb(disabled), rgb(disabled))
+    return out, name
+
+# ---------------------------------------------------------------- Aurorae
+
+# Template hex -> world role (the shipped ElToClassic uses the soft-paper palette).
+AURORAE_MAP = {
+    "#f6f1e4": "surface", "#efe9d8": "surfaceAlt", "#283a32": "text",
+    "#4c7860": "textMuted", "#cfe3d4": "selection", "#a05040": "accent",
+    "#e0d9c4": "divider", "#8a9a90": "disabled", "#7d8c84": "disabled",
+}
+BUTTON_LAYOUTS = {
+    "right": ("M", "IAX"),
+    "menu-left-close-right": ("M", "IAX"),
+    "menu-left-square-right": ("M", "IAX"),
+    "close-left": ("X", "IA"),
+    "left-close-right": ("MIA", "X"),
+}
+
+def find_aurorae_template():
+    d = os.path.normpath(os.path.join(HERE, "..", "aurorae", "ElToClassic"))
+    return d if os.path.isdir(d) else None
+
+def gen_aurorae(w, tmpl, outdir):
+    os.makedirs(outdir, exist_ok=True)
+    subs = {old: resolve(w, role) for old, role in AURORAE_MAP.items()}
+    # Window-button glyph colors are replaced only when the world defines those tokens.
+    btn = {"#e0b84a": "windowMinimize", "#5fae7a": "windowMaximize", "#4f86c6": "windowClose"}
+    for old, token in btn.items():
+        if token in w["colors"]:
+            subs[old] = w["colors"][token]
+    for fn in os.listdir(tmpl):
+        src = os.path.join(tmpl, fn)
+        dst = os.path.join(outdir, fn)
+        if fn.endswith(".svg"):
+            with open(src) as f:
+                s = f.read()
+            for old, new in subs.items():
+                s = s.replace(old, new)
+            with open(dst, "w") as f:
+                f.write(s)
+        elif fn == "ElToClassicrc":
+            with open(src) as f:
+                s = f.read()
+            s = re.sub(r"ActiveTextColor=.*", "ActiveTextColor=" + rgba255(resolve(w, "text")), s)
+            s = re.sub(r"InactiveTextColor=.*", "InactiveTextColor=" + rgba255(resolve(w, "disabled")), s)
+            wc = (w.get("layout") or {}).get("windowControls", "right")
+            left, right = BUTTON_LAYOUTS.get(wc, ("M", "IAX"))
+            s = re.sub(r"LeftButtons=.*", "LeftButtons=" + left, s)
+            s = re.sub(r"RightButtons=.*", "RightButtons=" + right, s)
+            with open(dst, "w") as f:
+                f.write(s)
+        elif fn == "metadata.desktop":
+            with open(src) as f:
+                s = f.read()
+            s = re.sub(r"^Name=.*", "Name=ElTo " + w["label"], s, flags=re.M)
+            s = re.sub(r"X-KDE-PluginInfo-Name=.*", "X-KDE-PluginInfo-Name=ElTo" + w["name"], s)
+            with open(dst, "w") as f:
+                f.write(s)
+        elif os.path.isfile(src):
+            shutil.copy2(src, dst)
+    return "ElTo" + w["name"]
+
+# ---------------------------------------------------------------- commands
+
+def cmd_check(wdir):
+    w = load_world(wdir)
+    errors, warnings = validate(w, wdir)
+    ok = not errors
+    print(json.dumps({"ok": ok, "world": wdir, "errors": errors, "warnings": warnings}, indent=2))
+    return 0 if ok else 1
+
+def cmd_apply(wdir, dry_run):
+    w = load_world(wdir)
+    errors, warnings = validate(w, wdir)
+    if errors:
+        print(json.dumps({"ok": False, "errors": errors, "warnings": warnings}, indent=2))
+        return 1
+    steps = []
+    plan = {"ok": True, "world": w["name"], "label": w["label"], "dry_run": dry_run,
+            "steps": steps, "warnings": warnings}
+
+    def write_file(path, content, step, detail=""):
+        if dry_run:
+            steps.append({"step": step, "status": "dry-run", "detail": path})
+            return
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        backup(path, steps)
+        with open(path, "w") as f:
+            f.write(content)
+        steps.append({"step": step, "status": "done", "detail": path + (" " + detail if detail else "")})
+
+    # 1. install as a theme package the Themes page can list (theme-tool.py compatible)
+    pkg = os.path.join(XDG_CONFIG, "elto", "themes", w["name"], "theme.json")
+    write_file(pkg, json.dumps(w, indent=2, ensure_ascii=False) + "\n", "theme-package")
+
+    # 2. shell overlay: same sections UserTheme.apply writes, plus layout. Live-reloaded by the shell.
+    overlay = os.environ.get("ELTO_THEME") or os.path.join(XDG_CONFIG, "elto", "theme.json")
+    cur = {}
+    if os.path.isfile(overlay):
+        try:
+            with open(overlay) as f:
+                cur = json.load(f)
+        except Exception:
+            cur = {}
+    for sec in ("colors", "roles", "shape", "fonts", "layout"):
+        if sec in w:
+            cur[sec] = w[sec]
+    cur["name"] = w["name"]
+    wall = (w.get("options") or {}).get("wallpaper")
+    if wall and ASSET.match(str(wall)):
+        src = os.path.join(wdir, wall)
+        if os.path.isfile(src):
+            base = os.path.basename(wall)
+            if not dry_run:
+                wd = os.path.join(XDG_CONFIG, "elto", "wallpapers")
+                os.makedirs(wd, exist_ok=True)
+                shutil.copy2(src, os.path.join(wd, base))
+            cur.setdefault("options", {})["wallpaper"] = base
+            steps.append({"step": "wallpaper", "status": "dry-run" if dry_run else "done",
+                          "detail": "~/.config/elto/wallpapers/" + base})
+        else:
+            warnings.append("options.wallpaper asset missing, wallpaper left unchanged")
+    write_file(overlay, json.dumps(cur, indent=2, ensure_ascii=False), "shell-overlay")
+
+    # 3. KDE color scheme
+    if (w.get("kde") or {}).get("colorscheme", {}).get("generate", True):
+        text, scheme = gen_colorscheme(w)
+        path = os.path.join(XDG_DATA, "color-schemes", scheme.replace(" ", "") + ".colors")
+        write_file(path, text, "kde-colorscheme")
+        if which("plasma-apply-colorscheme") and not dry_run:
+            ok, err = run(["plasma-apply-colorscheme", scheme.replace(" ", "")])
+            steps.append({"step": "kde-apply", "status": "done" if ok else "failed",
+                          "detail": err or scheme})
+        else:
+            steps.append({"step": "kde-apply", "status": "skipped",
+                          "detail": "plasma-apply-colorscheme not available" if not dry_run else "dry-run"})
+
+    # 4. icon theme (name only; the theme must be installed)
+    icon_theme = (w.get("icons") or {}).get("systemTheme")
+    if icon_theme:
+        if which("kwriteconfig6") and not dry_run:
+            ok, err = run(["kwriteconfig6", "--file", "kdeglobals", "--group", "Icons",
+                           "--key", "Theme", icon_theme])
+            steps.append({"step": "icons", "status": "done" if ok else "failed", "detail": err or icon_theme})
+        else:
+            steps.append({"step": "icons", "status": "skipped",
+                          "detail": icon_theme + " (kwriteconfig6 not available)" if not dry_run else "dry-run"})
+
+    # 5. cursor theme (name only; the theme must be installed)
+    cursor = (w.get("cursor") or {}).get("theme")
+    if cursor:
+        if which("plasma-apply-cursortheme") and not dry_run:
+            ok, err = run(["plasma-apply-cursortheme", cursor])
+            steps.append({"step": "cursor", "status": "done" if ok else "failed", "detail": err or cursor})
+        elif which("kwriteconfig6") and not dry_run:
+            ok, err = run(["kwriteconfig6", "--file", "kcminputrc", "--group", "Mouse",
+                           "--key", "cursorTheme", cursor])
+            steps.append({"step": "cursor", "status": "done" if ok else "failed", "detail": err or cursor})
+        else:
+            steps.append({"step": "cursor", "status": "skipped",
+                          "detail": cursor + " (no cursor tool available)" if not dry_run else "dry-run"})
+
+    # 6. Aurorae window decoration variant
+    tmpl = find_aurorae_template()
+    if tmpl:
+        name = "ElTo" + w["name"]
+        outdir = os.path.join(XDG_DATA, "aurorae", "themes", name)
+        if dry_run:
+            steps.append({"step": "aurorae", "status": "dry-run", "detail": outdir})
+        else:
+            gen_aurorae(w, tmpl, outdir)
+            steps.append({"step": "aurorae", "status": "done", "detail": outdir})
+        if which("kwriteconfig6") and not dry_run:
+            for key, val in (("library", "org.kde.kwin.aurorae"), ("theme", "__aurorae__svg__" + name)):
+                run(["kwriteconfig6", "--file", "kwinrc", "--group", "org.kde.kdecoration2",
+                     "--key", key, val])
+            steps.append({"step": "kwinrc", "status": "done", "detail": "__aurorae__svg__" + name})
+            qdbus = which("qdbus6") or which("qdbus")
+            if qdbus:
+                ok, _ = run([qdbus, "org.kde.KWin", "/KWin", "reconfigure"], timeout=10)
+                steps.append({"step": "kwin-reconfigure", "status": "done" if ok else "skipped",
+                              "detail": "KWin reconfigure"})
+        else:
+            steps.append({"step": "kwinrc", "status": "skipped",
+                          "detail": "kwriteconfig6 not available" if not dry_run else "dry-run"})
+    else:
+        steps.append({"step": "aurorae", "status": "skipped",
+                      "detail": "aurorae/ElToClassic template not found next to elto-worlds/"})
+
+    print(json.dumps(plan, indent=2, ensure_ascii=False))
+    return 0
+
+def main():
+    a = sys.argv[1:]
+    try:
+        if len(a) == 2 and a[0] == "check":
+            return cmd_check(os.path.abspath(a[1]))
+        if len(a) in (2, 3) and a[0] == "apply":
+            dry = "--dry-run" in a[2:]
+            return cmd_apply(os.path.abspath(a[1]), dry)
+        if len(a) == 2 and a[0] == "install-system":
+            print(json.dumps({"ok": False, "error": "install-system is Phase 2/3 (SDDM, lock, Plymouth, GRUB): not implemented"}))
+            return 2
+        raise ValueError("usage: check <worlddir> | apply <worlddir> [--dry-run] | install-system <worlddir>")
+    except Exception as e:
+        print(json.dumps({"ok": False, "error": str(e)}))
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())

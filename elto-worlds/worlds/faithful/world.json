@@ -1,0 +1,105 @@
+{
+  "name": "faithful",
+  "label": "ElTo 95 Faithful",
+  "version": 2,
+  "description": "A faithful mid-90s desktop: teal field, gray beveled windows, navy titlebars, square everything. Palette estimated from the user concept art; artist refines.",
+  "author": "mo12st",
+  "license": "Proprietary (all rights reserved, mo12st)",
+  "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+  "colors": {
+    "surface": "#c0c0c0",
+    "surfaceAlt": "#d8d8d8",
+    "ink": "#0a0a0a",
+    "inkSoft": "#4a4a4a",
+    "navy": "#000080",
+    "teal": "#008284",
+    "line": "#808080",
+    "fade": "#6e6e6e"
+  },
+  "roles": {
+    "surface": "surface",
+    "surfaceAlt": "surfaceAlt",
+    "text": "ink",
+    "textMuted": "inkSoft",
+    "accent": "navy",
+    "selection": "navy",
+    "divider": "line",
+    "disabled": "fade"
+  },
+  "shape": {
+    "radiusWindow": 0,
+    "radiusCard": 0,
+    "radiusPill": 0,
+    "shadowAlpha": 0.28,
+    "shadowBlur": 24,
+    "shadowOffsetY": 12,
+    "paperGrain": 0.0
+  },
+  "fonts": {
+    "serif": "VT323",
+    "serifItalic": "VT323",
+    "sans": "Noto Sans",
+    "mono": "VT323"
+  },
+  "icons": {
+    "set": "lucide",
+    "strokeWidth": 2,
+    "size": 24,
+    "systemTheme": "breeze"
+  },
+  "options": {
+    "dock": "island",
+    "notch": "clock",
+    "wallpaper": "assets/wallpaper.jpg",
+    "motion": "soft"
+  },
+  "layout": {
+    "bar": "top-bar",
+    "rail": "none",
+    "launcher": "cascading-menu",
+    "windowControls": "menu-left-square-right",
+    "motionProfile": "immediate-stepped"
+  },
+  "kde": {
+    "colorscheme": {
+      "generate": true,
+      "schemeName": "ElTo ElTo 95 Faithful"
+    }
+  },
+  "kvantum": {
+    "enabled": false,
+    "template": "elto-default"
+  },
+  "cursor": {
+    "theme": "breeze_cursors",
+    "size": 24
+  },
+  "aurorae": {
+    "template": "ElToClassic",
+    "frame": "surfaceAlt",
+    "frameInactive": "divider",
+    "title": "text"
+  },
+  "sddm": {
+    "theme": "elto-classic",
+    "layout": "dialog-center",
+    "background": "assets/greeter-background.jpg",
+    "backgroundColor": "surface",
+    "accentColor": "accent"
+  },
+  "lock": {},
+  "plymouth": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "backgroundColor": "teal",
+    "snail": "assets/snail.png"
+  },
+  "grub": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "font": "Noto Sans",
+    "itemColor": "text",
+    "selectedColor": "selection",
+    "selectedBackground": "surfaceAlt"
+  }
+}
