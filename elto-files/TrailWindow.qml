@@ -109,7 +109,7 @@ FloatingWindow {
                 NavBtn { icon: "chev-left"; enabled: win.hi > 0; onClicked: win.back() }
                 NavBtn { icon: "chev-right"; enabled: win.hi < win.hist.length - 1; onClicked: win.forward() }
                 Rectangle {
-                    width: parent.width - 80; height: 32; radius: 16; color: th.surfaceAlt
+                    width: parent.width - 80; height: 32; radius: th.radiusPill; color: th.surfaceAlt
                     clip: true
                     Row {
                         anchors { left: parent.left; leftMargin: 16; verticalCenter: parent.verticalCenter }
@@ -174,16 +174,11 @@ FloatingWindow {
                         anchors { top: parent.top; horizontalCenter: parent.horizontalCenter }
                         width: cell.fileIsDir ? 84 : 56; height: cell.fileIsDir ? 78 : 56
                         y: cell.fileIsDir ? 0 : 11
-                        radius: 14
+                        radius: th.radiusCard
                         color: cell.sel ? th.selection : (cell.fileIsDir ? "transparent" : th.surfaceAlt)
                         Behavior on color { ColorAnimation { duration: th.ms(120) } }
-                        Image {
-                            anchors.centerIn: parent
-                            source: cell.fileIsDir ? app.icon("folder") : app.icon(win.fileIcon(cell.fileName))
-                            width: cell.fileIsDir ? 64 : 26; height: cell.fileIsDir ? 56 : 26
-                            sourceSize.width: width * 2; sourceSize.height: height * 2
-                            asynchronous: true; smooth: true
-                        }
+                        FolderArt { th: win.th; visible: cell.fileIsDir; anchors.centerIn: parent }
+                        LIcon { visible: !cell.fileIsDir; anchors.centerIn: parent; size: 26; name: win.fileIcon(cell.fileName); tint: th.text }
                     }
                     Text {
                         anchors { top: tile.bottom; topMargin: cell.fileIsDir ? 2 : 8; horizontalCenter: parent.horizontalCenter }
@@ -216,14 +211,10 @@ FloatingWindow {
         property string icon
         property bool selected
         signal clicked()
-        width: parent.width; height: 34; radius: 12
-        color: selected ? th.selection : (ma.containsMouse ? Qt.rgba(0, 0, 0, 0.04) : "transparent")
+        width: parent.width; height: 34; radius: th.radiusCard
+        color: selected ? th.selection : (ma.containsMouse ? Qt.alpha(th.text, 0.06) : "transparent")
         Behavior on color { ColorAnimation { duration: th.ms(120) } }
-        Image {
-            x: 12; anchors.verticalCenter: parent.verticalCenter
-            width: 16; height: 16; sourceSize.width: 32; sourceSize.height: 32
-            source: app.icon(row.icon)
-        }
+        LIcon { x: 12; anchors.verticalCenter: parent.verticalCenter; size: 16; name: row.icon; tint: th.text }
         Text {
             x: 38; anchors.verticalCenter: parent.verticalCenter
             text: row.label; color: th.text; font.family: th.sans; font.pixelSize: 12
@@ -234,12 +225,9 @@ FloatingWindow {
         id: nb
         property string icon
         signal clicked()
-        width: 32; height: 32; radius: 16; color: th.surfaceAlt
+        width: 32; height: 32; radius: th.radiusPill; color: th.surfaceAlt
         opacity: enabled ? 1 : 0.4
-        Image {
-            anchors.centerIn: parent; width: 14; height: 14
-            sourceSize.width: 28; sourceSize.height: 28; source: app.icon(nb.icon)
-        }
+        LIcon { anchors.centerIn: parent; size: 14; name: nb.icon; tint: th.text }
         MouseArea { anchors.fill: parent; enabled: nb.enabled; cursorShape: Qt.PointingHandCursor; onClicked: nb.clicked() }
     }
 }

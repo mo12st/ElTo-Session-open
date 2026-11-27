@@ -41,10 +41,7 @@ Item {
                     c.stroke()
                 }
             }
-            Image {
-                anchors { left: rule.right; leftMargin: 2; verticalCenter: rule.verticalCenter; verticalCenterOffset: -8 }
-                width: 28; height: 21; source: app.icon("snail"); sourceSize.width: 56; sourceSize.height: 42
-            }
+            SnailArt { th: page.th; anchors { left: rule.right; leftMargin: 2; verticalCenter: rule.verticalCenter; verticalCenterOffset: -8 } }
 
             Text { id: fHead; y: 82; text: "Folders"; color: th.text; font.family: th.serif; font.italic: true; font.pixelSize: 18 }
             Rectangle { y: 92; x: 74; width: parent.width - 74; height: 1; color: th.divider }
@@ -57,11 +54,7 @@ Item {
                         required property string modelData
                         readonly property string p: app.home + "/" + modelData
                         width: fRow.width / page.folders.length; height: 104
-                        Image {
-                            anchors { top: parent.top; horizontalCenter: parent.horizontalCenter }
-                            width: 64; height: 56; source: app.icon("folder")
-                            sourceSize.width: 128; sourceSize.height: 112
-                        }
+                        FolderArt { th: page.th; anchors { top: parent.top; horizontalCenter: parent.horizontalCenter } }
                         Text {
                             anchors { top: parent.top; topMargin: 62; horizontalCenter: parent.horizontalCenter }
                             text: modelData; color: th.text; font.family: th.sans; font.pixelSize: 12; font.weight: Font.Medium
@@ -98,9 +91,9 @@ Item {
                             scale: page.cardScale; transformOrigin: Item.TopLeft
                             readonly property int pc: page.pct(modelData)
                             readonly property color tone: pc >= 85 ? th.accent : th.textMuted
-                            width: Math.max(170, (page.width - 28) / 3 / page.cardScale - 6); height: 156; radius: 16
+                            width: Math.max(170, (page.width - 28) / 3 / page.cardScale - 6); height: 156; radius: th.radiusCard + 2
                             color: Qt.lighter(th.surface, 1.35)
-                            border.width: 1; border.color: Qt.rgba(0, 0, 0, 0.05)
+                            border.width: 1; border.color: Qt.alpha(th.text, 0.07)
                             Canvas {          // dashed inner outline
                                 anchors.fill: parent; anchors.margins: 6
                                 onPaint: {
@@ -109,12 +102,7 @@ Item {
                                     c.strokeRect(0.5, 0.5, width - 1, height - 1)
                                 }
                             }
-                            Image {
-                                x: 16; y: 16; width: 52; height: card.modelData.removable ? 26 : 32
-                                fillMode: Image.PreserveAspectFit; horizontalAlignment: Image.AlignLeft
-                                source: app.icon(card.modelData.removable ? "drive-usb" : "drive-internal")
-                                sourceSize.width: 128; sourceSize.height: 80
-                            }
+                            DriveArt { th: page.th; x: 16; y: 16; width: 52; usb: card.modelData.removable }
                             Text {
                                 anchors { right: parent.right; rightMargin: 16; top: parent.top; topMargin: 10 }
                                 text: card.pc + "%"; color: card.pc >= 85 ? th.accent : th.text
@@ -131,25 +119,25 @@ Item {
                             Rectangle {   // Eject (removable drives only)
                                 visible: card.modelData.removable && card.modelData.dev !== ""
                                 anchors { right: parent.right; rightMargin: 16; top: parent.top; topMargin: 66 }
-                                width: 64; height: 22; radius: 11; color: th.surface
+                                width: 64; height: 22; radius: th.radiusPill; color: th.surface
                                 border.width: 1; border.color: th.divider
                                 Row {
                                     anchors.centerIn: parent; spacing: 4
-                                    Image { width: 8; height: 8; anchors.verticalCenter: parent.verticalCenter; source: app.icon("close"); sourceSize.width: 16; sourceSize.height: 16 }
+                                    LIcon { size: 8; anchors.verticalCenter: parent.verticalCenter; name: "close"; tint: th.text }
                                     Text { text: "Eject"; color: th.text; font.family: th.sans; font.pixelSize: 10; font.weight: Font.Medium }
                                 }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: app.eject(card.modelData.dev) }
                             }
                             Rectangle {   // usage bar
-                                x: 16; y: 104; width: parent.width - 32; height: 10; radius: 5; color: th.surfaceAlt
+                                x: 16; y: 104; width: parent.width - 32; height: 10; radius: th.radiusPill; color: th.surfaceAlt
                                 Rectangle {
-                                    width: Math.max(10, parent.width * card.pc / 100); height: parent.height; radius: 5
+                                    width: Math.max(10, parent.width * card.pc / 100); height: parent.height; radius: th.radiusPill
                                     color: card.tone; clip: true
                                     Canvas {
                                         anchors.fill: parent
                                         onPaint: {
                                             var c = getContext("2d"); c.reset()
-                                            c.strokeStyle = "rgba(255,255,255,0.28)"; c.lineWidth = 2
+                                            c.strokeStyle = Qt.alpha(th.surface, 0.3).toString(); c.lineWidth = 2
                                             for (var x = -height; x < width; x += 6) { c.beginPath(); c.moveTo(x, height); c.lineTo(x + height, 0); c.stroke() }
                                         }
                                     }

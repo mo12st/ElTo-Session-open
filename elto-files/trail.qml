@@ -3,7 +3,8 @@
 // Start page: TRAIL_START=computer (This computer page) | an absolute folder path | (unset: home folder).
 // v1 scope: browse, open (xdg-open), sidebar, breadcrumb, back/forward, drive cards with Eject.
 // File operations (copy, move, delete, network) come later through KDE KIO, not copied Dolphin code.
-// Theme is read like the welcome app: themes/soft-paper/theme.json + the user overlay, read-only.
+// Theme: every colour, radius and font comes from the ElTo theme tokens (themes/soft-paper/theme.json + the user overlay
+// ~/.config/elto/theme.json, watched, so a theme or world switch restyles Trail live). No hex in the QML.
 import Quickshell
 import Quickshell.Io
 import QtQuick
@@ -36,7 +37,7 @@ ShellRoot {
         readonly property var shapeT: section("shape")
         readonly property var fonts: section("fonts")
         readonly property var options: section("options")
-        function role(r) { var n = roles[r]; return colors[n] !== undefined ? colors[n] : (colors[r] !== undefined ? colors[r] : "#f6f1e4") }
+        function role(r) { var n = roles[r]; return colors[n] !== undefined ? colors[n] : (colors[r] !== undefined ? colors[r] : "transparent") }
         readonly property color surface: role("surface")
         readonly property color surfaceAlt: role("surfaceAlt")
         readonly property color text: role("text")
@@ -45,6 +46,8 @@ ShellRoot {
         readonly property color selection: role("selection")
         readonly property color divider: role("divider")
         readonly property int radiusWindow: shapeT.radiusWindow !== undefined ? shapeT.radiusWindow : 22
+        readonly property color disabled: role("disabled")
+        readonly property int radiusPill: shapeT.radiusPill !== undefined ? shapeT.radiusPill : 999
         readonly property int radiusCard: shapeT.radiusCard !== undefined ? shapeT.radiusCard : 14
         readonly property string serif: fonts.serif || "Noto Serif Display"
         readonly property string sans: fonts.sans || "Noto Sans"
@@ -59,13 +62,14 @@ ShellRoot {
     FileView {
         path: Quickshell.env("ELTO_THEME") || (Quickshell.env("HOME") + "/.config/elto/theme.json")
         blockLoading: true
+        watchChanges: true
+        onFileChanged: reload()
         onLoaded: { try { th.user = JSON.parse(text()) } catch (e) { console.log("TRAIL user theme parse error " + e) } }
         onLoadFailed: th.user = ({})
     }
     readonly property var theme: th
 
     // ---- actions used by both windows ----
-    function icon(name) { return "file://" + Quickshell.shellPath("icons/" + name + ".svg") }
     function openPath(p) {            // folder: show in Trail. file: hand to the desktop.
         trailGoto = p; gotoSerial++; trailVisible = true
     }

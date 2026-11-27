@@ -3,6 +3,6 @@ Type=Application
 Name=Trail
 Comment=ElTo file browser
 Exec=quickshell -p /opt/elto-session/elto-files/trail.qml
-Icon=/opt/elto-session/elto-files/icons/folder.svg
+Icon=/opt/elto-session/icons/lucide/folder.svg
 Categories=System;FileManager;
 MimeType=inode/directory;
