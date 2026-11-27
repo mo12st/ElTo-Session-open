@@ -1,0 +1,105 @@
+{
+  "name": "flow",
+  "label": "Flow",
+  "version": 2,
+  "description": "Deep green night garden: dark ambient surfaces, warm light accents, minimal chrome. Palette estimated from the user concept art; artist refines.",
+  "author": "mo12st",
+  "license": "Proprietary (all rights reserved, mo12st)",
+  "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+  "colors": {
+    "surface": "#12211c",
+    "surfaceAlt": "#1d4638",
+    "ink": "#eae6d4",
+    "inkSoft": "#9db5a6",
+    "glow": "#d8b25c",
+    "moss": "#265847",
+    "line": "#2a4a3e",
+    "fade": "#5d6e64"
+  },
+  "roles": {
+    "surface": "surface",
+    "surfaceAlt": "surfaceAlt",
+    "text": "ink",
+    "textMuted": "inkSoft",
+    "accent": "glow",
+    "selection": "moss",
+    "divider": "line",
+    "disabled": "fade"
+  },
+  "shape": {
+    "radiusWindow": 14,
+    "radiusCard": 6,
+    "radiusPill": 999,
+    "shadowAlpha": 0.28,
+    "shadowBlur": 24,
+    "shadowOffsetY": 12,
+    "paperGrain": 0.0
+  },
+  "fonts": {
+    "serif": "Noto Serif Display",
+    "serifItalic": "Noto Serif Display Italic",
+    "sans": "Noto Sans",
+    "mono": "DejaVu Sans Mono"
+  },
+  "icons": {
+    "set": "lucide",
+    "strokeWidth": 2,
+    "size": 24,
+    "systemTheme": "breeze"
+  },
+  "options": {
+    "dock": "island",
+    "notch": "clock",
+    "wallpaper": "assets/wallpaper.jpg",
+    "motion": "soft"
+  },
+  "layout": {
+    "bar": "notch-island",
+    "rail": "none",
+    "launcher": "drawer",
+    "windowControls": "right",
+    "motionProfile": "soft"
+  },
+  "kde": {
+    "colorscheme": {
+      "generate": true,
+      "schemeName": "ElTo Flow"
+    }
+  },
+  "kvantum": {
+    "enabled": false,
+    "template": "elto-default"
+  },
+  "cursor": {
+    "theme": "breeze_cursors",
+    "size": 24
+  },
+  "aurorae": {
+    "template": "ElToClassic",
+    "frame": "surfaceAlt",
+    "frameInactive": "divider",
+    "title": "text"
+  },
+  "sddm": {
+    "theme": "elto-classic",
+    "layout": "minimal",
+    "background": "assets/greeter-background.jpg",
+    "backgroundColor": "surface",
+    "accentColor": "accent"
+  },
+  "lock": {},
+  "plymouth": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "backgroundColor": "surface",
+    "snail": "assets/snail.png"
+  },
+  "grub": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "font": "Noto Sans",
+    "itemColor": "text",
+    "selectedColor": "selection",
+    "selectedBackground": "surfaceAlt"
+  }
+}

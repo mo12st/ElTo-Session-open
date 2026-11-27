@@ -1,0 +1,107 @@
+{
+  "name": "retro95",
+  "label": "Retro 95 Vector",
+  "version": 2,
+  "description": "Purple vaporwave playground: gradient titlebars, beveled panels, pixel type, stepped motion. Palette estimated from the user concept art; artist refines.",
+  "author": "mo12st",
+  "license": "Proprietary (all rights reserved, mo12st)",
+  "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+  "colors": {
+    "surface": "#cac6df",
+    "surfaceAlt": "#b0aacc",
+    "ink": "#1c1440",
+    "inkSoft": "#5b4e9a",
+    "sun": "#fdc94e",
+    "grape": "#552394",
+    "line": "#8d86b0",
+    "fade": "#7d76a0",
+    "titleFrom": "#e078c8",
+    "titleTo": "#6c7fd8"
+  },
+  "roles": {
+    "surface": "surface",
+    "surfaceAlt": "surfaceAlt",
+    "text": "ink",
+    "textMuted": "inkSoft",
+    "accent": "sun",
+    "selection": "grape",
+    "divider": "line",
+    "disabled": "fade"
+  },
+  "shape": {
+    "radiusWindow": 2,
+    "radiusCard": 0,
+    "radiusPill": 999,
+    "shadowAlpha": 0.28,
+    "shadowBlur": 24,
+    "shadowOffsetY": 12,
+    "paperGrain": 0.0
+  },
+  "fonts": {
+    "serif": "VT323",
+    "serifItalic": "VT323",
+    "sans": "Noto Sans",
+    "mono": "VT323"
+  },
+  "icons": {
+    "set": "lucide",
+    "strokeWidth": 2,
+    "size": 24,
+    "systemTheme": "breeze"
+  },
+  "options": {
+    "dock": "island",
+    "notch": "clock",
+    "wallpaper": "assets/wallpaper.jpg",
+    "motion": "soft"
+  },
+  "layout": {
+    "bar": "bottom-taskbar",
+    "rail": "left",
+    "launcher": "cascading-menu",
+    "windowControls": "menu-left-square-right",
+    "motionProfile": "immediate-stepped"
+  },
+  "kde": {
+    "colorscheme": {
+      "generate": true,
+      "schemeName": "ElTo Retro 95 Vector"
+    }
+  },
+  "kvantum": {
+    "enabled": false,
+    "template": "elto-default"
+  },
+  "cursor": {
+    "theme": "breeze_cursors",
+    "size": 24
+  },
+  "aurorae": {
+    "template": "ElToClassic",
+    "frame": "surfaceAlt",
+    "frameInactive": "divider",
+    "title": "text"
+  },
+  "sddm": {
+    "theme": "elto-classic",
+    "layout": "card-left",
+    "background": "assets/greeter-background.jpg",
+    "backgroundColor": "surface",
+    "accentColor": "accent"
+  },
+  "lock": {},
+  "plymouth": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "backgroundColor": "#10918c",
+    "snail": "assets/snail.png"
+  },
+  "grub": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "font": "Noto Sans",
+    "itemColor": "text",
+    "selectedColor": "selection",
+    "selectedBackground": "surfaceAlt"
+  }
+}
