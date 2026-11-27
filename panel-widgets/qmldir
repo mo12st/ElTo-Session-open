@@ -1,0 +1,7 @@
+singleton Theme Theme.qml
+singleton UserTheme UserTheme.qml
+singleton ElToPalette ElToPalette.qml
+LIcon LIcon.qml
+PillBtn PillBtn.qml
+ThemesPage ThemesPage.qml
+Slider Slider.qml
