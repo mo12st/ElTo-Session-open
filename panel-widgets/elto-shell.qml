@@ -10,4 +10,6 @@ ShellRoot {
     Notch { drawer: drawer }
 
     Dock {}
+
+    Component.onCompleted: Sound.play("session-start")
 }
