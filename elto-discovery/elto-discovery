@@ -1,0 +1,383 @@
+#!/usr/bin/env python3
+"""elto-discovery - ElTo Discovery, Phase 1 spike.
+
+Find and install apps on the ElTo base system through PackageKit's pacman
+(alpm) backend, via the `pkgcli` command-line client (the only CLI Arch's
+packagekit 1.4.1 ships: /usr/bin/pkgcli). Machine-facing: the ElTo shell
+spawns one process per operation and reads JSON Lines from stdout.
+
+Contract: every invocation prints one JSON object per line. The last line is
+always {"event": "done", "ok": true|false, ...}. Human diagnostics go to
+stderr only, so stdout stays machine-clean.
+
+  search <text>            -> {"event": "results", "results": [...]}, done
+  info <package-id>        -> {"event": "info", "info": {...}}, done
+  install <package-id>     -> {"event": "package", ...}*, done
+  remove <package-id>      -> {"event": "package", ...}*, done
+  selftest                 -> {"event": "info", "info": {...}}, done
+
+<package-id> is a full PackageKit ID: name;version;arch;data as reported in
+search results ("id" field). Full IDs are required for install/remove so
+pkgcli never falls back to its interactive multiple-match prompt on stdin
+(which we close). See README.md. Scope: pacman/PackageKit only; Flatpak is a
+separate approved-later decision; worlds follow the World Engine schema.
+
+Note: pkgcli emits no progress events in JSON mode (pkgc-context.c
+pkgc_context_on_progress_cb returns early for PKGCLI_MODE_JSON), so
+install/remove stream only the final processed-package objects, not
+percentages. pkgcli's own output formats are cited in VERIFICATION.md and
+were partially confirmed by the implementer's VM run (search JSON, error
+JSON, exit 4 not-found / 5 auth-or-transaction-failure).
+"""
+
+import json
+import os
+import re
+import shutil
+import signal
+import subprocess
+import sys
+import time
+
+PKGCLI = "pkgcli"
+SEARCH_TIMEOUT_S = 120
+INFO_TIMEOUT_S = 120
+# install/remove get no timeout: transactions can legitimately take a long time.
+CANCEL_GRACE_S = 10
+
+# Plain-mode detail labels from pkgc-util.c pkgc_print_package_detail()
+# (localized; we pin LC_ALL=C so these English labels are stable).
+PLAIN_DETAIL_LABELS = {
+    "Package:": "name",
+    "Version:": "version",
+    "Summary:": "summary",
+    "Description:": "description",
+    "License:": "license",
+    "URL:": "url",
+    "Group:": "group",
+    "Installed Size:": "install_size",
+    "Download Size:": "download_size",
+}
+
+
+def emit(obj):
+    sys.stdout.write(json.dumps(obj, ensure_ascii=False) + "\n")
+    sys.stdout.flush()
+
+
+def fail(code, message, exit_code=1, **extra):
+    done = {"event": "done", "ok": False,
+            "error": {"code": code, "message": message}}
+    done.update(extra)
+    emit(done)
+    sys.exit(exit_code)
+
+
+def classify_error(message, exit_code):
+    """Map pkgcli's exit code and error text to a stable error code.
+
+    Exit codes from pkgc-context.h: 0 success, 1 failure, 2 syntax,
+    3 permission-denied, 4 not-found, 5 transaction-failed. Message wording
+    from pkgc-manage.c / pkgc-util.c; the implementer's VM run confirmed
+    exit 4 for not-found and 5 for the auth path. Exact wording per real
+    failure remains a VM-test item.
+    """
+    low = (message or "").lower()
+    if exit_code == 3 or "not authorized" in low or "not-authorized" in low \
+            or "permission" in low:
+        return "not-authorized"
+    if exit_code == 4 or "not found" in low or "could not find" in low:
+        return "not-found"
+    if "cancel" in low:
+        return "cancelled"
+    if exit_code == 5:
+        return "transaction-failed"
+    if "failed to connect to packagekit" in low or "could not activate" in low \
+            or "d-bus" in low or "dbus" in low:
+        return "daemon-error"
+    if exit_code == 2:
+        return "usage"
+    return "cli-error"
+
+
+def pkgcli_env():
+    env = dict(os.environ)
+    # pkgcli localizes labels and prints colors on a TTY; pin both so parsing
+    # sees the English, colorless formats documented in VERIFICATION.md.
+    env["LC_ALL"] = "C"
+    env["NO_COLOR"] = "1"
+    return env
+
+
+def spawn_pkgcli(args, yes=False):
+    # -y marks pkgcli non-interactive: no simulation and no confirmation
+    # prompt (pkgc-context.c pkgc_context_apply_settings: simulate =
+    # !noninteractive, interactive = !noninteractive). Without it an install
+    # ends as "user declined simulation" because we close stdin. only-trusted
+    # stays on and polkit auth is unaffected. Used for install/remove only.
+    argv = [PKGCLI, "--json", "--no-color"] + (["-y"] if yes else []) + args
+    return subprocess.Popen(
+        argv,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        stdin=subprocess.DEVNULL,  # never let pkgcli prompt us on stdin
+        env=pkgcli_env(), text=True, errors="replace",
+        start_new_session=True,  # own process group for clean cancellation
+    )
+
+
+def read_json_lines(text):
+    """Split pkgcli stdout into (json_objects, non_json_lines)."""
+    objects, noise = [], []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            noise.append(line)
+            continue
+        objects.append(obj)
+    return objects, noise
+
+
+def stream_json_lines(proc):
+    """Yield (obj_or_None, raw_line) as pkgcli prints; raw_line for non-JSON."""
+    assert proc.stdout is not None
+    for raw in proc.stdout:
+        line = raw.strip()
+        if not line:
+            continue
+        try:
+            yield json.loads(line), line
+        except json.JSONDecodeError:
+            yield None, line
+
+
+def kill_gracefully(proc):
+    """SIGINT first: pkgcli's handler cancels the PackageKit transaction
+    properly (pkgcli.c pkc_handle_sigint). SIGKILL only after a grace."""
+    try:
+        os.killpg(proc.pid, signal.SIGINT)
+    except ProcessLookupError:
+        return
+    deadline = time.time() + CANCEL_GRACE_S
+    while time.time() < deadline:
+        if proc.poll() is not None:
+            return
+        time.sleep(0.1)
+    try:
+        os.killpg(proc.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+
+
+def check_exit(proc, objects, noise, err):
+    """Turn a finished pkgcli run into a fail() when it did not succeed."""
+    if proc.returncode == 0:
+        return
+    errors = [o["error"] for o in objects if isinstance(o, dict) and "error" in o]
+    msg = "; ".join(errors) or err or (noise[-1] if noise else
+                                       "pkgcli exited %d" % proc.returncode)
+    fail(classify_error(msg, proc.returncode), msg)
+
+
+def package_from_json(obj):
+    """pkgcli JSON package object (pkgc-util.c pkgc_print_package):
+    {"name", "version", "arch", "repo", "state"} -> our result shape."""
+    repo = obj.get("repo", "")
+    state = obj.get("state", "")
+    pkg_id = ";".join([obj.get("name", ""), obj.get("version", ""),
+                       obj.get("arch", ""), repo])
+    status = ("installed" if state == "installed" or
+              repo.startswith("installed") else state or "unknown")
+    return {
+        "id": pkg_id,
+        "name": obj.get("name", ""),
+        "version": obj.get("version", ""),
+        "arch": obj.get("arch", ""),
+        "repo": repo,
+        # state is pk_info_enum_to_string: "available", "installed",
+        # "installing", ...; pass through, normalizing the two common ones
+        "status": status,
+        # pkgcli search returns installed entries too (repo "installed").
+        # Only an available entry is installable; the UI must pass
+        # install_id to install, never an installed entry's id.
+        "install_id": pkg_id if status == "available" else None,
+    }
+
+
+def cmd_search(query):
+    proc = spawn_pkgcli(["search", "name", query])
+    try:
+        out, err = proc.communicate(timeout=SEARCH_TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        os.killpg(proc.pid, signal.SIGKILL)
+        proc.communicate()
+        fail("timeout", "pkgcli search exceeded %ds" % SEARCH_TIMEOUT_S)
+    objects, noise = read_json_lines(out)
+    check_exit(proc, objects, noise, (err or "").strip())
+    results = [package_from_json(o) for o in objects
+               if isinstance(o, dict) and "name" in o and "state" in o]
+    for o in objects:
+        if isinstance(o, dict) and "warning" in o:
+            emit({"event": "warning", "message": o["warning"]})
+    emit({"event": "results", "query": query, "results": results})
+    emit({"event": "done", "ok": True, "count": len(results)})
+
+
+def parse_plain_details(text):
+    """Parse `pkgcli show` plain output: 'Label: value' lines
+    (pkgc-util.c pkgc_print_package_detail, non-JSON branch)."""
+    info = {}
+    for line in text.splitlines():
+        for label, key in PLAIN_DETAIL_LABELS.items():
+            if line.startswith(label):
+                info[key] = line[len(label):].strip()
+                break
+    return info
+
+
+def cmd_info(package_id):
+    # primary: JSON mode (pkgc-util.c pkgc_print_package_detail JSON branch:
+    # {"name","version","summary","description","license","url",
+    #  "install_size","download_size"})
+    proc = spawn_pkgcli(["show", package_id])
+    try:
+        out, err = proc.communicate(timeout=INFO_TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        os.killpg(proc.pid, signal.SIGKILL)
+        proc.communicate()
+        fail("timeout", "pkgcli show exceeded %ds" % INFO_TIMEOUT_S)
+    objects, noise = read_json_lines(out)
+    check_exit(proc, objects, noise, (err or "").strip())
+    info = {}
+    for o in objects:
+        if isinstance(o, dict) and ("summary" in o or "description" in o):
+            info.update(o)
+    if not info:
+        # fallback: the implementer's VM run saw empty output from
+        # `show --json` while plain `show` worked; parse the plain labels.
+        proc2 = subprocess.Popen(
+            [PKGCLI, "--no-color", "show", package_id],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdin=subprocess.DEVNULL, env=pkgcli_env(),
+            text=True, errors="replace", start_new_session=True)
+        try:
+            out2, err2 = proc2.communicate(timeout=INFO_TIMEOUT_S)
+        except subprocess.TimeoutExpired:
+            os.killpg(proc2.pid, signal.SIGKILL)
+            proc2.communicate()
+            fail("timeout", "pkgcli show (plain) exceeded %ds" % INFO_TIMEOUT_S)
+        if proc2.returncode != 0:
+            msg = (err2 or "").strip() or out2.strip()[-500:]
+            fail(classify_error(msg, proc2.returncode), msg)
+        info = parse_plain_details(out2)
+        info["_source"] = "plain"
+        if not info:
+            fail("parse-error",
+                 "pkgcli show produced no recognizable output",
+                 pkgcli_output=out.strip()[:1000])
+    else:
+        info["_source"] = "json"
+    parts = package_id.split(";")
+    if len(parts) == 4:
+        data = parts[3]
+        info["status"] = ("installed" if data.startswith("installed")
+                          or data == "local" else "available")
+        info["id"] = package_id
+    emit({"event": "info", "info": info})
+    emit({"event": "done", "ok": True})
+
+
+def cmd_transaction(verb, package_id):
+    if len(package_id.split(";")) != 4:
+        # A bare name makes pkgcli resolve interactively ("Please choose the
+        # correct package:" via scanf) and we close stdin, so refuse early
+        # with a clear error instead of failing obscurely.
+        fail("usage",
+             "%s needs a full package id (name;version;arch;data) from a "
+             "search result, got: %r" % (verb, package_id), exit_code=2)
+    data = package_id.split(";")[3]
+    if verb == "install" and (data.startswith("installed") or data == "local"):
+        # installing an installed entry is a no-op; report the end state
+        emit({"event": "done", "ok": True, "command": verb,
+              "package": package_id, "note": "already-installed"})
+        return
+    proc = spawn_pkgcli([verb, package_id], yes=True)
+    errors = []
+    try:
+        for obj, raw in stream_json_lines(proc):
+            if obj is None:
+                continue
+            if "error" in obj:
+                errors.append(obj["error"])
+                continue
+            if "warning" in obj:
+                emit({"event": "warning", "message": obj["warning"]})
+            elif "info" in obj:
+                emit({"event": "info", "message": obj["info"]})
+            elif "success" in obj:
+                emit({"event": "success", "message": obj["success"]})
+            elif "name" in obj and "state" in obj:
+                emit({"event": "package",
+                      "package": package_from_json(obj)})
+        proc.wait()
+    except KeyboardInterrupt:
+        kill_gracefully(proc)
+        proc.wait()
+        fail("cancelled", "interrupted; pkgcli asked to cancel the transaction")
+    err = proc.stderr.read() if proc.stderr else ""
+    if proc.returncode != 0:
+        msg = "; ".join(errors) or err.strip() or \
+            "pkgcli exited %d" % proc.returncode
+        fail(classify_error(msg, proc.returncode), msg)
+    emit({"event": "done", "ok": True, "command": verb, "package": package_id})
+
+
+def cmd_selftest():
+    path = shutil.which(PKGCLI)
+    if not path:
+        fail("cli-missing",
+             "pkgcli not found on PATH; install the 'packagekit' package")
+    proc = spawn_pkgcli(["backend"])
+    try:
+        out, err = proc.communicate(timeout=30)
+    except subprocess.TimeoutExpired:
+        os.killpg(proc.pid, signal.SIGKILL)
+        proc.communicate()
+        fail("daemon-error", "pkgcli backend timed out")
+    objects, noise = read_json_lines(out)
+    check_exit(proc, objects, noise, (err or "").strip())
+    info = {"pkgcli_path": path}
+    for o in objects:
+        if isinstance(o, dict) and "backend" in o:
+            info["backend"] = o["backend"]
+            info["roles"] = o.get("roles", "")
+    emit({"event": "info", "info": info})
+    emit({"event": "done", "ok": True})
+
+
+USAGE = __doc__
+
+
+def main(argv):
+    if len(argv) < 2:
+        sys.stderr.write(USAGE)
+        fail("usage", "no command given", exit_code=2)
+    cmd, rest = argv[1], argv[2:]
+    if cmd == "search" and len(rest) == 1 and rest[0].strip():
+        cmd_search(rest[0])
+    elif cmd == "info" and len(rest) == 1:
+        cmd_info(rest[0])
+    elif cmd in ("install", "remove") and len(rest) == 1:
+        cmd_transaction(cmd, rest[0])
+    elif cmd == "selftest" and not rest:
+        cmd_selftest()
+    else:
+        sys.stderr.write(USAGE)
+        fail("usage", "bad arguments: %r" % argv[1:], exit_code=2)
+
+
+if __name__ == "__main__":
+    main(sys.argv)
