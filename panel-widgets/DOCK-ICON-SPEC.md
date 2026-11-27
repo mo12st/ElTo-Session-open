@@ -103,3 +103,23 @@ An icon enters the dock only if all ten hold:
 8. Retains its material character at 30 px.
 9. Optically balanced, not merely geometrically centred.
 10. No unnecessary decorative element.
+
+## 11. Shape craft
+
+Added after review: colour alone does not make an icon refined; the geometry has to be. Rules the drawings
+follow now.
+
+- Curves, not polygons. Every silhouette is built from arcs, quadratics or cubics. The gear became a rosette
+  of six lobes of one radius blended into the body, because a polygon gear reads as a stamped shape.
+- One radius per role, not per object: plate 19; large object 9-11; medium 6-7; small 3-4; anything pill
+  shaped uses half its height. No radius is chosen by eye per icon.
+- Even negative space. The object sits 16 units in from the plate edge on every side; internal gaps between
+  layers are 4-6 units and are the same wherever two layers meet.
+- Overlaps are deliberate. Each icon has at most two overlapping layers and each overlap shows a 4-6 unit
+  reveal, so the layering reads as depth rather than as a mistake.
+- Inset rules, not full-bleed ones. The window's rust rule is inset 7 units from the plane edges.
+- Optical centring for composite marks. The terminal prompt is centred as a unit, not as a chevron plus a bar
+  centred separately.
+- No silhouette may be a plain rectangle or a plain disc unless the metaphor needs it; where it does
+  (terminal screen, clock face), the identity is carried by a mark that is at least 9 units.
+- Detail lines are at least 1 unit and never carry meaning below 7 units of length.
