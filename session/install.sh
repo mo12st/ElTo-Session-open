@@ -9,17 +9,14 @@ install -m644 "$R/session/elto-customize.desktop" /usr/share/applications/elto-c
 install -m755 "$R/session/elto-session" /usr/local/bin/elto-session
 install -m644 "$R/session/elto.desktop" /usr/share/wayland-sessions/elto.desktop
 (cd "$R/plugin/windowlist" && make >/dev/null && install -m755 elto-windowlist /usr/local/bin/elto-windowlist)
-# defaults every KDE app reads from XDG_CONFIG_DIRS: ElTo colors, Breeze icons, ElTo window decoration
-install -d /etc/xdg /usr/share/aurorae/themes
-{ cat "$R/theme/ElTo.colors"; printf '\n[Icons]\nTheme=breeze\n'; } > /etc/xdg/kdeglobals
+install -d /usr/share/aurorae/themes
 cp -r "$R/aurorae/ElToClassic" /usr/share/aurorae/themes/
-printf '[org.kde.kdecoration2]\nlibrary=org.kde.kwin.aurorae\ntheme=__aurorae__svg__ElToClassic\n' > /etc/xdg/kwinrc
 # login screen
-install -d /usr/share/sddm/themes /etc/sddm.conf.d
+install -d /usr/share/sddm/themes
 cp -r "$R/spike/sddm/elto-classic" /usr/share/sddm/themes/
-printf '[Theme]\nCurrent=elto-classic\n[General]\nDisplayServer=wayland\n[Wayland]\nCompositorCommand=kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1\n' > /etc/sddm.conf.d/elto.conf
 # lock screen greeter (kscreenlocker picks it from plasmashellrc ShellPackage)
 D=/usr/share/plasma/shells/org.elto.shell; install -d $D/contents/lockscreen
 cp "$R/lock/metadata.json" $D/; cp -r "$R/lock/LockScreen.qml" "$R/lock/Exec.qml" "$R/lock/assets" $D/contents/lockscreen/
-printf '[Shell]\nShellPackage=org.elto.shell\n' > /etc/xdg/plasmashellrc
+# identity + system defaults (kdeglobals, kwinrc, plasmashellrc, mimeapps, sddm conf) live in elto-core/
+bash "$R/elto-core/install.sh"
 echo installed
