@@ -106,22 +106,23 @@ case "$*" in
   "--json --no-color show nope;1-1;x86_64;extra")
     printf '%s\n' '{"error":"Could not find packages: No packages were found"}'
     exit 1;;
-  "--json --no-color -y install sl;5.05-3;x86_64;extra") cat <<'EOF'
+  "--json --no-color install sl;5.05-3;x86_64;extra")
+    head -n 3 > "$(dirname "$0")/stdin-install.txt"; cat <<'EOF'
 @INSTALL_OK_OUT@EOF
     exit 0;;
-  "--json --no-color -y install installed-pkg;1-1;x86_64;extra")
+  "--json --no-color install installed-pkg;1-1;x86_64;extra")
     printf '%s\n' '{"info":"The selected package is already installed."}'
     exit 0;;
-  "--json --no-color -y install nope;0-1;x86_64;extra")
+  "--json --no-color install nope;0-1;x86_64;extra")
     printf '%s\n' '{"error":"@INSTALL_NOT_FOUND_ERR@"}'
     exit 4;;
-  "--json --no-color -y install bad;1-1;x86_64;extra")
+  "--json --no-color install bad;1-1;x86_64;extra")
     printf '%s\n' '{"error":"@INSTALL_CANCELLED_ERR@"}'
     exit 5;;
-  "--json --no-color -y install denied;1-1;x86_64;extra")
+  "--json --no-color install denied;1-1;x86_64;extra")
     printf '%s\n' '{"error":"@INSTALL_AUTH_ERR@"}'
     exit 5;;
-  "--json --no-color -y remove nope;0-1;x86_64;installed")
+  "--json --no-color remove nope;0-1;x86_64;installed")
     printf '%s\n' '{"error":"@REMOVE_NOT_FOUND_ERR@"}'
     exit 1;;
   "--json --no-color backend") cat <<'EOF'
@@ -252,6 +253,12 @@ def main():
     check("install emits no progress events (pkgcli JSON mode)",
           "progress" not in kinds and "status" not in kinds, repr(kinds))
     check("install done ok", events[-1]["ok"] is True)
+    # install pre-answers pkgcli's simulation confirmation on stdin (the
+    # polkit-gated transaction itself still needs session auth)
+    with open(os.path.join(tmp, "stdin-install.txt")) as f:
+        confirm = f.read().splitlines()
+    check("install pre-answers simulation prompt on stdin",
+          confirm == ["y", "y", "y"], repr(confirm))
 
     # install: already installed is success with an info message
     events, _ = run_helper(env, "install", "installed-pkg;1-1;x86_64;extra",
