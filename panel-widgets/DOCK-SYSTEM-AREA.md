@@ -5,6 +5,8 @@ smoke does not load the dock, and no screen has shown this yet. VM proof is the 
 
 ## What was added
 
+Both dock variants (`island` in `DockWindow.qml`, `bar` in `DockBar.qml`) carry the same group.
+
 One `DockSystemArea` row at the right end of the dock: the clock, a Settings entry, and the status
 readouts the shell already has data for. It composes the widgets that already live in this directory
 instead of reading the services a second time, so each readout keeps one source of truth.
@@ -40,9 +42,9 @@ the dock can draw them smaller without duplicating them.
 - The island grows with its content and has no clipping, so a long window list plus this group can push
   it past the screen edge. That limit is older than this change, but the group makes it easier to hit.
   The bar variant clips its pills, so it does not have the problem.
-- The bar variant (`DockBar.qml`) lives on the `agent/dock-variants` branch (PR #38), not on main, so
-  this PR wires the island only. Once #38 is merged the bar takes the same component in two lines: a
-  `DockSystemArea` at the right end and its width subtracted from the clipped pills area.
+- Both variants use the same component. The island appends it after the window pills; the bar pins it to
+  the right end and the clipped pills area stops short of it (`bar.width - pad - x - (sys.width + 22)`),
+  so a long window list never runs under the clock. A 1 px divider sits before it in both.
 
 ## VM test plan (for the implementer)
 
@@ -57,6 +59,9 @@ the dock can draw them smaller without duplicating them.
    backend it reads `net n/a`.
 6. Battery: on a machine without a battery the readout is absent and leaves no gap.
 7. Restart the shell: every readout comes back and the log has no load error.
+8. Switch the world (or set the dock option) to `bar`: the strip shows the same group at its right end,
+   the clock is inside the screen edge, and opening ten windows clips the pills before the divider
+   instead of pushing the clock off screen. Switch back to `island`: the group is unchanged.
 
 Screenshots: `dock-system-area.png` (island, normal), `dock-system-area-muted.png` (volume muted).
 

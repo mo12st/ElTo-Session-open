@@ -110,7 +110,8 @@ PanelWindow {
             x: (split.visible ? split.x + 2 + win.dk.gap : pinned.x + pinned.width + win.dk.gap)
             anchors.verticalCenter: parent.verticalCenter
             height: win.dk.pillHeight
-            width: Math.max(0, bar.width - win.dk.pad - x)
+            // the system area owns the right end, so the pills stop before it
+            width: Math.max(0, bar.width - win.dk.pad - x - (sys.width + 22))
             clip: true
 
             Row {
@@ -154,6 +155,21 @@ PanelWindow {
                     }
                 }
             }
+        }
+
+        // ---- system area, right end: clock, Settings, status readouts (same component as the island)
+        Rectangle {
+            id: sysDivider
+            x: sys.x - 14
+            width: 1; height: win.dk.tile * 0.7
+            anchors.verticalCenter: parent.verticalCenter
+            color: Theme.divider
+        }
+
+        DockSystemArea {
+            id: sys
+            textSize: 13
+            anchors { right: parent.right; rightMargin: win.dk.pad; verticalCenter: parent.verticalCenter }
         }
     }
 
