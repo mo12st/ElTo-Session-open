@@ -61,6 +61,15 @@ class T(unittest.TestCase):
     def test_world_refs_missing(self):
         build(self.z, world={"name": "demo", "options": {"wallpaper": "assets/nope.png"}})
         self.assertIn("nope.png", bundle.verify(self.z)["warnings"][0])  # same as the validator: warn, art may be pending
+    def test_wallpaper_forms(self):
+        a = {"assets/wallpapers/a.png": PNG}
+        for wl in (["assets/wallpapers/a.png"], [{"path": "assets/wallpapers/a.png", "label": "A"}]):
+            build(self.z, assets=a, world={"name": "demo", "options": {"wallpapers": wl}})
+            r = bundle.verify(self.z); self.assertEqual(r["warnings"], [])
+        build(self.z, assets=a, world={"name": "demo", "options": {"wallpapers": [{"path": "assets/wallpapers/zz.png", "label": "Z"}]}})
+        self.assertIn("zz.png", bundle.verify(self.z)["warnings"][0])
+        build(self.z, assets=a, world={"name": "demo", "options": {"wallpapers": [{"path": "assets/../x.png", "label": "Z"}]}})
+        self.rejects("unsafe asset path")
     def test_world_unsafe_ref(self):
         build(self.z, world={"name": "demo", "options": {"wallpaper": "assets/../../x"}}); self.rejects("unsafe asset path")
     def test_bad_names_and_mismatch(self):
