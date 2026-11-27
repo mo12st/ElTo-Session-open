@@ -5,7 +5,6 @@
 import Quickshell.Io
 import Quickshell.Bluetooth
 import QtQuick
-import "../panel-widgets"
 
 Item {
     id: page

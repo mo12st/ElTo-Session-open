@@ -1,6 +1,5 @@
 // Shared pill button.
 import QtQuick
-import "../panel-widgets"
 
 Rectangle {
     id: root

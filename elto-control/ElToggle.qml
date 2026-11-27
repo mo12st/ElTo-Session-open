@@ -1,6 +1,5 @@
 // Shared toggle switch. Same look as the Soft motion toggle in Customize.
 import QtQuick
-import "../panel-widgets"
 
 Item {
     id: root

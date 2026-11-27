@@ -2,7 +2,6 @@
 // Usage:
 //   ElRow { title: I18n.t("volume"); ElToggle { ... } }
 import QtQuick
-import "../panel-widgets"
 
 Rectangle {
     id: root

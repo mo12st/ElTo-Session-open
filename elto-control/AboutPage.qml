@@ -5,7 +5,6 @@
 import Quickshell
 import Quickshell.Io
 import QtQuick
-import "../panel-widgets"
 
 Item {
     id: page

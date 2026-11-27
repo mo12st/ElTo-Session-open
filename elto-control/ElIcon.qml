@@ -4,7 +4,6 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell
-import "../panel-widgets"
 
 Item {
     id: root

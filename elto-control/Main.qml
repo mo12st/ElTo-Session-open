@@ -4,7 +4,6 @@
 // Pages load lazily: a broken page shows an error card and cannot break the rest.
 import Quickshell
 import QtQuick
-import "../panel-widgets"
 
 ShellRoot {
     id: app

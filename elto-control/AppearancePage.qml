@@ -5,7 +5,6 @@
 // window for now - full RTL mirroring of this grid is a known follow-up.
 import Quickshell
 import QtQuick
-import "../panel-widgets"
 
 Item {
     id: page
