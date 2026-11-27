@@ -14,6 +14,7 @@ kwin_wayland --socket wayland-0 &
 KWIN=$!
 for i in $(seq 1 50); do [ -S "$XDG_RUNTIME_DIR/wayland-0" ] && break; sleep 0.2; done
 export WAYLAND_DISPLAY=wayland-0 QT_QPA_PLATFORM=wayland
+/usr/local/libexec/elto-polkit-agent.sh &
 quickshell -p "$ROOT/panel-widgets/elto-shell.qml" &
 # first-run Welcome tour (guard exits unless the version marker is missing)
 [ -x "$ROOT/welcome/elto-welcome-autostart.sh" ] && "$ROOT/welcome/elto-welcome-autostart.sh" &
