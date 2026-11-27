@@ -96,7 +96,9 @@
       "org.kde.gwenview": "image",
       "org.mozilla.Thunderbird": "mail",
       "elto-customize": "palette"
-    }
+    },
+    "glyphDir": "dock/gnome",
+    "glyphTint": false
   },
   "drawer": {
     "width": 420,
