@@ -128,6 +128,10 @@ PanelWindow {
                     }
                 }
             }
+
+            Rectangle { width: 1; height: win.dk.tile * 0.7; anchors.verticalCenter: parent.verticalCenter; color: Theme.divider }
+
+            DockSystemArea { textSize: 13; anchors.verticalCenter: parent.verticalCenter }
         }
     }
 

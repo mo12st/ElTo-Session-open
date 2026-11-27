@@ -7,6 +7,7 @@ Item {
     id: root
 
     property color textColor: "#283a32"
+    property int pixelSize: 20
     readonly property PwNode sink: Pipewire.defaultAudioSink
     readonly property bool ready: sink !== null && sink.audio !== null
 
@@ -21,7 +22,7 @@ Item {
     Text {
         id: label
         color: root.textColor
-        font.pixelSize: 20
+        font.pixelSize: root.pixelSize
         text: !root.ready ? "vol --"
             : root.sink.audio.muted ? "vol muted"
             : "vol " + Math.round(root.sink.audio.volume * 100) + "%"
