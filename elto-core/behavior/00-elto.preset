@@ -1,0 +1,7 @@
+# ElTo Core: exactly the services the desktop needs enabled at first boot.
+# panel-widgets imports PipeWire, UPower, Bluetooth, Networking and Notifications;
+# PipeWire/WirePlumber are user-session socket-activated and need no preset.
+# Applies on first boot / `systemctl preset-all`; admin overrides win (vendor preset).
+enable sddm.service
+enable NetworkManager.service
+enable bluetooth.service
