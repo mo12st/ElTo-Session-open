@@ -56,7 +56,8 @@
     "bevel": 1,
     "folderArt": "classic95",
     "snail": "solid",
-    "iconArt": "pixel"
+    "iconArt": "pixel",
+    "cardArt": "w95"
   },
   "fonts": {
     "serif": "VT323",

@@ -16,6 +16,7 @@ Item {
         if (f === "outline") return th.iconArt === "ascii" ? "term" : "plain"
         return "paper"
     }
+    readonly property string ca: th.cardArt
     readonly property bool paper: era === "paper"
     readonly property string hf: paper ? th.serif : (era === "term" ? th.mono : th.sans)
     readonly property bool boldHead: era === "w95" || era === "luna"
@@ -147,27 +148,45 @@ Item {
                             property var modelData: wrap.modelData
                             scale: page.cardScale; transformOrigin: Item.TopLeft
                             readonly property int pc: page.pct(modelData)
-                            readonly property color tone: pc >= 85 ? th.accent : th.textMuted
-                            width: Math.max(170, (page.width - 28) / 3 / page.cardScale - 6); height: 156; radius: th.radiusCard + 2
-                            readonly property bool grad: page.era === "aero" || page.era === "chrome"
-                            color: page.era === "term" ? "transparent"
-                                 : page.paper ? Qt.alpha(Qt.lighter(th.surface, 1.35), th.surfaceAlpha < 1 ? th.surfaceAlpha * 0.8 : 1)
+                            readonly property string ca: page.ca
+                            readonly property color tone: pc >= 85 ? th.accent : (ca === "plain" || ca === "term" ? th.text : th.textMuted)
+                            readonly property bool grad: ca === "aero" || ca === "chrome" || ca === "pearl"
+                            width: Math.max(170, (page.width - 28) / 3 / page.cardScale - 6); height: 156
+                            radius: ca === "w95" || ca === "vapor" || ca === "term" || ca === "plain" ? 0 : ca === "pearl" ? 28 : ca === "chrome" ? 3 : th.radiusCard + 2
+                            color: ca === "term" || ca === "plain" ? "transparent"
+                                 : ca === "paper" ? Qt.alpha(Qt.lighter(th.surface, 1.35), th.surfaceAlpha < 1 ? th.surfaceAlpha * 0.8 : 1)
                                  : Qt.alpha(th.surface, th.surfaceAlpha)
                             gradient: grad ? cardGrad : null
                             Gradient {
                                 id: cardGrad
-                                GradientStop { position: 0; color: Qt.alpha(Qt.lighter(th.surface, page.era === "aero" ? 1.6 : 1.5), th.surfaceAlpha) }
-                                GradientStop { position: page.era === "aero" ? 0.5 : 1; color: Qt.alpha(page.era === "aero" ? th.surface : Qt.darker(th.surface, 1.4), th.surfaceAlpha) }
-                                GradientStop { position: 1; color: Qt.alpha(page.era === "aero" ? Qt.lighter(th.surface, 1.15) : Qt.darker(th.surface, 1.4), th.surfaceAlpha) }
+                                GradientStop { position: 0; color: Qt.alpha(Qt.lighter(th.surface, card.ca === "chrome" ? 1.5 : 1.7), th.surfaceAlpha) }
+                                GradientStop { position: card.ca === "chrome" ? 1 : 0.5; color: Qt.alpha(card.ca === "chrome" ? Qt.darker(th.surface, 1.5) : th.surface, th.surfaceAlpha) }
+                                GradientStop { position: 1; color: Qt.alpha(card.ca === "chrome" ? Qt.darker(th.surface, 1.5) : Qt.lighter(th.surface, card.ca === "pearl" ? 1.3 : 1.15), th.surfaceAlpha) }
                             }
-                            border.width: page.era === "luna" ? 2 : 1
-                            border.color: page.era === "luna" ? th.accent : page.era === "chrome" ? Qt.alpha(th.accent, 0.7)
-                                        : page.era === "term" ? th.textMuted : page.era === "aero" ? Qt.alpha(th.text, 0.25)
-                                        : page.era === "plain" ? th.divider : Qt.alpha(th.text, 0.07)
+                            border.width: ca === "vapor" || ca === "pearl" ? 2 : ca === "plain" || ca === "w95" ? 0 : 1
+                            border.color: ca === "vapor" ? th.text : ca === "pearl" ? Qt.alpha("white", 0.8) : ca === "chrome" ? Qt.alpha(th.accent, 0.8)
+                                        : ca === "term" ? th.textMuted : ca === "aero" ? Qt.alpha(th.text, 0.25) : Qt.alpha(th.text, 0.07)
+                            Rectangle {       // vapor: hard offset shadow behind the card
+                                visible: card.ca === "vapor"; z: -1; x: 5; y: 5; width: parent.width; height: parent.height; color: Qt.alpha(th.text, 0.4)
+                            }
                             Bevel { th: page.th }
-                            Rectangle {       // aero glass inner highlight
-                                visible: page.era === "aero"; anchors.fill: parent; anchors.margins: 1
+                            Rectangle {       // aero / pearl glass inner highlight
+                                visible: card.ca === "aero" || card.ca === "pearl"; anchors.fill: parent; anchors.margins: 1
                                 radius: parent.radius - 1; color: "transparent"; border.width: 1; border.color: Qt.alpha("white", 0.55)
+                            }
+                            Rectangle {       // vapor: title-bar strip with window squares
+                                visible: card.ca === "vapor"; x: 0; y: 0; width: parent.width; height: 11
+                                gradient: Gradient { orientation: Gradient.Horizontal
+                                    GradientStop { position: 0; color: th.accent }
+                                    GradientStop { position: 1; color: th.selection } }
+                                Row { anchors { right: parent.right; rightMargin: 4; verticalCenter: parent.verticalCenter } spacing: 3
+                                    Repeater { model: 3; Rectangle { width: 6; height: 6; color: th.surface; border.width: 1; border.color: th.text } } }
+                            }
+                            Rectangle {       // plain: single top rule
+                                visible: card.ca === "plain"; x: 0; y: 0; width: parent.width; height: 2; color: th.text
+                            }
+                            Rectangle {       // chrome: accent edge
+                                visible: card.ca === "chrome"; x: 0; y: 0; width: 4; height: parent.height; color: th.accent
                             }
                             Canvas {          // dashed inner outline (paper only)
                                 visible: page.paper
@@ -179,59 +198,99 @@ Item {
                                 }
                             }
                             DriveArt { th: page.th; x: 16; y: 16; width: 52; usb: card.modelData.removable }
+                            // percentage: its own style per card art
+                            Rectangle {
+                                visible: card.ca === "pearl"; width: 50; height: 50; radius: 25; color: card.pc >= 85 ? th.accent : th.surfaceAlt
+                                anchors { right: parent.right; rightMargin: 16; top: parent.top; topMargin: 8 }
+                                border.width: 2; border.color: Qt.alpha("white", 0.9)
+                            }
                             Text {
-                                anchors { right: parent.right; rightMargin: 16; top: parent.top; topMargin: 10 }
-                                text: card.pc + "%"; color: card.pc >= 85 ? th.accent : th.text
-                                font.family: page.hf; font.bold: page.boldHead; font.pixelSize: page.era === "term" ? 28 : 34
+                                id: pcText
+                                anchors { right: parent.right; rightMargin: card.ca === "pearl" ? 23 : 16; top: parent.top; topMargin: card.ca === "pearl" ? 22 : card.ca === "term" ? 14 : 10 }
+                                text: card.ca === "term" ? "[" + card.pc + "%]" : card.pc + "%"
+                                color: card.ca === "pearl" ? (card.pc >= 85 ? page.accentText : th.text) : card.pc >= 85 ? th.accent : th.text
+                                font.family: card.ca === "vapor" || card.ca === "term" ? th.mono : card.ca === "paper" ? th.serif : th.sans
+                                font.bold: card.ca === "w95" || card.ca === "chrome" || card.ca === "pearl" || card.ca === "vapor"
+                                font.weight: card.ca === "aero" || card.ca === "plain" ? Font.Light : font.weight
+                                font.letterSpacing: card.ca === "chrome" ? 1 : 0
+                                font.pixelSize: card.ca === "pearl" ? 16 : card.ca === "w95" ? 24 : card.ca === "term" ? 22 : card.ca === "aero" ? 40 : 34
                             }
                             Text {
                                 x: 16; y: 56; width: parent.width - 100; elide: Text.ElideRight
-                                text: card.modelData.name; color: th.text; font.family: page.hf; font.bold: page.boldHead; font.pixelSize: page.era === "term" ? 18 : 24
+                                text: card.modelData.name; color: th.text
+                                font.family: card.ca === "paper" ? th.serif : card.ca === "term" || card.ca === "vapor" ? th.mono : th.sans
+                                font.bold: card.ca === "w95" || card.ca === "pearl" || card.ca === "chrome"
+                                font.capitalization: card.ca === "chrome" ? Font.AllUppercase : Font.MixedCase
+                                font.letterSpacing: card.ca === "chrome" ? 1.5 : 0
+                                font.pixelSize: card.ca === "term" || card.ca === "w95" || card.ca === "chrome" ? 17 : 24
                             }
                             Text {
                                 x: 16; y: 88; width: parent.width - 32; elide: Text.ElideRight
                                 text: card.modelData.kind; color: th.textMuted; font.family: page.hf; font.italic: page.paper; font.pixelSize: 9
                             }
-                            Rectangle {   // Eject (removable drives only)
+                            Rectangle {   // Eject (removable drives only), styled per card art
+                                id: ej
                                 visible: card.modelData.removable && card.modelData.dev !== ""
                                 anchors { right: parent.right; rightMargin: 16; top: parent.top; topMargin: 66 }
-                                width: 64; height: 22; radius: th.radiusPill; color: th.surface
-                                border.width: 1; border.color: th.divider
+                                width: card.ca === "term" || card.ca === "plain" ? 64 : 64; height: 22
+                                radius: card.ca === "w95" || card.ca === "vapor" || card.ca === "term" || card.ca === "plain" ? 0 : card.ca === "chrome" ? 2 : th.radiusPill
+                                readonly property bool filled: card.ca === "vapor" || card.ca === "pearl"
+                                color: card.ca === "term" || card.ca === "plain" || card.ca === "chrome" ? "transparent" : filled ? th.accent : th.surface
+                                border.width: card.ca === "w95" || card.ca === "plain" ? 0 : card.ca === "vapor" ? 2 : 1
+                                border.color: card.ca === "vapor" ? th.text : card.ca === "chrome" ? th.accent : card.ca === "term" ? th.textMuted : card.ca === "pearl" ? Qt.alpha("white", 0.9) : th.divider
                                 Bevel { th: page.th }
+                                Rectangle { visible: card.ca === "aero" || card.ca === "pearl"; anchors { left: parent.left; right: parent.right; top: parent.top; margins: 2 } height: parent.height / 2 - 2; radius: height / 2; color: Qt.alpha("white", 0.4) }
                                 Row {
                                     anchors.centerIn: parent; spacing: 4
-                                    LIcon { th: page.th; size: 8; anchors.verticalCenter: parent.verticalCenter; name: "close"; tint: th.text }
-                                    Text { text: "Eject"; color: th.text; font.family: th.sans; font.pixelSize: 10; font.weight: Font.Medium }
+                                    LIcon { visible: card.ca !== "term" && card.ca !== "plain"; th: page.th; size: 8; anchors.verticalCenter: parent.verticalCenter; name: "close"; tint: ej.filled ? page.accentText : th.text }
+                                    Text {
+                                        text: card.ca === "term" ? "[ eject ]" : "Eject"
+                                        color: ej.filled ? page.accentText : card.ca === "chrome" ? th.accent : th.text
+                                        font.family: card.ca === "term" || card.ca === "vapor" ? th.mono : th.sans; font.pixelSize: 10
+                                        font.weight: card.ca === "plain" ? Font.Normal : Font.Medium; font.bold: card.ca === "w95"
+                                        font.underline: card.ca === "plain"
+                                        font.capitalization: card.ca === "chrome" ? Font.AllUppercase : Font.MixedCase
+                                        font.letterSpacing: card.ca === "chrome" ? 1 : 0
+                                    }
                                 }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: app.eject(card.modelData.dev) }
                             }
-                            Rectangle {   // usage bar, styled per era
+                            Text {        // term: ASCII capacity bar
+                                visible: card.ca === "term"
+                                x: 16; y: 102; font.family: th.mono; font.pixelSize: 11; color: card.tone
+                                text: "[" + "#".repeat(Math.round(card.pc / 5)) + "-".repeat(20 - Math.round(card.pc / 5)) + "]"
+                            }
+                            Rectangle {   // usage bar, styled per card art
                                 id: track
-                                x: 16; y: 104; width: parent.width - 32
-                                height: page.era === "w95" || page.era === "luna" ? 14 : 10
-                                radius: page.era === "w95" || page.era === "term" ? 0 : page.era === "luna" ? 4 : th.radiusPill
-                                color: page.era === "term" ? "transparent" : page.era === "w95" ? Qt.lighter(th.surface, 1.25) : th.surfaceAlt
-                                border.width: page.era === "term" || page.era === "luna" ? 1 : 0
-                                border.color: page.era === "luna" ? Qt.alpha(th.text, 0.35) : th.textMuted
-                                Bevel { th: page.th; raised: false; visible: page.era === "w95" && th.bevel > 0 }
+                                visible: card.ca !== "term"
+                                x: 16; y: card.ca === "plain" ? 108 : 104; width: parent.width - 32
+                                height: card.ca === "pearl" ? 16 : card.ca === "w95" || card.ca === "vapor" ? 14 : card.ca === "plain" ? 2 : card.ca === "chrome" ? 6 : 10
+                                radius: card.ca === "w95" || card.ca === "vapor" || card.ca === "plain" || card.ca === "chrome" ? 0 : th.radiusPill
+                                color: card.ca === "w95" ? Qt.lighter(th.surface, 1.25) : card.ca === "plain" ? th.divider : th.surfaceAlt
+                                border.width: card.ca === "vapor" ? 2 : card.ca === "chrome" ? 1 : 0
+                                border.color: card.ca === "vapor" ? th.text : th.accent
+                                Bevel { th: page.th; raised: false; visible: card.ca === "w95" && th.bevel > 0 }
                                 Rectangle {
                                     x: track.border.width; y: track.border.width
-                                    width: Math.max(10, (parent.width - 2 * track.border.width) * card.pc / 100)
+                                    width: Math.max(card.ca === "plain" ? 2 : 10, (parent.width - 2 * track.border.width) * card.pc / 100)
                                     height: parent.height - 2 * track.border.width
-                                    radius: page.era === "w95" || page.era === "term" ? 0 : page.era === "luna" ? 3 : th.radiusPill
+                                    radius: track.radius > 0 ? th.radiusPill : 0
                                     color: card.tone; clip: true
                                     Canvas {
                                         anchors.fill: parent
                                         onPaint: {
-                                            var c = getContext("2d"); c.reset(); var e = page.era
-                                            if (e === "w95" || e === "luna" || e === "term") {      // segmented blocks
-                                                c.fillStyle = (e === "term" ? th.surface : track.color).toString()
-                                                for (var x = 8; x < width; x += 10) c.fillRect(x, 0, 2, height)
-                                            } else if (e === "aero" || e === "chrome") {            // gloss highlight
-                                                c.fillStyle = Qt.alpha("white", e === "aero" ? 0.4 : 0.28).toString(); c.fillRect(0, 0, width, height / 2)
+                                            var c = getContext("2d"); c.reset(); var e = card.ca
+                                            if (e === "w95" || e === "chrome") {
+                                                c.fillStyle = track.color.toString(); var st = e === "w95" ? 10 : 5
+                                                for (var x = st - 2; x < width; x += st) c.fillRect(x, 0, 2, height)
+                                            } else if (e === "aero" || e === "pearl") {
+                                                c.fillStyle = Qt.alpha("white", e === "pearl" ? 0.5 : 0.4).toString(); c.fillRect(0, 0, width, height / 2)
+                                            } else if (e === "vapor") {
+                                                c.fillStyle = Qt.alpha(th.surface, 0.5).toString()
+                                                for (var y = 0; y < width; y += 8) c.fillRect(y, 0, 4, height)
                                             } else if (e === "paper") {
                                                 c.strokeStyle = Qt.alpha(th.surface, 0.3).toString(); c.lineWidth = 2
-                                                for (var y = -height; y < width; y += 6) { c.beginPath(); c.moveTo(y, height); c.lineTo(y + height, 0); c.stroke() }
+                                                for (var z = -height; z < width; z += 6) { c.beginPath(); c.moveTo(z, height); c.lineTo(z + height, 0); c.stroke() }
                                             }
                                         }
                                     }
@@ -240,7 +299,7 @@ Item {
                             Text {
                                 x: 16; y: 124
                                 text: page.gb(card.modelData.used) + " of " + page.gb(card.modelData.total) + " used"
-                                color: th.text; font.family: page.era === "term" ? th.mono : th.sans; font.pixelSize: 9; font.weight: Font.Medium
+                                color: th.text; font.family: card.ca === "term" || card.ca === "vapor" ? th.mono : th.sans; font.pixelSize: 9; font.weight: Font.Medium
                             }
                             Text {
                                 anchors { right: parent.right; rightMargin: 16 }

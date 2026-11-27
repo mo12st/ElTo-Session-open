@@ -55,7 +55,8 @@
     "shadowOffsetY": 12,
     "paperGrain": 0.0,
     "folderArt": "luna",
-    "iconArt": "gloss"
+    "iconArt": "gloss",
+    "cardArt": "pearl"
   },
   "fonts": {
     "serif": "Quicksand",

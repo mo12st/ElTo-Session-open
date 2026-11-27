@@ -28,6 +28,7 @@ Limits: the schema has no spacing or icon-stroke tokens yet, so layout sizes and
 | `shape.glass` | true or false | false | Light sheen and edge highlight (translucent window; real blur is a KWin effect, not set by Trail) |
 | `shape.surfaceAlpha` | 0.3 to 1 | 1 | Window, sidebar and card opacity |
 | `shape.folderArt` | manila, flat, outline, glass, classic95, aero, luna, chrome | manila | Era style of folder and drive art |
+| `shape.cardArt` | paper, w95, vapor, aero, pearl, chrome, term, plain | from folderArt | Drive card look on This computer |
 | `shape.iconArt` | line, thin, bold, gloss, pixel, ascii | line | Era style of sidebar and file icons |
 | `colors.folder` | colour | accent | Folder body colour for era folders |
 | `shape.snail` | solid, outline, pixel, glass | solid | Style of the snail only |

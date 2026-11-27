@@ -6,12 +6,13 @@ Item {
     required property var th
     property bool usb: false
     // Drive art follows the folder era in a simplified way: legacy styles as is, era styles mapped to the nearest one.
-    readonly property string style: ({ classic95: "flat", aero: "glass", luna: "manila", chrome: "manila" })[th.folderArt] || th.folderArt
+    readonly property string style: ({ w95: "flat", vapor: "flat", aero: "glass", pearl: "manila", chrome: "flat", term: "outline", plain: "outline" })[th.cardArt] || th.folderArt
+    readonly property color led: th.cardArt === "chrome" || th.cardArt === "term" || th.cardArt === "vapor" ? th.accent : th.textMuted
     implicitWidth: 64; implicitHeight: usb ? 32 : 40
     width: implicitWidth; height: implicitHeight
     readonly property color body: style === "flat" ? th.surfaceAlt : Qt.tint(th.surfaceAlt, Qt.alpha(th.accent, 0.14))
     readonly property real u: width / 64
-    readonly property int sw: style === "manila" ? 0 : Math.max(1, Math.round(1.5 * u))
+    readonly property int sw: style === "manila" ? 0 : Math.max(1, Math.round((th.cardArt === "term" || th.cardArt === "vapor" ? 2.5 : th.cardArt === "plain" ? 1 : 1.5) * u))
     readonly property color strokeC: style === "glass" ? Qt.alpha(th.surface, 0.9) : th.text
     function fill(c) { return style === "outline" ? "transparent" : (style === "glass" ? Qt.alpha(c, 0.4) : c) }
     readonly property real rr: style === "flat" || style === "outline" ? 1 * u : 5 * u
@@ -23,7 +24,7 @@ Item {
         Rectangle { visible: art.style !== "manila"; x: 2*u; y: 24*u; width: 60*u; height: art.sw; color: art.strokeC }
         Row { x: 12*u; y: 28*u; spacing: 3*u
             Repeater { model: 5; Rectangle { width: 2*u; height: 3*u; radius: u; color: th.textMuted; opacity: 0.6 } } }
-        Rectangle { x: 49.5*u; y: 27*u; width: 5*u; height: 5*u; radius: 2.5*u; color: th.textMuted }
+        Rectangle { x: 49.5*u; y: 27*u; width: 5*u; height: 5*u; radius: 2.5*u; color: art.led }
     }
     Item {
         visible: art.usb; anchors.fill: parent

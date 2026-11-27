@@ -55,7 +55,8 @@
     "paperGrain": 0.0,
     "folderArt": "chrome",
     "snail": "solid",
-    "iconArt": "thin"
+    "iconArt": "thin",
+    "cardArt": "chrome"
   },
   "fonts": {
     "serif": "Exo 2",

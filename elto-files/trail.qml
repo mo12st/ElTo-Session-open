@@ -59,6 +59,8 @@ ShellRoot {
         readonly property bool glass: shapeT.glass === true
         readonly property real surfaceAlpha: typeof shapeT.surfaceAlpha === "number" ? Math.max(0.3, Math.min(1, shapeT.surfaceAlpha)) : 1
         readonly property string folderArt: ["manila", "flat", "outline", "glass", "classic95", "aero", "luna", "chrome"].indexOf(shapeT.folderArt) >= 0 ? shapeT.folderArt : "manila"
+        readonly property string cardArt: ["paper", "w95", "vapor", "aero", "pearl", "chrome", "term", "plain"].indexOf(shapeT.cardArt) >= 0 ? shapeT.cardArt
+            : ({ classic95: "w95", aero: "aero", luna: "pearl", chrome: "chrome" })[folderArt] || (folderArt === "outline" ? (iconArt === "ascii" ? "term" : "plain") : "paper")
         readonly property string iconArt: ["line", "thin", "bold", "pixel", "gloss", "ascii"].indexOf(shapeT.iconArt) >= 0 ? shapeT.iconArt : "line"
         readonly property string mono: fonts.mono || "DejaVu Sans Mono"
         readonly property string snailStyle: ["solid", "outline", "pixel", "glass"].indexOf(shapeT.snail) >= 0 ? shapeT.snail : "solid"
