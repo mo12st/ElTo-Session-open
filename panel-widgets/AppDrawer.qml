@@ -16,7 +16,7 @@ PanelWindow {
         open = !open
         if (open) { query = ""; search.text = ""; grid.currentIndex = 0 }
     }
-    onOpenChanged: if (open) Qt.callLater(() => search.forceActiveFocus())
+    onOpenChanged: { Sound.play(open ? "drawer-open" : "drawer-close"); if (open) Qt.callLater(() => search.forceActiveFocus()) }
     function launch(e) { e.execute(); open = false }
 
     anchors { left: true; right: true; top: true; bottom: true }
