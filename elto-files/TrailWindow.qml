@@ -178,7 +178,7 @@ FloatingWindow {
                         color: cell.sel ? th.selection : (cell.fileIsDir ? "transparent" : th.surfaceAlt)
                         Behavior on color { ColorAnimation { duration: th.ms(120) } }
                         FolderArt { th: win.th; visible: cell.fileIsDir; anchors.centerIn: parent }
-                        LIcon { visible: !cell.fileIsDir; anchors.centerIn: parent; size: 26; name: win.fileIcon(cell.fileName); tint: th.text }
+                        LIcon { visible: !cell.fileIsDir; anchors.centerIn: parent; size: 26; name: win.fileIcon(cell.fileName); tint: cell.sel ? th.onSelection : th.text }
                     }
                     Text {
                         anchors { top: tile.bottom; topMargin: cell.fileIsDir ? 2 : 8; horizontalCenter: parent.horizontalCenter }
@@ -214,10 +214,10 @@ FloatingWindow {
         width: parent.width; height: 34; radius: th.radiusCard
         color: selected ? th.selection : (ma.containsMouse ? Qt.alpha(th.text, 0.06) : "transparent")
         Behavior on color { ColorAnimation { duration: th.ms(120) } }
-        LIcon { x: 12; anchors.verticalCenter: parent.verticalCenter; size: 16; name: row.icon; tint: th.text }
+        LIcon { x: 12; anchors.verticalCenter: parent.verticalCenter; size: 16; name: row.icon; tint: row.selected ? th.onSelection : th.text }
         Text {
             x: 38; anchors.verticalCenter: parent.verticalCenter
-            text: row.label; color: th.text; font.family: th.sans; font.pixelSize: 12
+            text: row.label; color: row.selected ? th.onSelection : th.text; font.family: th.sans; font.pixelSize: 12
         }
         MouseArea { id: ma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: row.clicked() }
     }

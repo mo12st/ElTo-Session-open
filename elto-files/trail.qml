@@ -46,6 +46,8 @@ ShellRoot {
         readonly property color selection: role("selection")
         readonly property color divider: role("divider")
         readonly property int radiusWindow: shapeT.radiusWindow !== undefined ? shapeT.radiusWindow : 22
+        // Readable colour on top of `selection`, derived from the selection luminance (no schema token for it yet).
+        readonly property color onSelection: (selection.r * 0.299 + selection.g * 0.587 + selection.b * 0.114) < 0.5 ? surface : text
         readonly property color disabled: role("disabled")
         readonly property int radiusPill: shapeT.radiusPill !== undefined ? shapeT.radiusPill : 999
         readonly property int radiusCard: shapeT.radiusCard !== undefined ? shapeT.radiusCard : 14
