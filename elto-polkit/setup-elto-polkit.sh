@@ -70,6 +70,18 @@ if ! grep -q 'addAdminRule' "$RULES_FILE" 2>/dev/null || ! grep -q 'wheel' "$RUL
     exit 1
 fi
 
+# 3b. polkit-agent-helper-1 must be setuid root or every password check
+#     fails at once ("needs to be setuid root"). The stock Arch image here
+#     ships it 0755 (VM-verified), so set the mode explicitly. Idempotent.
+HELPER=${ELTO_POLKIT_HELPER:-/usr/lib/polkit-1/polkit-agent-helper-1}
+if [ -e "$HELPER" ]; then
+    chown root:root "$HELPER"
+    chmod 4755 "$HELPER"
+    echo "setup-elto-polkit: $HELPER mode $(stat -c %a "$HELPER")"
+else
+    err "warning: $HELPER not found; password checks cannot work without it"
+fi
+
 # 4. wheel membership (idempotent)
 if id -nG "$USER_NAME" | tr ' ' '\n' | grep -qx wheel; then
     echo "setup-elto-polkit: $USER_NAME is already in wheel"
