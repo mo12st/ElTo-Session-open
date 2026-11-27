@@ -67,7 +67,7 @@ FloatingWindow {
 
     Rectangle {
         anchors.fill: parent
-        radius: th.radiusWindow; color: th.surface; clip: true
+        radius: 0; color: th.surface; clip: true
         border.width: 1; border.color: th.divider
         focus: true
         Keys.onPressed: function (ev) {
@@ -80,7 +80,7 @@ FloatingWindow {
             id: side
             width: 176; height: parent.height
             color: "transparent"
-            Rectangle { anchors.fill: parent; radius: th.radiusWindow; color: Qt.darker(th.surface, 1.025) }
+            Rectangle { anchors.fill: parent; radius: 0; color: Qt.darker(th.surface, 1.025) }
             Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: th.radiusWindow; color: Qt.darker(th.surface, 1.025) }
             Column {
                 x: 12; y: 16; width: parent.width - 24; spacing: 4

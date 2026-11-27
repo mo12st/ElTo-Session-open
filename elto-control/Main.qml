@@ -46,7 +46,7 @@ ShellRoot {
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.radiusWindow
+            radius: 0
             color: Theme.surface
             clip: true
             border.width: 1
