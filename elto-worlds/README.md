@@ -5,7 +5,10 @@ wallpaper, and (in later phases) login screen, lock screen, boot splash and GRUB
 Data-driven: a world is a directory with a `world.json` plus `assets/`. No runtime engine;
 each layer is generated to that layer's own mature format.
 
-Approved scope: Phase 1 (user-level layers only). SDDM/lock are Phase 2, Plymouth/GRUB Phase 3.
+Approved scope (user directive, 2026-11-27): the six-step world program - 1) versioned
+foundation (schema, defaults vs user overrides, atomic apply), 2) wallpaper sets, 3) notch
+modes, 4) dock variants (island + bar, architecture open), 5) sounds, 6) .elworld bundles.
+All of it user-level. SDDM/lock stay Phase 2, Plymouth/GRUB Phase 3.
 Everything here is CONCEPT until VM-verified by the implementer.
 
 ## Layout of this directory
@@ -24,17 +27,30 @@ Everything here is CONCEPT until VM-verified by the implementer.
 elto-worlds/elto-world check  elto-worlds/worlds/retro95
 elto-worlds/elto-world apply  elto-worlds/worlds/retro95            # user-level, reversible
 elto-worlds/elto-world apply  elto-worlds/worlds/retro95 --dry-run  # print the plan only
+elto-worlds/elto-world reset                                       # back to world defaults
+elto-worlds/elto-world pack   elto-worlds/worlds/retro95 /tmp/retro95.elworld
+elto-worlds/elto-world unpack /tmp/retro95.elworld /tmp/out
 ```
+
+`apply` runs in two phases. The file phase is staged: every file write goes to a temp name
+and is renamed into place, originals are backed up under
+`~/.local/state/elto-world/runs/<timestamp>/`, and any failure mid-phase rolls back every
+file the run touched. The activation phase (plasma-apply-colorscheme, kwriteconfig6, KWin
+reconfigure) is best-effort after the files are safely in place.
 
 `apply` does, in order:
 
 1. Installs the world as a theme package in `~/.config/elto/themes/<name>/theme.json`
    (compatible with `panel-widgets/theme-tool.py`, so the Themes page lists it).
-2. Writes the shell overlay `~/.config/elto/theme.json` (same sections `UserTheme.apply`
-   writes: name, colors, roles, shape, fonts, plus the world's `layout`). The shell watches
-   this file and restyles live. If the world's wallpaper asset exists it is copied to
-   `~/.config/elto/wallpapers/` and `options.wallpaper` is set; otherwise the wallpaper is
-   left unchanged with a warning.
+2. Installs the default wallpaper into `~/.config/elto/wallpapers/` (skipped with a warning
+   until the user's art lands) and the sound theme into `~/.local/share/sounds/<id>/`
+   (freedesktop layout: index.theme + stereo/<event>.wav).
+3. Writes the shell overlay `~/.config/elto/theme.json`. World `defaults` fill the managed
+   option keys (options.wallpaper/dock/notch/notchMode/notchAutoHideMs/
+   notchRespectFullscreen, sounds.enabled); the user's other keys and their overrides of
+   managed keys are preserved on a normal apply. `reset` re-applies the world defaults over
+   the managed keys (that is the "reset to world defaults" flow) while leaving unrelated
+   user keys alone. A `_world` stamp in the overlay records what was applied.
 3. Generates a KDE color scheme in `~/.local/share/color-schemes/` from the world's
    colors/roles (same mapping as `theme/gen_colors.py`, generalized) and applies it with
    `plasma-apply-colorscheme` when available.
@@ -45,15 +61,36 @@ elto-worlds/elto-world apply  elto-worlds/worlds/retro95 --dry-run  # print the 
    title text colors, and button side from `layout.windowControls`), selects it in `kwinrc`,
    and asks KWin to reconfigure when qdbus is available.
 
-Files it overwrites are first backed up as `<file>.bak-elto-world`. Every missing tool is a
-skip with a reason, never a failure; the step list in the JSON output says exactly what
-happened. `install-system` (SDDM, lock, Plymouth, GRUB) is Phase 2/3 and currently refuses
-with exit code 2.
+Every missing tool is a skip with a reason, never a failure; the step list in the JSON
+output says exactly what happened. `install-system` (SDDM, lock, Plymouth, GRUB) is Phase
+2/3 and currently refuses with exit code 2.
+
+## .elworld bundles
+
+`pack` zips a world directory (world.json + assets/ + CREDITS) into a data-only bundle with
+a manifest.json (format `elworld/1`: sha256, byte size and license per file). `unpack`
+verifies before writing anything: path traversal, absolute paths, symlinks, scripts and
+executables, files over 25 MB, bundles over 100 MB, missing licenses and checksum mismatches
+are all rejected. There is no install script mechanism and no online store; bundles move by
+file sharing only.
 
 ## The world format
 
 Everything in a theme.json v1 keeps the same meaning (colors, roles, shape, fonts, icons,
-options, notch, dock, drawer). `version: 2` marks the world format. New sections, all optional:
+options, notch, dock, drawer). `schema_version: 3` is the current world format (v2 files are
+accepted with a warning). New sections, all optional:
+
+- `id` + `schema_version` + `compatible` - stable world identity and the shell/tool
+  versions the world was built for.
+- `identity` - optional story and signature: what makes the world itself, not a recolor.
+- `defaults` - the world's own picks for wallpaper, dock variant, notch mode and sounds.
+  Applied to the managed overlay keys; the user can override them and `reset` restores them.
+  Unknown or declared-but-unsupported values warn visibly and fall back, never fail.
+- `options.wallpapers` - the wallpaper set as `{path, label}` objects under
+  `assets/wallpapers/`; `options.wallpaper` stays the active pick.
+- `assets` - manifest of the files under `assets/` (path, kind, license; sha256/bytes added
+  by `pack`).
+- `sounds` - `enabled` default plus `events` mapping event ids to wav assets.
 
 - `layout` - world behavior, not recolor: `bar`, `rail`, `launcher`, `windowControls`,
   `motionProfile`. Declarative: the shell must ignore values it does not implement and fall
@@ -70,13 +107,32 @@ options, notch, dock, drawer). `version: 2` marks the world format. New sections
 Color references (`colorRef`) accept a palette token, a role name, or a literal `#hex`.
 Assets always live under `assets/` inside the world directory.
 
-## Verification level
+## Verification levels
 
-- `elto-world check`: PASS on all nine worlds (plus negative tests: bad name, unknown role
-  target, unknown layout key, unknown color ref are all rejected).
-- `apply`: tested in a sandbox HOME on this repo checkout. Theme package lists in
+L0 design, L1 sandbox, L2 VM, L3 hardware. Current state:
+
+- L1 `elto-world check`: PASS on all nine worlds at schema v3 (plus negative tests: bad
+  name, unknown role target, unknown layout key, unknown color ref are all rejected).
+  Unknown vs unsupported option values warn visibly and fall back (unknown dock variant,
+  unknown notch mode, unsupported ridge-shelf/hidden-thread concepts all verified).
+- L1 `apply`: tested in a sandbox HOME on this repo checkout. Theme package lists in
   `theme-tool.py` (Themes page compatible), overlay/colorscheme/Aurorae outputs inspected:
   SVG recolor, rc text colors and close-left button swap confirmed. Plasma/KWin tool calls
   were skipped in the sandbox (tools absent), so live applying is NOT verified.
-- Not VM-tested, not hardware-tested. Missing assets (wallpapers, greeter/boot art) are the
-  user's exports and are warnings until then.
+- L1 staged apply + rollback: tested in the sandbox by forcing a failure mid-apply; every
+  file the run wrote was removed or restored from backup.
+- L1 `reset`: tested in the sandbox; world defaults restored over managed keys, unrelated
+  user keys preserved.
+- L1 `pack`/`unpack`: round-trip tested in the sandbox; traversal, oversized and
+  checksum-tampered bundles are rejected.
+- L0 only: the shell side of notch modes, the dock `bar` variant, sound playback and the
+  wallpaper picker is a spec for the implementer (HANDOFF.md), not implemented.
+- No L2 (VM) or L3 (hardware) verification yet. Missing assets (wallpapers, sounds,
+  greeter/boot art) are the user's exports and are warnings until then.
+
+## Later (approved, not scheduled)
+
+- World preview in the Themes page.
+- Safe uninstall of a world (restore what apply changed, not just reset).
+- Upgrade/rollback tests for worlds across schema versions.
+- Accessibility: reduced motion and mute honored world-wide.

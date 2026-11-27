@@ -2,10 +2,28 @@
   "name": "retro95",
   "label": "Retro 95 Vector",
   "version": 2,
+  "schema_version": 3,
+  "id": "retro95",
   "description": "Purple vaporwave playground: gradient titlebars, beveled panels, pixel type, stepped motion. Palette estimated from the user concept art; artist refines.",
   "author": "mo12st",
   "license": "Proprietary (all rights reserved, mo12st)",
   "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+  "identity": {
+    "story": "A purple playground from a parallel 1995; everything clicks into place.",
+    "signature": "Gradient titlebars and stepped motion"
+  },
+  "compatible": {
+    "shell": "1",
+    "tool": "3"
+  },
+  "defaults": {
+    "wallpaper": "assets/wallpapers/main.jpg",
+    "dock": "bar",
+    "notch": "clock",
+    "notchMode": "hidden",
+    "notchRespectFullscreen": true,
+    "sounds": true
+  },
   "colors": {
     "surface": "#cac6df",
     "surfaceAlt": "#b0aacc",
@@ -53,7 +71,23 @@
     "dock": "island",
     "notch": "clock",
     "wallpaper": "assets/wallpaper.jpg",
-    "motion": "soft"
+    "motion": "soft",
+    "wallpapers": [
+      {
+        "path": "assets/wallpapers/main.jpg",
+        "label": "Purple field"
+      }
+    ]
+  },
+  "sounds": {
+    "enabled": true,
+    "events": {
+      "session-start": "assets/sounds/session-start.wav",
+      "notification": "assets/sounds/notification.wav",
+      "drawer-open": "assets/sounds/drawer-open.wav",
+      "lock": "assets/sounds/lock.wav",
+      "unlock": "assets/sounds/unlock.wav"
+    }
   },
   "layout": {
     "bar": "bottom-taskbar",
@@ -103,5 +137,52 @@
     "itemColor": "text",
     "selectedColor": "selection",
     "selectedBackground": "surfaceAlt"
-  }
+  },
+  "assets": [
+    {
+      "path": "assets/wallpapers/main.jpg",
+      "kind": "wallpaper",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/greeter-background.jpg",
+      "kind": "greeter",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/boot-background.jpg",
+      "kind": "boot",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/snail.png",
+      "kind": "boot",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/session-start.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/notification.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/drawer-open.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/lock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/unlock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    }
+  ]
 }
