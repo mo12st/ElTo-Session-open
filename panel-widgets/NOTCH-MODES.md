@@ -37,3 +37,11 @@ Setup: in the VM session, edit `~/.config/elto/theme.json` (merge into `options`
 9. `elto-world reset` re-applies world defaults over the three keys; confirm the notch follows.
 
 Known risks to check first: (a) a `WindowList` Item inside the `Scope` (Notch.qml) may need to be moved into a window if Quickshell rejects it; (b) `IpcHandler` needs a Quickshell build with IPC; (c) mask `Region` with a zero-size item.
+
+## Follow-up tests (auto-hide start fix)
+
+A. Start with `notchMode: "auto-hide"` already in theme.json, pointer away from the top: notch must be tucked away right after the shell starts (no initial visible notch).
+B. Live switch show -> auto-hide with the pointer elsewhere: notch tucks away immediately. Switch auto-hide -> show: notch slides back.
+C. Fullscreen control case: `notchRespectFullscreen: false` (or absent), mode `show`, Kate F11: notch must stay visible. `pgrep elto-windowlist` from the notch must not be required (helper off).
+D. Mode `show` and hovering the notch, then switch to auto-hide while hovered: drawer stays until the pointer leaves, then hides after notchAutoHideMs.
+Level: L0 until the VM runs these.
