@@ -79,7 +79,7 @@ PanelWindow {
                         opacity: app.running ? 1 : (am.containsMouse ? 0.6 : 0)
                         Behavior on opacity { NumberAnimation { duration: Theme.ms(140) } }
                     }
-                    LIcon { visible: app.modelData.glyph !== ""; anchors.centerIn: parent; name: app.modelData.glyph; dir: "dock/iconoir"; size: win.dk.icon; tint: Theme.text
+                    LIcon { visible: app.modelData.glyph !== ""; anchors.centerIn: parent; name: app.modelData.glyph; size: win.dk.icon; tint: Theme.text
                         scale: am.pressed ? 0.92 : (am.containsMouse && Theme.motion ? 1.08 : 1)
                         Behavior on scale { NumberAnimation { duration: Theme.ms(120); easing.type: Easing.OutCubic } } }
                     IconImage { visible: app.modelData.glyph === ""; anchors.centerIn: parent; implicitSize: win.dk.icon
@@ -133,7 +133,7 @@ PanelWindow {
                         Behavior on opacity { NumberAnimation { duration: Theme.ms(180) } }
                         Row {
                             anchors.centerIn: parent; spacing: 8
-                            LIcon { name: "window"; dir: "dock/iconoir"; size: 16; tint: Theme.textMuted; anchors.verticalCenter: parent.verticalCenter }
+                            LIcon { name: "panel-top"; size: 16; tint: Theme.textMuted; anchors.verticalCenter: parent.verticalCenter }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: Math.min(implicitWidth, win.dk.pillWidth - 46); elide: Text.ElideRight

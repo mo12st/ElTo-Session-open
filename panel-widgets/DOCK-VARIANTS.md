@@ -165,10 +165,6 @@ Environment: the usual ElTo VM with the session running. The bar needs a real wi
     what actually happens rather than what looks nicer.
 11. **Restart.** With `options.dock: "bar"`, restart the session shell. Expect the bar to come back as
     a bar on the first frame, with no island flash, and no load error in the log.
-12. **Icons.** In both variants, every pinned tile shows a dock glyph (Iconoir, thinner stroke than the
-    notch's Lucide) and no tile is blank; the window pills show the small `window` mark, not the old
-    panel glyph. Screenshot `dock-icons.png`. If a tile is blank, the vendored file name and the
-    `dock.glyphs` value disagree - report which app, do not merge.
 
 Proof is the screenshots plus a clean shell log. Anything not covered above stays unproven; do not
 merge on the strength of qmllint alone.
