@@ -1,0 +1,427 @@
+#!/usr/bin/env bash
+# elto-doctor - read-only system diagnosis for ElTo (part of ElTo Guardian).
+#
+# Runs a fixed set of READ-ONLY checks and prints one plain-language report.
+# It never installs, removes, restarts, writes to the system, or changes any
+# state. The only file it can ever create is the report copy from --save,
+# inside the user's own home directory.
+#
+# Usage: elto-doctor [--short] [--save] [--full] [--help] [--version]
+set -u
+# Note: no `set -e`. A failing check must never kill the report; every
+# command's failure is handled and reported as evidence, not fatal.
+
+ELTO_DOCTOR_VERSION="0.1.0"
+
+MODE_SHORT=0
+MODE_SAVE=0
+MODE_FULL=0
+
+for arg in "$@"; do
+    case "$arg" in
+        --short)   MODE_SHORT=1 ;;
+        --save)    MODE_SAVE=1 ;;
+        --full)    MODE_FULL=1 ;;
+        --version) printf 'elto-doctor %s\n' "$ELTO_DOCTOR_VERSION"; exit 0 ;;
+        --help|-h)
+            cat <<'HELP'
+elto-doctor - read-only system diagnosis for ElTo.
+
+  elto-doctor           full report, safe to paste in public
+  elto-doctor --short   only the Problems section
+  elto-doctor --save    also write the report to ~/elto-doctor-<date>.txt
+  elto-doctor --full    include identifying system details (IPs, hardware
+                        serials where tools expose them). Share only with
+                        someone you trust.
+  elto-doctor --version
+  elto-doctor --help
+
+Nothing on your system is changed by any mode.
+HELP
+            exit 0 ;;
+        *)
+            printf 'elto-doctor: unknown option %s (try --help)\n' "$arg" >&2
+            exit 2 ;;
+    esac
+done
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+PROBLEMS=()
+WARNINGS=()
+OKS=()
+SECTION_NOTE=()   # neutral "not available / not set up" notes
+
+problem() { PROBLEMS+=("$1"); }
+warning() { WARNINGS+=("$1"); }
+ok()      { OKS+=("$1"); }
+note()    { SECTION_NOTE+=("$1"); }
+
+# run_quiet <outfile> <cmd...>: run a command, keep output for evidence,
+# never let its failure abort the script.
+run_quiet() {
+    local out="$1"; shift
+    "$@" >"$out" 2>&1
+    return $?
+}
+
+TMPD="$(mktemp -d /tmp/elto-doctor.XXXXXX)"
+trap 'rm -rf "$TMPD"' EXIT
+
+CHECKS_RUN=0
+
+# ---------------------------------------------------------------- services
+check_services() {
+    CHECKS_RUN=$((CHECKS_RUN + 1))
+    if ! have systemctl; then
+        note "Services: systemctl not found, skipped."
+        return
+    fi
+    if ! systemctl --failed --no-legend --plain >"$TMPD/sysfailed" 2>"$TMPD/sysfailed.err"; then
+        note "Services: cannot talk to systemd (not booted with systemd?). Skipped."
+        return
+    fi
+    local sys_failed user_failed
+    sys_failed="$(grep -c . "$TMPD/sysfailed" 2>/dev/null || true)"
+    if [ "${sys_failed:-0}" -gt 0 ]; then
+        problem "System services failed: $(awk '{print $1}' "$TMPD/sysfailed" | paste -sd', ' -)
+  evidence: systemctl --failed ->
+$(sed 's/^/    /' "$TMPD/sysfailed")
+  what you can do: inspect one with: systemctl status <name> -l
+     and its log with: journalctl -u <name> -b"
+    else
+        ok "Services: no failed system services."
+    fi
+    if systemctl --user --failed --no-legend --plain >"$TMPD/userfailed" 2>/dev/null; then
+        user_failed="$(grep -c . "$TMPD/userfailed" 2>/dev/null || true)"
+        if [ "${user_failed:-0}" -gt 0 ]; then
+            warning "User services failed: $(awk '{print $1}' "$TMPD/userfailed" | paste -sd', ' -)
+  evidence: systemctl --user --failed ->
+$(sed 's/^/    /' "$TMPD/userfailed")"
+        else
+            ok "Services: no failed user services."
+        fi
+    fi
+}
+
+# ----------------------------------------------------------- journal errors
+check_journal() {
+    CHECKS_RUN=$((CHECKS_RUN + 1))
+    if ! have journalctl; then
+        note "Journal: journalctl not found, skipped."
+        return
+    fi
+    if ! journalctl -p err -b --no-pager -o cat >"$TMPD/jerr" 2>"$TMPD/jerr.err"; then
+        note "Journal: cannot read the journal. Skipped."
+        return
+    fi
+    local total
+    total="$(grep -c . "$TMPD/jerr" 2>/dev/null || true)"
+    if [ "${total:-0}" -eq 0 ]; then
+        ok "Journal: no error-level messages since boot."
+        return
+    fi
+    # Group identical messages, show the most frequent ones.
+    sort "$TMPD/jerr" | uniq -c | sort -rn | head -5 >"$TMPD/jtop"
+    if [ "$total" -ge 20 ]; then
+        warning "Journal: $total error-level messages since boot; most frequent:
+$(sed 's/^/    /' "$TMPD/jtop")
+  what you can do: read them with: journalctl -p err -b"
+    else
+        ok "Journal: $total error-level message(s) since boot (under threshold 20)."
+    fi
+}
+
+# ------------------------------------------------------------- ElTo shell
+check_shell() {
+    CHECKS_RUN=$((CHECKS_RUN + 1))
+    local log="$HOME/.local/state/elto-session.log"
+    if [ -z "${XDG_CURRENT_DESKTOP:-}" ] && [ ! -f "$log" ]; then
+        note "ElTo shell: not inside an ElTo session and no session log found. Skipped."
+        return
+    fi
+    if have pgrep && pgrep -x quickshell >/dev/null 2>&1; then
+        ok "ElTo shell: Quickshell is running."
+    elif [ "${XDG_CURRENT_DESKTOP:-}" = "KDE" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
+        problem "ElTo shell: Quickshell is NOT running while a graphical session is active.
+  evidence: pgrep -x quickshell -> no process
+  what you can do: check the session log: tail -100 ~/.local/state/elto-session.log
+     If it keeps failing, log in via the 'ElTo Recovery' session entry."
+    fi
+    if [ -f "$log" ]; then
+        local errs
+        errs="$(tail -200 "$log" | grep -ci 'error\|fatal\|crash' 2>/dev/null || true)"
+        if [ "${errs:-0}" -gt 0 ]; then
+            warning "ElTo shell: $errs error/crash line(s) in the last 200 lines of elto-session.log.
+  evidence: tail -200 ~/.local/state/elto-session.log | grep -i error ->
+$(tail -200 "$log" | grep -i 'error\|fatal\|crash' | tail -5 | sed 's/^/    /')"
+        fi
+    fi
+    if have coredumpctl && coredumpctl list --no-legend >"$TMPD/dumps" 2>/dev/null; then
+        local qdumps
+        qdumps="$(grep -c quickshell "$TMPD/dumps" 2>/dev/null || true)"
+        if [ "${qdumps:-0}" -gt 0 ]; then
+            problem "ElTo shell: Quickshell crashed $qdumps time(s) (recorded crashes).
+  evidence: coredumpctl list ->
+$(grep quickshell "$TMPD/dumps" | tail -3 | sed 's/^/    /')
+  what you can do: update the system (sudo pacman -Syu). If it keeps
+     crashing, boot 'ElTo Recovery' and run: elto-doctor --save"
+        fi
+    fi
+}
+
+# --------------------------------------------------------------- graphics
+check_graphics() {
+    CHECKS_RUN=$((CHECKS_RUN + 1))
+    if ! have lspci; then
+        note "Graphics: lspci not installed (package pciutils). Skipped."
+        return
+    fi
+    lspci -k >"$TMPD/pci" 2>/dev/null
+    local gpu_block driver
+    gpu_block="$(grep -A3 -E 'VGA compatible controller|3D controller' "$TMPD/pci" | head -8 || true)"
+    if [ -z "$gpu_block" ]; then
+        note "Graphics: no VGA/3D controller found by lspci. Skipped."
+        return
+    fi
+    driver="$(printf '%s\n' "$gpu_block" | grep 'Kernel driver in use' | head -1 | sed 's/.*: //')"
+    if [ -z "$driver" ]; then
+        problem "Graphics: a GPU is present but NO kernel driver is bound to it.
+  evidence: lspci -k ->
+$(printf '%s\n' "$gpu_block" | sed 's/^/    /')
+  what you can do: check firmware and driver packages (mesa, linux-firmware),
+     then reboot. Run elto-doctor again after."
+    else
+        ok "Graphics: GPU present, kernel driver in use: $driver."
+    fi
+    if have glxinfo; then
+        if glxinfo -B >"$TMPD/gl" 2>/dev/null; then
+            ok "Graphics: OpenGL working ($(grep -m1 'OpenGL renderer' "$TMPD/gl" | sed 's/.*: //'))."
+        else
+            warning "Graphics: glxinfo failed; OpenGL may not be working in this session."
+        fi
+    elif have vulkaninfo; then
+        if vulkaninfo --summary >"$TMPD/vk" 2>/dev/null; then
+            ok "Graphics: Vulkan working ($(grep -m1 'deviceName' "$TMPD/vk" | sed 's/.*= //'))."
+        else
+            warning "Graphics: vulkaninfo failed; Vulkan may not be working."
+        fi
+    fi
+}
+
+# ------------------------------------------------------------------ sound
+check_sound() {
+    CHECKS_RUN=$((CHECKS_RUN + 1))
+    if have wpctl; then
+        if wpctl status >"$TMPD/wp" 2>/dev/null && grep -q 'Audio' "$TMPD/wp"; then
+            local sink
+            sink="$(sed -n '/Sinks:/,/^$/p' "$TMPD/wp" | grep -m1 '\*' | sed 's/^[^a-zA-Z0-9]*//' | cut -c1-60)"
+            ok "Sound: PipeWire/WirePlumber running. Default sink: ${sink:-unknown}."
+        else
+            problem "Sound: WirePlumber is not answering.
+  evidence: wpctl status -> failed
+  what you can do: log out and back in, or run: systemctl --user restart wireplumber"
+        fi
+    elif have pactl; then
+        if pactl info >"$TMPD/pa" 2>/dev/null; then
+            ok "Sound: audio server running ($(grep -m1 'Server Name' "$TMPD/pa" | sed 's/.*: //'))."
+        else
+            problem "Sound: audio server is not answering (pactl info failed)."
+        fi
+    else
+        note "Sound: wpctl/pactl not installed. Skipped."
+    fi
+}
+
+# ---------------------------------------------------------------- network
+check_network() {
+    CHECKS_RUN=$((CHECKS_RUN + 1))
+    if have nmcli; then
+        if nmcli general status >"$TMPD/nm" 2>/dev/null; then
+            local state
+            state="$(awk 'NR==2{print $1}' "$TMPD/nm")"
+            if [ "$state" = "connected" ]; then
+                local dev
+                dev="$(nmcli -t -f DEVICE,TYPE,STATE device 2>/dev/null | grep ':connected$' | head -1 | cut -d: -f1)"
+                ok "Network: connected${dev:+ via $dev}, NetworkManager running."
+            else
+                warning "Network: NetworkManager reports state: ${state:-unknown}.
+  evidence: nmcli general status ->
+$(sed 's/^/    /' "$TMPD/nm")"
+            fi
+        else
+            problem "Network: NetworkManager is not running.
+  evidence: nmcli general status -> failed
+  what you can do: sudo systemctl start NetworkManager"
+        fi
+    elif have ip; then
+        if ip link show up 2>/dev/null | grep -q 'state UP'; then
+            ok "Network: at least one interface is up."
+        else
+            warning "Network: no interface is UP."
+        fi
+    else
+        note "Network: nmcli/ip not installed. Skipped."
+    fi
+}
+
+# --------------------------------------------------------------- packages
+check_packages() {
+    CHECKS_RUN=$((CHECKS_RUN + 1))
+    if ! have pacman; then
+        note "Packages: pacman not found (not an Arch system?). Skipped."
+        return
+    fi
+    # -Qkk can be slow on big systems; mtime-only check keeps it fast enough.
+    if pacman -Qkk >"$TMPD/qkk" 2>/dev/null; then
+        local altered
+        altered="$(grep -vc ', 0 altered files' "$TMPD/qkk" 2>/dev/null || true)"
+        if [ "${altered:-0}" -gt 0 ]; then
+            warning "Packages: $altered package(s) have altered files.
+  evidence: pacman -Qkk ->
+$(grep -v ', 0 altered files' "$TMPD/qkk" | grep -v '^backup' | head -5 | sed 's/^/    /')
+  what you can do: altered config files in /etc are normal; anything else
+     may mean file corruption or manual edits."
+        else
+            ok "Packages: all package files intact."
+        fi
+    else
+        warning "Packages: pacman -Qkk could not complete."
+    fi
+    # Partial-upgrade guard: packages newer than the sync databases allow is
+    # hard to test cheaply; checkupdates covers pending updates below.
+    if have checkupdates; then
+        local pending
+        checkupdates >"$TMPD/upd" 2>/dev/null
+        pending="$(grep -c . "$TMPD/upd" 2>/dev/null || true)"
+        if [ "${pending:-0}" -gt 0 ]; then
+            note "Updates: $pending update(s) pending (informational)."
+        else
+            ok "Updates: system is up to date."
+        fi
+    fi
+}
+
+# ------------------------------------------------------------------- disk
+check_disk() {
+    CHECKS_RUN=$((CHECKS_RUN + 1))
+    df -h --output=target,pcent,avail / /home 2>/dev/null | tail -n +2 >"$TMPD/df"
+    local worst="" worstpct=0 line pct target avail any_full=0
+    while read -r target pct avail; do
+        [ -z "$target" ] && continue
+        pct="${pct%\%}"
+        case "$pct" in ''|*[!0-9]*) continue ;; esac
+        if [ "$pct" -ge 90 ]; then
+            warning "Disk: $target is ${pct}% full (${avail} free). Updates may fail under ~2G free.
+  evidence: df -h ->
+$(grep -F "$target" "$TMPD/df" | sed 's/^/    /')"
+            any_full=1
+        fi
+        if [ "$pct" -gt "$worstpct" ]; then worstpct="$pct"; worst="$target"; fi
+    done < "$TMPD/df"
+    if [ "$any_full" -eq 0 ] && [ -n "$worst" ]; then
+        ok "Disk: fullest watched mount is $worst at ${worstpct}%."
+    fi
+    if have btrfs && findmnt -n -o FSTYPE / 2>/dev/null | grep -q btrfs; then
+        if ! btrfs filesystem df / >"$TMPD/btrfs" 2>/dev/null; then
+            note "Disk: btrfs detected but 'btrfs filesystem df /' needs root. Skipped."
+        fi
+    fi
+}
+
+# -------------------------------------------------------------- snapshots
+check_snapshots() {
+    CHECKS_RUN=$((CHECKS_RUN + 1))
+    if have snapper && snapper -c root list >"$TMPD/snaps" 2>/dev/null; then
+        local n
+        n="$(tail -n +3 "$TMPD/snaps" | grep -c . 2>/dev/null || true)"
+        if [ "${n:-0}" -gt 0 ]; then
+            ok "Snapshots: snapper has $n snapshot(s); rollback is possible."
+        else
+            warning "Snapshots: snapper is installed but no snapshots exist yet."
+        fi
+    else
+        note "Snapshots: not set up yet (Guardian Phase 3)."
+    fi
+}
+
+# ---------------------------------------------------------- system block
+system_block() {
+    local kern up sess gpu
+    kern="$(uname -r 2>/dev/null || echo unknown)"
+    up="$(uptime -p 2>/dev/null | sed 's/^up //' || echo unknown)"
+    sess="${XDG_SESSION_TYPE:-unknown}"
+    gpu="$(grep -m1 -E 'VGA compatible controller|3D controller' "$TMPD/pci" 2>/dev/null | sed 's/.*: //' | cut -c1-70)"
+    local elto_ver="unknown (pre-release)"
+    [ -f /opt/elto-session/VERSION ] && elto_ver="$(head -1 /opt/elto-session/VERSION)"
+    cat <<EOF
+  ElTo Session $elto_ver · kernel $kern · $sess · up $up
+  GPU: ${gpu:-unknown}$( [ "$MODE_FULL" = 1 ] && printf '\n  (full mode) machine: %s' "$(hostname 2>/dev/null)" )
+EOF
+}
+
+# -------------------------------------------------------------- report
+START_TS="$(date +%s)"
+
+check_services
+check_journal
+check_shell
+check_graphics
+check_sound
+check_network
+check_packages
+check_disk
+check_snapshots
+
+END_TS="$(date +%s)"
+ELAPSED="$((END_TS - START_TS))"
+
+print_numbered() {
+    local i=1 item
+    if [ "$#" -eq 0 ]; then
+        printf '  None found.\n'
+        return
+    fi
+    for item in "$@"; do
+        printf '  %d. %s\n' "$i" "$item"
+        i=$((i + 1))
+    done
+}
+
+render() {
+    printf 'ElTo Doctor - system check\n'
+    printf 'ElTo Session · kernel %s · %s\n' "$(uname -r 2>/dev/null || echo unknown)" "$(date '+%a %d %b %Y, %H:%M')"
+    printf '%s\n' '============================================================'
+    printf '\nPROBLEMS (things that are broken)\n'
+    if [ "${#PROBLEMS[@]}" -eq 0 ]; then print_numbered; else print_numbered "${PROBLEMS[@]}"; fi
+    if [ "$MODE_SHORT" = 0 ]; then
+        printf '\nWARNINGS (works now, may bite later)\n'
+        if [ "${#WARNINGS[@]}" -eq 0 ]; then print_numbered; else print_numbered "${WARNINGS[@]}"; fi
+        printf '\nOK\n'
+        if [ "${#OKS[@]}" -eq 0 ]; then printf '  (none)\n'; else
+            local line
+            for line in "${OKS[@]}"; do printf '  ✓ %s\n' "$line"; done
+        fi
+        if [ "${#SECTION_NOTE[@]}" -gt 0 ]; then
+            printf '\nNOTES\n'
+            local nline
+            for nline in "${SECTION_NOTE[@]}"; do printf '  - %s\n' "$nline"; done
+        fi
+        printf '\nSYSTEM\n'
+        system_block
+        printf '\n'
+    fi
+    printf '\nChecks run: %d · Time: %ds · Nothing on your system was changed.\n' "$CHECKS_RUN" "$ELAPSED"
+}
+
+if [ "$MODE_SAVE" = 1 ]; then
+    OUT="$HOME/elto-doctor-$(date '+%Y-%m-%d-%H%M').txt"
+    render | tee "$OUT"
+    printf '\nReport saved to %s\n' "$OUT"
+else
+    render
+fi
+
+# Exit status: 1 when problems were found, 0 otherwise. Read-only either way.
+[ "${#PROBLEMS[@]}" -gt 0 ] && exit 1
+exit 0
