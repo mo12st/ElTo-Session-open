@@ -1,4 +1,5 @@
-// The dock window: island bar with pinned apps, divider, one pill per open window, and a small right-click menu (Pin / Unpin).
+// The dock "Island" variant: a floating island bar with pinned apps, divider, one pill per open window,
+// and a small right-click menu (Pin / Unpin).
 // All look values come from Theme (dock section): color role, glass opacity, shape.
 import Quickshell
 import Quickshell.Wayland
@@ -12,6 +13,9 @@ PanelWindow {
     readonly property alias bar: bar
     property var menu: null   // { x, id, pinned }
 
+    // the variant this file draws; Dock.qml loads it only for this id, the check is the second lock
+    readonly property string style: "island"
+
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "elto-dock"
     exclusionMode: ExclusionMode.Ignore
@@ -20,7 +24,7 @@ PanelWindow {
     implicitHeight: dk.height + dk.bottomMargin + 24 + 64
     color: "transparent"
     mask: Region { item: bar; regions: [ Region { item: menuBox } ] }
-    visible: Theme.dockStyle === "island"
+    visible: win.dock.style === win.style
 
     readonly property real barAlpha: dk.glass ? dk.opacity : 1
 

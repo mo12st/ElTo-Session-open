@@ -1,5 +1,8 @@
-// ElTo bottom island dock (CONCEPT until approved). Logic only: pinned apps (from the theme overlay), running windows,
-// pin/unpin, launching. The window is DockWindow.qml (DockWindowBlur.qml adds a compositor blur request).
+// ElTo dock (CONCEPT until approved). Logic only: pinned apps (from the theme overlay), running windows,
+// pin/unpin, launching, and which variant draws it. The variant comes from options.dock and is resolved
+// through DockStyle.qml: island draws DockWindow.qml, bar draws DockBar.qml, anything unknown or still a
+// concept falls back to island. Each *Blur.qml file is the same variant plus a compositor blur request.
+// See DOCK-VARIANTS.md.
 import Quickshell
 import Quickshell.Io
 import QtQuick
@@ -40,15 +43,24 @@ Scope {
     }
     Connections { target: wl.model; function onCountChanged() { root.refresh() } function onDataChanged() { root.refresh() } }
 
+    // ---- variant: options.dock resolved through the registry, so an unknown or still-concept id always
+    // lands on island and the session always has a dock.
+    readonly property string style: DockStyle.resolve(Theme.dockStyle)
+
     Variants {
         model: Quickshell.screens
         Loader {
             id: ld
             required property var modelData
-            Component.onCompleted: setSource(Theme.dockT.blur && !root.blurBroken ? "DockWindowBlur.qml" : "DockWindow.qml", { dock: root, screen: modelData })
-            Connections { target: Theme; function onDockTChanged() {
-                ld.setSource(Theme.dockT.blur && !root.blurBroken ? "DockWindowBlur.qml" : "DockWindow.qml", { dock: root, screen: ld.modelData }) } }
-            onStatusChanged: if (status === Loader.Error && !root.blurBroken) { root.blurBroken = true; console.log("ELTODOCKBLUR unsupported, plain dock") }
+            function load() {
+                var blurred = root.dk.blur && !root.blurBroken ? DockStyle.blurFor(root.style) : ""
+                ld.setSource(blurred !== "" ? blurred : DockStyle.windowFor(root.style), { dock: root, screen: ld.modelData })
+            }
+            Component.onCompleted: load()
+            Connections { target: Theme; function onDockTChanged() { ld.load() } }
+            Connections { target: root; function onStyleChanged() { ld.load() } }
+            onStatusChanged: if (status === Loader.Error && !root.blurBroken && root.dk.blur) {
+                root.blurBroken = true; console.log("ELTODOCKBLUR unsupported, plain dock"); ld.load() }
         }
     }
 }
