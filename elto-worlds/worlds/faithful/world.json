@@ -53,8 +53,8 @@
     "shadowOffsetY": 12,
     "paperGrain": 0.0,
     "bevel": 1,
-    "folderArt": "flat",
-    "snail": "pixel"
+    "folderArt": "manila",
+    "snail": "solid"
   },
   "fonts": {
     "serif": "VT323",

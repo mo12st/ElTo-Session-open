@@ -54,8 +54,8 @@
     "shadowOffsetY": 12,
     "paperGrain": 0.0,
     "glass": true,
-    "surfaceAlpha": 0.72,
-    "folderArt": "glass",
+    "surfaceAlpha": 0.86,
+    "folderArt": "manila",
     "snail": "glass"
   },
   "fonts": {

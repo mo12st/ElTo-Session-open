@@ -52,8 +52,8 @@
     "shadowBlur": 24,
     "shadowOffsetY": 12,
     "paperGrain": 0.0,
-    "folderArt": "outline",
-    "snail": "pixel"
+    "folderArt": "manila",
+    "snail": "outline"
   },
   "fonts": {
     "serif": "IBM Plex Mono",
