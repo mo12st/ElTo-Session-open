@@ -31,7 +31,8 @@ elto-discovery selftest                 # pkgcli + daemon availability
 `<package-id>` is the full PackageKit ID assembled from a search result's
 fields: `name;version;arch;data` (e.g. `vim;9.1.190-1;x86_64;extra`). Full IDs
 are required for install/remove: pkgcli resolves bare names with an interactive
-multiple-match prompt on stdin, and this helper deliberately closes stdin.
+multiple-match prompt on stdin, which this helper never answers (stdin only
+ever carries the pre-written confirmation lines described below).
 
 pkgcli search returns installed entries too (repo `installed`). Each result
 carries `install_id`: the id to pass to `install`, or `null` when the entry
@@ -40,11 +41,15 @@ entry's `id`. Installing an installed id is an idempotent no-op that returns
 `done.ok` with `"note": "already-installed"` (installed ids are exactly
 what `remove` expects).
 
-install/remove run pkgcli with `-y` (non-interactive): without it pkgcli
-simulates the transaction and asks for confirmation on stdin, which we
-close, and the VM run showed that ending as `transaction-failed` with
-"user declined simulation". `-y` skips pkgcli's own confirmation only;
-`only-trusted` stays on and polkit authorization is unaffected.
+install/remove run pkgcli interactive (never `-y`): `-y` also sets the
+PackageKit transaction's interactive flag to 0, and the daemon then runs the
+polkit check without ALLOW_USER_INTERACTION, so the install dies instantly
+with "Failed to obtain authentication" (seen on the implementer's VM).
+Interactive pkgcli simulates first and confirms on stdin, so the helper
+pre-writes a fixed block of "y" lines that answer only pkgcli's own
+simulation prompt. The real transaction is still authenticated by polkit
+through the session agent, `only-trusted` stays on, and any prompt past the
+pre-written lines reads EOF and declines.
 
 ## Output contract
 
@@ -103,10 +108,13 @@ flag is the primary signal; exit codes are for shell scripting.
 
 ## Safety properties
 
-- `-y` is passed only for install/remove and only suppresses pkgcli's own
-  confirmation/simulation; signature trust (`only-trusted`) and polkit
-  authorization still apply.
-- stdin is closed for every pkgcli call: pkgcli can never block on a prompt.
+- install/remove never pass `-y` (it would disable polkit's interactive
+  authentication); the pre-written "y" lines answer only pkgcli's local
+  simulation prompt. Signature trust (`only-trusted`) and polkit
+  authorization still gate the real transaction, and anything beyond the
+  buffered lines reads EOF and declines.
+- stdin for read-only calls (search/info/selftest) is closed: pkgcli can
+  never block on a prompt there.
 - pkgcli runs with `LC_ALL=C` and `--no-color` (+ `NO_COLOR=1`): parsing does
   not depend on locale or color codes.
 - install/remove refuse bare package names (see above).

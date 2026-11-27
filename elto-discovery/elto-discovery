@@ -109,17 +109,29 @@ def pkgcli_env():
     return env
 
 
-def spawn_pkgcli(args, yes=False):
-    # -y marks pkgcli non-interactive: no simulation and no confirmation
-    # prompt (pkgc-context.c pkgc_context_apply_settings: simulate =
-    # !noninteractive, interactive = !noninteractive). Without it an install
-    # ends as "user declined simulation" because we close stdin. only-trusted
-    # stays on and polkit auth is unaffected. Used for install/remove only.
-    argv = [PKGCLI, "--json", "--no-color"] + (["-y"] if yes else []) + args
+# Number of "y" lines pre-written to pkgcli's stdin for install/remove.
+# Interactive pkgcli simulates the transaction, then confirms once on stdin;
+# the buffer also covers any follow-up prompt (e.g. dependency removals).
+STDIN_CONFIRM_LINES = 64
+
+
+def spawn_pkgcli(args, confirm=False):
+    # Never pass -y. It marks pkgcli non-interactive, and pkgc-context.c
+    # pkgc_context_apply_settings then sets the PackageKit transaction's
+    # interactive flag to 0 - which makes the daemon run the polkit check
+    # without ALLOW_USER_INTERACTION, so install/remove die instantly with
+    # "Failed to obtain authentication" (seen on the implementer's VM).
+    # Instead pkgcli stays interactive: it simulates and confirms on stdin.
+    # For transactions (confirm=True) we pre-write "y" lines, which answers
+    # only pkgcli's own local simulation prompt. The real transaction is
+    # still authenticated by polkit through the session agent, only-trusted
+    # stays on, and any prompt past the pre-written lines reads EOF and
+    # declines, so a user without admin rights still fails closed.
+    argv = [PKGCLI, "--json", "--no-color"] + args
     return subprocess.Popen(
         argv,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        stdin=subprocess.DEVNULL,  # never let pkgcli prompt us on stdin
+        stdin=subprocess.PIPE if confirm else subprocess.DEVNULL,
         env=pkgcli_env(), text=True, errors="replace",
         start_new_session=True,  # own process group for clean cancellation
     )
@@ -293,8 +305,9 @@ def cmd_info(package_id):
 def cmd_transaction(verb, package_id):
     if len(package_id.split(";")) != 4:
         # A bare name makes pkgcli resolve interactively ("Please choose the
-        # correct package:" via scanf) and we close stdin, so refuse early
-        # with a clear error instead of failing obscurely.
+        # correct package:" via scanf), which our pre-written "y" lines
+        # cannot answer numerically, so refuse early with a clear error
+        # instead of failing obscurely.
         fail("usage",
              "%s needs a full package id (name;version;arch;data) from a "
              "search result, got: %r" % (verb, package_id), exit_code=2)
@@ -304,7 +317,17 @@ def cmd_transaction(verb, package_id):
         emit({"event": "done", "ok": True, "command": verb,
               "package": package_id, "note": "already-installed"})
         return
-    proc = spawn_pkgcli([verb, package_id], yes=True)
+    proc = spawn_pkgcli([verb, package_id], confirm=True)
+    # Answer pkgcli's simulation confirmation without waiting for the
+    # prompt: the lines sit in the pipe until pkgcli reads them. A BrokenPipe
+    # means pkgcli exited before any prompt (e.g. id not found) and the real
+    # error is read from its output below.
+    try:
+        proc.stdin.write("y\n" * STDIN_CONFIRM_LINES)
+        proc.stdin.close()
+        proc.stdin = None  # nothing left to flush on cleanup
+    except BrokenPipeError:
+        proc.stdin = None
     errors = []
     try:
         for obj, raw in stream_json_lines(proc):
