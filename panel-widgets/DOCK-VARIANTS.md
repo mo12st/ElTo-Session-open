@@ -1,7 +1,9 @@
 # Dock variants (shell side)
 
-Status: **CONCEPT, not VM-tested.** Nothing here has run on a screen yet. Static review plus the
-PR's qmllint job is all the proof there is until the implementer runs the VM plan at the bottom.
+Status: **CONCEPT, not VM-tested.** Nothing here has run on a real screen yet. What CI does prove is
+that the QML passes `qmllint` and that both variants plus the fallback case load in Quickshell under a
+nested KWin in a container; appearance and behaviour are unproven until the implementer runs the VM plan
+at the bottom.
 
 Contract: `elto-worlds/HANDOFF.md` section 2 (worlds foundation, PR #36). The overlay key is
 `options.dock`, the only real values are `island` and `bar`, and any other value falls back to
@@ -90,6 +92,30 @@ same idea under two names from the concept art; that naming call belongs to the 
   their concept-art bar arrangement lives in `layout.bar`. Flipping one world to `"bar"` is a
   one-word change in that world's `world.json` and belongs to the worlds track.
 
+## Checked in CI (a container, not the VM)
+
+`.github/workflows/dock-variants-smoke.yml` runs `panel-widgets/dock-smoke.sh` in the same disposable
+Arch container as the panel smoke. It starts one nested KWin, then loads `dock-smoke.qml` (the dock and
+nothing else) three times with a different overlay:
+
+| case | overlay `options.dock` | expected `ELTODOCK variant` log |
+| --- | --- | --- |
+| absent key | key not set | `island` |
+| bar | `"bar"` | `bar` |
+| fallback | `"nonsense"` | `island` |
+
+It also fails on a real QML load failure (`is not a type`, `Cannot load`, `module ... not found`,
+`ReferenceError`, `Cannot read property`) or if Quickshell dies. The real window-list helper is a C
+binary that is not in the container, so the script points `ELTO_WINDOWLIST` at a silent stand-in.
+
+Result on commit `f7047a0`: **DOCK-VARIANTS-OK** - all three cases resolved to the expected variant
+and no load failure appeared.
+https://github.com/mo12st/ElTo-Session-open/actions/runs/46023932079/job/140590336124
+
+What that does **not** prove: how either dock looks, that the bar's geometry and clipping are right on
+a real screen, window interactions, glass/blur, or anything about the live session. That is the VM plan
+below.
+
 ## VM test plan (for the implementer)
 
 Environment: the usual ElTo VM with the session running. The bar needs a real window list, so
@@ -123,8 +149,10 @@ merge on the strength of qmllint alone.
 
 ## Verification level
 
-- Written against PR #36's contract (`elto-worlds/HANDOFF.md`), not against a running shell.
-- No Qt, Quickshell or Wayland compositor was available where this was written: the QML has not been
-  parsed by `qmllint` locally and has never been loaded.
-- No VM run, no hardware run, no screenshots. Every claim above is design intent until the VM plan
-  is executed.
+- Written against PR #36's contract (`elto-worlds/HANDOFF.md` section 2).
+- **Proven in CI:** `qmllint` passes on every QML file in the PR (`build, lint, secrets`), and the dock
+  smoke above loads both variants plus the fallback case in Quickshell 0.3.2 under nested KWin.
+- **Not proven:** appearance, layout on a real screen, click behaviour, glass and blur, the live
+  session, the VM, hardware. No screenshots were taken, because nothing was ever on a screen.
+- Nothing was verified on the machine where this was written: no Qt or Quickshell was available there,
+  so CI is the only place this code has run.
