@@ -91,10 +91,10 @@
     "glyphs": {
       "org.kde.dolphin": "folder",
       "foot": "terminal",
-      "org.mozilla.firefox": "globe",
+      "org.mozilla.firefox": "globe.png",
       "org.kde.kate": "notebook-pen",
-      "org.kde.gwenview": "image",
-      "org.mozilla.Thunderbird": "mail",
+      "org.kde.gwenview": "image.png",
+      "org.mozilla.Thunderbird": "mail.png",
       "elto-customize": "palette"
     },
     "glyphDir": "dock/gnome",

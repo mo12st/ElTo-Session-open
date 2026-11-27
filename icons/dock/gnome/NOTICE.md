@@ -34,6 +34,12 @@ Adwaita's COPYING links to; the United States port it names in words is not ship
 not rely on it because LGPL-3.0 is the licence chosen for that file. The GPL and LGPL texts are the
 canonical ones from gnu.org (LGPL texts from the SPDX licence list, identical wording).
 
+Rendered derivatives: `image.png`, `globe.png` and `mail.png` are 512 px rasterisations of `image.svg`,
+`globe.svg` and `mail.svg`, made with cairosvg from the unmodified files, transparency kept. They exist
+because Qt's SVG renderer does not draw the masks, filters and embedded raster those three icons use: in
+the first VM test the Loupe icon came out on a solid black square. The dock draws the PNGs; the SVGs stay
+in the tree as the source of their derivative. Same licence and attribution as their source file.
+
 Modifications: only `window.svg` differs from upstream bytes. The artwork is untouched; the root `width` and
 `height` were set to 128 and a `viewBox` was added around the largest of the four size variants the original
 canvas stacks, otherwise all four would draw. Everything else is byte-identical to upstream.
