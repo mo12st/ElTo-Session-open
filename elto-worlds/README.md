@@ -85,6 +85,9 @@ accepted with a warning). New sections, all optional:
 - `identity` - optional story and signature: what makes the world itself, not a recolor.
 - `defaults` - the world's own picks for wallpaper, dock variant, notch mode and sounds.
   Applied to the managed overlay keys; the user can override them and `reset` restores them.
+  Unknown or declared-but-unsupported values warn visibly and fall back, never fail.
+- `options.wallpapers` - the wallpaper set as `{path, label}` objects under
+  `assets/wallpapers/`; `options.wallpaper` stays the active pick.
 - `assets` - manifest of the files under `assets/` (path, kind, license; sha256/bytes added
   by `pack`).
 - `sounds` - `enabled` default plus `events` mapping event ids to wav assets.
@@ -104,21 +107,32 @@ accepted with a warning). New sections, all optional:
 Color references (`colorRef`) accept a palette token, a role name, or a literal `#hex`.
 Assets always live under `assets/` inside the world directory.
 
-## Verification level
+## Verification levels
 
-- `elto-world check`: PASS on all nine worlds at schema v3 (plus negative tests: bad name,
-  unknown role target, unknown layout key, unknown color ref are all rejected).
-- `apply`: tested in a sandbox HOME on this repo checkout. Theme package lists in
+L0 design, L1 sandbox, L2 VM, L3 hardware. Current state:
+
+- L1 `elto-world check`: PASS on all nine worlds at schema v3 (plus negative tests: bad
+  name, unknown role target, unknown layout key, unknown color ref are all rejected).
+  Unknown vs unsupported option values warn visibly and fall back (unknown dock variant,
+  unknown notch mode, unsupported ridge-shelf/hidden-thread concepts all verified).
+- L1 `apply`: tested in a sandbox HOME on this repo checkout. Theme package lists in
   `theme-tool.py` (Themes page compatible), overlay/colorscheme/Aurorae outputs inspected:
   SVG recolor, rc text colors and close-left button swap confirmed. Plasma/KWin tool calls
   were skipped in the sandbox (tools absent), so live applying is NOT verified.
-- Staged apply + rollback: tested in the sandbox by forcing a failure mid-apply; every file
-  the run wrote was removed or restored from backup.
-- `reset`: tested in the sandbox; world defaults restored over managed keys, unrelated user
-  keys preserved.
-- `pack`/`unpack`: round-trip tested in the sandbox; traversal, oversized and
+- L1 staged apply + rollback: tested in the sandbox by forcing a failure mid-apply; every
+  file the run wrote was removed or restored from backup.
+- L1 `reset`: tested in the sandbox; world defaults restored over managed keys, unrelated
+  user keys preserved.
+- L1 `pack`/`unpack`: round-trip tested in the sandbox; traversal, oversized and
   checksum-tampered bundles are rejected.
-- Not VM-tested, not hardware-tested. Missing assets (wallpapers, sounds, greeter/boot art)
-  are the user's exports and are warnings until then.
-- The shell side of notch modes, the dock `bar` variant, sound playback and the wallpaper
-  picker is a spec for the implementer: see HANDOFF.md. Not implemented there yet.
+- L0 only: the shell side of notch modes, the dock `bar` variant, sound playback and the
+  wallpaper picker is a spec for the implementer (HANDOFF.md), not implemented.
+- No L2 (VM) or L3 (hardware) verification yet. Missing assets (wallpapers, sounds,
+  greeter/boot art) are the user's exports and are warnings until then.
+
+## Later (approved, not scheduled)
+
+- World preview in the Themes page.
+- Safe uninstall of a world (restore what apply changed, not just reset).
+- Upgrade/rollback tests for worlds across schema versions.
+- Accessibility: reduced motion and mute honored world-wide.

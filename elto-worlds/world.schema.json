@@ -50,7 +50,7 @@
         "wallpaper": { "$ref": "#/$defs/asset", "description": "Default wallpaper from the world's set." },
         "dock": { "type": "string", "description": "Dock variant: 'island' (implemented), 'bar' (next), more later. Unknown values fall back to island." },
         "notch": { "type": "string", "description": "Notch style, e.g. 'clock'." },
-        "notchMode": { "type": "string", "enum": ["show", "hidden", "auto-hide"], "description": "show (default), hidden, or auto-hide: collapsed strip that reveals on hover after a short delay." },
+        "notchMode": { "type": "string", "description": "Known values: show (default), hidden, auto-hide (collapsed strip that reveals on hover after a short delay). Unknown values warn visibly and fall back to show, per the approved review; they are not hard errors." },
         "notchAutoHideMs": { "type": "integer", "minimum": 0, "maximum": 5000, "description": "Reveal delay for auto-hide, milliseconds." },
         "notchRespectFullscreen": { "type": "boolean", "description": "Stay hidden while a window is fullscreen." },
         "sounds": { "type": "boolean", "description": "World sounds on by default. User can disable; never forced." }
@@ -108,8 +108,16 @@
       "properties": {
         "wallpapers": {
           "type": "array",
-          "items": { "$ref": "#/$defs/asset" },
-          "description": "Wallpaper set; options.wallpaper stays the default for the v1 shell."
+          "description": "The world's wallpaper set as {path, label} objects, paths under assets/wallpapers/. options.wallpaper stays the active pick for the v1 shell. Plain-string entries fall back to {path: entry} with a warning.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": { "$ref": "#/$defs/asset" },
+              "label": { "type": "string", "description": "Picker display name." }
+            }
+          }
         }
       }
     },

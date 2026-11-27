@@ -17,7 +17,7 @@
     "tool": "3"
   },
   "defaults": {
-    "wallpaper": "assets/wallpaper.jpg",
+    "wallpaper": "assets/wallpapers/main.jpg",
     "dock": "island",
     "notch": "clock",
     "notchMode": "show",
@@ -70,7 +70,10 @@
     "wallpaper": "assets/wallpaper.jpg",
     "motion": "soft",
     "wallpapers": [
-      "assets/wallpaper.jpg"
+      {
+        "path": "assets/wallpapers/main.jpg",
+        "label": "Night garden"
+      }
     ]
   },
   "sounds": {
@@ -134,7 +137,7 @@
   },
   "assets": [
     {
-      "path": "assets/wallpaper.jpg",
+      "path": "assets/wallpapers/main.jpg",
       "kind": "wallpaper",
       "license": "Proprietary (all rights reserved, mo12st)"
     },

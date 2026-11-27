@@ -47,6 +47,10 @@ LAYER_SECTIONS = ("layout", "kde", "kvantum", "cursor", "aurorae", "sddm", "lock
 DEFAULT_KEYS = {"wallpaper", "dock", "notch", "notchMode", "notchAutoHideMs",
                 "notchRespectFullscreen", "sounds"}
 NOTCH_MODES = ("show", "hidden", "auto-hide")
+NOTCH_KINDS = ("clock",)
+DOCK_VARIANTS = ("island", "bar")
+# Declared as concepts but not implemented anywhere yet: warn as unsupported, not unknown.
+DOCK_KNOWN_UNIMPLEMENTED = ("ridge-shelf", "hidden-thread")
 SOUND_EVENTS = {"session-start", "session-end", "notification", "drawer-open", "drawer-close",
                 "lock", "unlock", "error", "wallpaper-change"}
 MANAGED_OPTION_KEYS = {"wallpaper", "dock", "notch", "notchMode", "notchAutoHideMs",
@@ -147,7 +151,19 @@ def validate(w, wdir):
                     check_asset("defaults", k, v)
                 elif k == "notchMode":
                     if v not in NOTCH_MODES:
-                        errors.append("defaults.notchMode must be one of " + ",".join(NOTCH_MODES))
+                        warnings.append("defaults.notchMode: unknown value %r; "
+                                        "the shell warns and falls back to show" % (v,))
+                elif k == "dock":
+                    if v in DOCK_KNOWN_UNIMPLEMENTED:
+                        warnings.append("defaults.dock: unsupported value %r (declared concept, "
+                                        "not implemented); the shell warns and falls back to island" % (v,))
+                    elif v not in DOCK_VARIANTS:
+                        warnings.append("defaults.dock: unknown value %r; "
+                                        "the shell warns and falls back to island" % (v,))
+                elif k == "notch":
+                    if v not in NOTCH_KINDS:
+                        warnings.append("defaults.notch: unknown value %r; "
+                                        "the shell warns and falls back to clock" % (v,))
                 elif k in ("notchRespectFullscreen", "sounds"):
                     if not isinstance(v, bool):
                         errors.append("defaults.%s must be a boolean" % k)
@@ -165,8 +181,23 @@ def validate(w, wdir):
         if not isinstance(wps, list) or not wps:
             errors.append("options.wallpapers must be a non-empty list")
         else:
-            for i, p in enumerate(wps):
-                check_asset("options", "wallpapers[%d]" % i, p)
+            for i, entry in enumerate(wps):
+                if isinstance(entry, str):
+                    warnings.append("options.wallpapers[%d]: plain-string entry; "
+                                    "falls back to {path: entry}, prefer {path, label} objects" % i)
+                    check_asset("options", "wallpapers[%d]" % i, entry)
+                elif isinstance(entry, dict):
+                    for k in entry:
+                        if k not in ("path", "label"):
+                            errors.append("options.wallpapers[%d]: unknown key %s" % (i, k))
+                    if "path" not in entry:
+                        errors.append("options.wallpapers[%d]: missing path" % i)
+                    else:
+                        check_asset("options", "wallpapers[%d].path" % i, entry["path"])
+                    if "label" in entry and not isinstance(entry["label"], str):
+                        errors.append("options.wallpapers[%d].label must be a string" % i)
+                else:
+                    errors.append("options.wallpapers[%d] must be a {path, label} object" % i)
 
     snd = w.get("sounds")
     if snd is not None:
@@ -410,7 +441,9 @@ def build_overlay(w, wdir, run, cur):
 
 def install_wallpapers(w, wdir, run):
     """Copy the wallpaper set into ~/.config/elto/wallpapers/ and point the default at it."""
-    wps = list((w.get("options") or {}).get("wallpapers") or [])
+    wps = []
+    for entry in (w.get("options") or {}).get("wallpapers") or []:
+        wps.append(entry["path"] if isinstance(entry, dict) else entry)
     dflt = (w.get("defaults") or {}).get("wallpaper") or (w.get("options") or {}).get("wallpaper")
     if dflt and dflt not in wps:
         wps.insert(0, dflt)
