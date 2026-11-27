@@ -89,7 +89,7 @@ shot /tmp/k1.ppm dk1_default
 echo "== right-click Terminal"
 echo "== control pages"
 sleep 10
-$S 'ls /opt/elto-session/elto-control /usr/local/bin/elto-control'
+$S 'pgrep -af elto-shell.qml | cut -c1-90; ls /opt/elto-session/panel-widgets/qmldir'
 cat > /tmp/runctl.sh <<'EOS'
 #!/bin/bash
 # $1 = page (may be empty)
