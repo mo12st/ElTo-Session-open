@@ -33,6 +33,19 @@ fields: `name;version;arch;data` (e.g. `vim;9.1.190-1;x86_64;extra`). Full IDs
 are required for install/remove: pkgcli resolves bare names with an interactive
 multiple-match prompt on stdin, and this helper deliberately closes stdin.
 
+pkgcli search returns installed entries too (repo `installed`). Each result
+carries `install_id`: the id to pass to `install`, or `null` when the entry
+is already installed. The UI must use `install_id`, never an installed
+entry's `id`. Installing an installed id is an idempotent no-op that returns
+`done.ok` with `"note": "already-installed"` (installed ids are exactly
+what `remove` expects).
+
+install/remove run pkgcli with `-y` (non-interactive): without it pkgcli
+simulates the transaction and asks for confirmation on stdin, which we
+close, and the VM run showed that ending as `transaction-failed` with
+"user declined simulation". `-y` skips pkgcli's own confirmation only;
+`only-trusted` stays on and polkit authorization is unaffected.
+
 ## Output contract
 
 One JSON object per line on stdout; the last line is always a `done` event.
@@ -90,6 +103,9 @@ flag is the primary signal; exit codes are for shell scripting.
 
 ## Safety properties
 
+- `-y` is passed only for install/remove and only suppresses pkgcli's own
+  confirmation/simulation; signature trust (`only-trusted`) and polkit
+  authorization still apply.
 - stdin is closed for every pkgcli call: pkgcli can never block on a prompt.
 - pkgcli runs with `LC_ALL=C` and `--no-color` (+ `NO_COLOR=1`): parsing does
   not depend on locale or color codes.

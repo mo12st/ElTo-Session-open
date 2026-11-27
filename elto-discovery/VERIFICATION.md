@@ -12,15 +12,24 @@ confirms `usr/bin/pkgcli` is the sole binary (archlinux.org, 2026-11-27).
 ## Verified (with proof)
 
 1. **Implemented**: `elto-discovery` (Python 3, stdlib only), `tests/run-tests.py`.
-2. **Parser, JSON contract and error mapping tested**: 29 assertions pass
+2. **Parser, JSON contract and error mapping tested**: 32 assertions pass
    against a stub `pkgcli` with recorded outputs. Output of the run in the
-   author's sandbox: `all tests passed` (29 checks).
+   author's sandbox: `all tests passed` (32 checks).
 3. **Implementer VM observations incorporated** (reported 2026-11-27):
    `pkgcli --json search` prints one JSON object per package with fields
    name, version, arch, repo, state; errors print as `{"error": ...}`;
    exit 4 for not-found and 5 for the auth path; `show --json` produced
    empty output while plain `show` worked (the helper therefore falls back
    to parsing plain `show` labels when JSON yields no detail object).
+   Second VM run: search/info/not-found/usage confirmed working; two bugs
+   found and fixed: (a) install failed as `transaction-failed` "user
+   declined simulation" because pkgcli simulates and confirms on stdin
+   unless `-y` (`pkgc-context.c pkgc_context_apply_settings`, lines
+   ~210-227: simulate = !noninteractive, interactive = !noninteractive);
+   install/remove now pass `-y`, which leaves `only-trusted` and polkit
+   untouched; (b) search returns installed entries with repo `installed`,
+   so results now carry `install_id` (null for installed entries) and
+   install of an installed id is an idempotent already-installed no-op.
 4. **Remaining formats modeled on PackageKit v1.4.1 source**, fetched
    2026-11-27 from github.com/hughsie/PackageKit (tag v1.4.1):
    - JSON package object fields: `client/pkgc-util.c`
@@ -80,9 +89,13 @@ confirms `usr/bin/pkgcli` is the sole binary (archlinux.org, 2026-11-27).
    description, license, sizes, url. Record whether `_source` is `json` or
    `plain` (see the `show --json` note above).
 5. `./elto-discovery install <full-id of a small package, e.g. sl>` as the
-   regular session user. Record exactly what polkit does: allowed without
-   prompt, prompted (which agent answered?), or denied. Decision input for
-   the Core track (polkit agent/rule in the session).
+   regular session user. Expect no more "user declined simulation": `-y`
+   skips pkgcli's own confirmation. Record exactly what polkit does:
+   allowed without prompt, prompted (which agent answered?), or denied.
+   Decision input for the Core track (polkit agent/rule in the session).
+5b. `./elto-discovery search firefox` entries with status `installed`
+   (after step 5) must have `install_id: null`; installing an installed id
+   returns ok with note `already-installed`.
 6. `./elto-discovery remove <same id>` -> expect success.
 7. `./elto-discovery install nope;0-1;x86_64;extra` -> expect
    `error.code == "not-found"` (pkgcli exit 4, observed on the VM).
