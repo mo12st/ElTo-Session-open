@@ -1,6 +1,6 @@
 # Dock icons: held, illustrated round as concepts
 
-Status: **nothing implemented, nothing merged.** The dock still draws the shell's Lucide glyphs. Four
+Status: **nothing implemented, nothing merged.** The dock still draws the shell's Lucide glyphs. Six
 rounds happened and none shipped:
 
 1. Four line-icon sets (Lucide as today, Iconoir 1.5px, Phosphor Light, Tabler). Iconoir was shipped and
@@ -10,26 +10,27 @@ rounds happened and none shipped:
    plates). **Rejected too: the flat glyph on a tile is the problem.**
 4. Three illustrated directions (G / H / I) where each icon is a drawn object with layers, gradients and
    depth. **Rejected as well.**
-5. Now a written spec plus two concepts built strictly to it: see `DOCK-ICON-SPEC.md` (grid, keylines,
-   one light direction, one depth step, corner scale, palette with measured contrast floors, metaphor,
-   legibility gate at 22 and 30 px). Concepts 1 (paper plate) and 2 (ink plate) differ only in the
-   value structure; the geometry, light and depth are identical. **He picks one, or asks for something
-   else, before any file changes.**
+5. A written spec v1 plus two concepts built to it (1 paper plate, 2 ink plate). Rejected.
+6. An outside design review of the spec and both concepts recommended dropping the universal extrusion,
+   the shadow stack, the mandatory highlight and the three-shape rule, enlarging the object (plate 90-92,
+   object 66-70), varying the plates, and redesigning six of the eight metaphors. Spec v2 and concept 3
+   ("illustrated artifacts") follow that: variable depth, one soft shadow, three plate colours, an object
+   at 74% of the plate, and new drawings for terminal, notebook, image, settings, palette, window and
+   clock. **He picks, or asks for something else, before any file changes.**
 
 The brief, as relayed: Apple-style dimensional icons, layered shapes, soft gradients, highlights and
 depth, each drawn originally in the ElTo palette with the snail and paper identity. Self-drawn, free
 licences only, no Apple assets, no paid tools.
 
-## The two concepts on the table
+## The concept on the table
 
 | # | concept | what it is |
 | --- | --- | --- |
-| 1 | paper plate | cream squircle, ink object, rust and sage details |
-| 2 | ink plate | ink squircle, paper object, rust and sage details |
+| 3 | illustrated artifacts | paper objects on ink, dark sage and dark ochre plates; variable depth; one overlap per object as the family gesture; per-icon redesigns |
 
-Both follow `DOCK-ICON-SPEC.md` exactly: same grid, same 58-unit live area, same corner scale, same light,
-same 4-unit depth step, same three-shape budget, same measured contrast floors. Only the value structure
-differs, so the choice is about palette, not about drawing.
+Built to `DOCK-ICON-SPEC.md` v2. Concept 1 (cream plates) is rejected: its plate disappears against the
+cream dock. Concept 2's value structure survives inside concept 3, with the plate no longer dominant and
+with plate variety.
 
 Every icon is drawn here as SVG (100x100 viewBox, gradients and layered paths), then composited at
 render time for the object's soft shadow, the plate's top gloss and bottom shade, and a faint embossed

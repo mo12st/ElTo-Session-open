@@ -1,58 +1,101 @@
-# Dock icon spec v1
+# Dock icon spec v2
 
-Written before drawing, from two public references: Apple's macOS app-icon grid (1024 px canvas, 824 px
-body, 100 px transparent margin, corners baked into the artwork) and Material's system-icon guidelines (a
-24 dp grid, a 20 dp live area, 2 dp padding, keyline shapes, bold geometric forms, nothing delicate at
-small sizes). The drawing is original; nothing is copied from either set.
+Revision of v1 after an outside design review. v1 was geometrically disciplined but treated consistency of
+construction as consistency of visual language: same extrusion, same shadow stack, same highlight, one
+scale for everything. v2 keeps the paper-and-ink identity and the 1024 master, and drops the rules that
+made eight icons look manufactured from the same cardboard.
 
-## 1. Canvas and grid
+References used, publicly available: Apple's macOS app-icon grid (1024 canvas, 824 body, transparent
+margin) and Apple's icon guidance on optical centering, visual weight and simplification; Material's
+system-icon grid (live area, keylines, bold geometric forms, nothing delicate at small sizes). The drawings
+are original.
 
-- Master canvas 1024 x 1024. Plate body 824 x 824, centred, 100 px transparent margin.
-- Drawing grid: 100 units = the canvas. Plate = 80.5 units square, centred.
-- Live area: 58 units square, centred. Every object is scaled to fill 58 units on its dominant axis, so
-  all eight icons carry the same optical weight; round objects get 2 units of overshoot (60) to offset the
-  way a circle reads smaller than a square of equal size.
-- Keylines inside the live area: square 58, circle 60, vertical rectangle 50 x 58, horizontal 58 x 50.
+## 1. Composition
 
-## 2. Corner logic
+- Master canvas 1024. Plate body 90 units on the 100-unit grid (5 units of margin), radius 18.
+  The review proposed 92; 92 leaves a 4-unit gap, which is 0.88 px at 22 px and reads as two icons
+  touching. 90 keeps a 1.1 px gap, which is the same principle the review applies to features.
+- Standard object 68 units on its dominant axis, large objects up to 72. Object occupies 74% of the plate.
+- Optical correction per object, not one universal rule: round objects get 2 units of overshoot; a tall
+  object gets 1 unit of horizontal compensation. No automatic scaling of every icon to one number.
+- Asymmetry is allowed where the composition wants it; nothing is centred for its own sake.
 
-- Plate radius: 22.37% of the body = 18 units.
-- Object radius: one scale - 3.2 units for boxes, 1.6 for inner details, height/2 for pills.
+## 2. Hierarchy
 
-## 3. Light
+Identity first, object second, plate third. Target perceptual weights: primary object 65-75%, plate
+20-30%, accents 5-10%. The plate establishes family membership; it is never the subject. If the object is
+unreadable without the plate, the icon has failed.
 
-- One direction for every icon: from the top, tilted 15 degrees left. Faces are gradients along that axis.
-- One highlight per object: a 3.2-unit band along the top edge, paper at 50%, clipped to the silhouette.
-- One cast shadow per object: three offset silhouettes (1.5, 3 and 5 units) at 10% deep ink, no blur, so it
-  survives at 22 px.
-- The plate gets one top gloss and nothing else.
+## 3. Materials
+
+- Paper: matte, warm, low-contrast gradient, no gloss.
+- Ink: dense, dark, smooth; used for structure and for the prompt.
+- Sage and ochre: secondary materials, muted.
+- Rust: a restrained accent, never a mandatory stripe. It appears on four icons here, not eight.
+- Cream: secondary paper surface, for page blocks and rear layers.
+- No artificial bevel, no mandatory highlight strip, no gloss overlay.
 
 ## 4. Depth
 
-- Every object is a 2.5D solid: one front face plus a 4-unit extruded side face behind it, offset (0, +4),
-  one step darker. No third plane, no perspective.
+- Variable, not universal. Extrusion 0-3 units, and only where the object is physical.
+- Zero to two secondary layers per object; the overlap is what carries the depth.
+- The shared gesture of the family is one overlap per object: folder tab over body, notebook page block
+  beside cover, window plane over plane, image's folded corner, palette pigment over body.
+- Frontal perspective. Slight elevation only where it explains the object; no isometric angles.
 
-## 5. Palette and contrast
+## 5. Light and shadow
 
-- Seven values: ink `#164437`, deep ink `#0d2b22`, rust `#a05040`, sage `#7fa08c`, ochre `#b08246`,
-  paper `#f6f1e4`, cream `#e3dac4`.
-- A detail may use a tint of a palette hue (15% toward paper, e.g. `#ad5a47` for rust) to reach the floor.
-- Floors, measured by the build script and printed on every run: main face against plate at least 3:1,
-  detail against main face at least 2:1. Current set: 9.7 main/plate, details 2.3 to 13.4.
+- One light direction: from the top, tilted 15 degrees left.
+- One shadow per object: blur 1.5 units, opacity 12%, offset 0.8 units. No shadow stacks.
+- Highlights follow the material: a thin light edge on the top of paper, nothing on ink.
+- At 22 and 30 px a dedicated variant is used with a 1-unit hard shadow at 13%, because a 1.5-unit blur at
+  that size is smaller than a pixel and turns into a dirty edge.
 
-## 6. Metaphor
+## 6. Colour and contrast
 
-- One style: a solid object with one front face, one side face and one accent detail. No glyphs, no
-  outlines, no symbol inside a box.
+- Seven values: ink `#164437`, deep ink `#0d2b22`, paper `#f6f1e4`, cream `#e3dac4`, sage `#7fa08c`,
+  ochre `#b08246`, rust `#a05040`; plus dark sage `#3e5c4b`, dark ochre `#7d5a2e` and pale cream
+  `#cfc4a8` as plate and layer values.
+- Plates vary within the family: ink for five icons, dark sage for notebook and palette, dark ochre for
+  clock. Not eight identical dark tiles, not eight cream tiles that vanish into the dock.
+- Measured on every build: object against plate 5.5:1 to 9.7:1. The floor is 4.5:1; the clock's ink ring
+  against its ochre plate is 1.7:1 by design, because the ring is structure and the paper face is the
+  object.
+- Rust is kept away from ink where it only reaches 1.9:1; rust appears on paper or cream, where it is 4-5:1.
 
-## 7. Legibility gate
+## 7. Sizes
 
-- Each icon is rendered at 22 px and 30 px directly (not downscaled) and inspected before it is shown.
-- Shape budget: three shapes per icon.
-- Minimum feature 4 units, which is 0.9 px at 22 px; nothing thinner carries meaning.
-- At 22 px the silhouette alone must say what the icon is.
+Three levels of artwork, not one drawing scaled three times:
 
-## 8. Build
+| level | target | treatment |
+| --- | --- | --- |
+| master | 1024 | full material, soft shadow |
+| dock standard | 30 px | soft shadow off, hard 1-unit shadow, same geometry |
+| dock compact | 22 px | same, plus the details that survive: prompt, page block, gear opening, thumb hole, hands |
 
-- Each icon is one SVG (100-unit viewBox) with the plate, the extruded object and its detail; rendered with
-  cairosvg at 1024 for review and at 22/30 for the legibility gate. Nothing is raster-edited.
+## 8. Minimum features
+
+- Structural gap 7 units; important detail 8-9; primary line-like feature 9-11. Nothing thinner carries
+  meaning. At 22 px a 9-unit feature is 2 px.
+
+## 9. Recognition
+
+- One dominant metaphor and one unmistakable feature per icon: the folder's tab, the terminal's prompt, the
+  notebook's page block and bookmark, the image's landscape, the gear's centre opening, the palette's thumb
+  hole, the window's overlap, the clock's hands.
+- Every icon must survive in monochrome; the family is checked as silhouettes as well as in colour.
+
+## 10. Acceptance gate
+
+An icon enters the dock only if all ten hold:
+
+1. Recognizable at 22 px without its colour palette.
+2. Recognizable as a silhouette against a neutral background.
+3. Primary object visually dominant over its plate.
+4. No essential detail depends on a subpixel feature.
+5. Distinct from the other seven at dock size.
+6. Coherent beside the other seven.
+7. Works against the actual cream dock background.
+8. Retains its material character at 30 px.
+9. Optically balanced, not merely geometrically centred.
+10. No unnecessary decorative element.
