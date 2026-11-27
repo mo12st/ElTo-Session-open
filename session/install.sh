@@ -25,5 +25,10 @@ chmod 755 /opt/elto-session/welcome/elto-welcome-autostart.sh
 install -m644 "$R/welcome/elto-welcome.desktop" /usr/share/applications/elto-welcome.desktop
 install -d /etc/xdg/autostart
 install -m644 "$R/welcome/elto-welcome-autostart.desktop" /etc/xdg/autostart/elto-welcome-autostart.desktop
+# elto-control (settings center)
+install -d /opt/elto-session/elto-control
+cp -r "$R"/elto-control/*.qml "$R/elto-control/i18n.json" "$R/elto-control/icons" /opt/elto-session/elto-control/
+install -m755 "$R/elto-control/elto-control" /usr/local/bin/elto-control
+install -m644 "$R/elto-control/elto-control.desktop" /usr/share/applications/elto-control.desktop
 bash "$R/elto-core/install.sh"
 echo installed
