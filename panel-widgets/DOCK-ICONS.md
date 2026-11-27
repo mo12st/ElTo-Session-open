@@ -4,7 +4,9 @@ Status: **held.** No drawn direction from the rounds below shipped. The dock dra
 glyphs, except for a temporary set of real GNOME app icons now applied for judging (see below).
 
 Temporary: `icons/dock/gnome/` holds real GNOME app icons, unmodified, wired through two theme keys
-(`dock.glyphDir`, `dock.glyphTint` in `themes/soft-paper/theme.json`). All seven dock slots use them:
+(`dock.glyphDir`, `dock.glyphTint` in `themes/soft-paper/theme.json`). Three of them are named with an
+extension (`globe.png`, `image.png`, `mail.png`) because they ship pre-rendered: Qt's SVG renderer draws
+their masks and filters as a black square. All seven dock slots use them:
 folder, terminal, globe (Epiphany), notebook-pen, image, mail (Geary), palette. Settings, Clocks and the
 legacy windows file are vendored with no dock slot. Licences and sources: THIRD-PARTY-LICENSES.md. Swap
 back with `"glyphDir": "lucide"`.

@@ -44,6 +44,10 @@ section of `themes/soft-paper/theme.json`, or delete both keys.
 | clock.svg | Clocks | org.gnome.clocks.svg | github.com/GNOME/gnome-clocks `data/icons/hicolor/scalable/apps/` | CC BY-SA 4.0 declared in the file; repository GPL-2.0 |
 | window.svg | Windows (legacy) | preferences-system-windows.svg | github.com/GNOME/adwaita-icon-theme, tag `GNOME_ICON_THEME_3_0_0`, `src/` | LGPL-3.0 or CC BY-SA 3.0 (adwaita COPYING) |
 
+Three of the ten ship as 512 px PNGs (`image.png`, `globe.png`, `mail.png`), rasterised from the unmodified
+SVGs because Qt's SVG renderer cannot draw their masks and filters. The SVGs stay in the tree as their
+source; see icons/dock/gnome/NOTICE.md.
+
 Attribution: the GNOME Project. Adwaita's COPYING says naming "GNOME Project" is enough
 (https://github.com/GNOME/adwaita-icon-theme/blob/master/COPYING); three of the files also name the
 GNOME Design Team as author in their own metadata.
