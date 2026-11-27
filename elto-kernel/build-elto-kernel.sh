@@ -25,7 +25,8 @@ CONFIG_COMMIT="25259ced6c7c8c68796d2a47d98cafb96ccdd603"
 CONFIG_URL="https://raw.githubusercontent.com/CachyOS/linux-cachyos/${CONFIG_COMMIT}/linux-cachyos/config"
 CONFIG_SHA256="32b3c2004bf8640a1a280f0ceeab7a434765eb4d246cb81911ecff112dde6f50"
 
-FRAGMENT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/config-elto.fragment"
+SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FRAGMENTS=("$SCRIPTDIR/config-elto.fragment" "$SCRIPTDIR/config-elto-trim.fragment")
 WORKDIR="$(realpath "${1:-elto-kernel-build}")"
 JOBS="$(nproc)"
 
@@ -53,7 +54,7 @@ fi
 cd "$KSRC_NAME"
 
 cp ../config-cachyos .config
-./scripts/kconfig/merge_config.sh -m .config "$FRAGMENT"
+./scripts/kconfig/merge_config.sh -m .config "${FRAGMENTS[@]}"
 make olddefconfig
 
 echo ">> building with $JOBS jobs (a full kernel build takes a while)"

@@ -1,0 +1,9 @@
+# mkinitcpio preset for linux-elto
+ALL_config="/etc/mkinitcpio.conf"
+ALL_kver="/usr/lib/modules/7.3.6-elto/vmlinuz"
+
+PRESETS=('default' 'fallback')
+
+default_image="/boot/initramfs-linux-elto.img"
+fallback_image="/boot/initramfs-linux-elto-fallback.img"
+fallback_options="-S autodetect"
