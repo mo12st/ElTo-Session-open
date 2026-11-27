@@ -1,0 +1,6 @@
+[Default Applications]
+application/x-ms-dos-executable=elto-windows.desktop
+application/vnd.microsoft.portable-executable=elto-windows.desktop
+application/x-msdownload=elto-windows.desktop
+application/x-msi=elto-windows.desktop
+application/x-ms-shortcut=elto-windows.desktop

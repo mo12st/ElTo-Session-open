@@ -1,0 +1,32 @@
+# ElTo 10-session: the ElTo session runtime. Architecture (repo README):
+# own session entry, Quickshell shell, KWin underneath, NO Plasma Shell.
+# Verified against the live Arch repos on 2026-11-27; see VERIFICATION.md.
+
+kwin              # Wayland compositor. elto-session starts kwin_wayland.
+aurorae           # QML window-decoration engine. session/install.sh points
+                  # /etc/xdg/kwinrc at library=org.kde.kwin.aurorae for the
+                  # ElToClassic decoration, so this package must be present.
+quickshell        # The ElTo shell: panel, dock, drawer, lock UI, notification
+                  # server. Links libpipewire, pam and polkit itself.
+kscreenlocker     # Lock screen backend; picks the org.elto.shell QML package
+                  # via plasmashellrc (session/install.sh). Depends on the
+                  # libplasma LIBRARY only, not on Plasma Shell (verified).
+sddm              # Display manager; Wayland greeter on kwin_wayland per
+                  # session/install.sh (/etc/sddm.conf.d/elto.conf).
+qt6-wayland       # Qt6 Wayland platform plugin (WAYLAND session).
+qt6-declarative   # Qt6 QML runtime (Quickshell + all ElTo .qml files).
+qt6-svg           # SVG icons and artwork in the shell.
+mesa              # Free OpenGL drivers (Intel/AMD/virtio). Free-only rule:
+                  # no proprietary NVIDIA driver in these lists.
+libglvnd          # GL vendor dispatch (VM-proven list).
+breeze-icons      # Default icon theme; /etc/xdg/kdeglobals sets Theme=breeze.
+breeze            # Qt6 widget style so KDE apps are not unthemed. Verified:
+                  # no plasma-workspace dependency.
+plasma-integration # Qt platform theme plugin; elto-session exports
+                  # QT_QPA_PLATFORMTHEME=kde. Verified: no plasma-workspace.
+plasma5support    # KF6 compatibility data engines, part of the VM-proven
+                  # spike list. Exact consumer inside ElTo not yet traced;
+                  # kept because removing it broke nothing tested but it was
+                  # present in every successful VM boot. Verified clean of
+                  # plasma-workspace. Candidate for removal in a later audit.
+libnotify         # Desktop notification client library used by apps.

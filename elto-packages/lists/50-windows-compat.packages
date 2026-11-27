@@ -1,0 +1,14 @@
+# ElTo 50-windows-compat: OPTIONAL Windows application support.
+# Owner approved on 2026-11-27 (Telegram, relayed by the coordinator).
+# Consumed by the Windows-compat track (elto-windows-compat/): this file is
+# only the package selection; the wrappers, file associations and prefixes
+# live there. Verified against the live Arch repos on 2026-11-27.
+#
+# IMPORTANT: these packages need the [multilib] repo enabled in
+# /etc/pacman.conf (umu-launcher lives in multilib; wine needs lib32-* deps).
+# install.sh checks for this.
+
+wine              # Windows API translation layer.
+winetricks        # Wine prefix helper verbs (dlls, fonts, workarounds).
+umu-launcher      # Unified Linux launcher for Proton/GE-Proton prefixes.
+icoutils          # wrestool: extract icons from .exe for launcher entries.

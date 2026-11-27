@@ -1,0 +1,8 @@
+# ElTo 30-fonts. The SDDM theme (spike/sddm/README.md) expects Nunito and
+# Noto Serif Display. Verified against the live Arch repos on 2026-11-27.
+
+ttf-dejavu        # Reliable fallback UI font (VM-proven list).
+noto-fonts        # Main text coverage incl. Noto Serif Display (SDDM theme).
+noto-fonts-extra  # Additional Noto scripts and weights (VM-proven list).
+noto-fonts-emoji  # Color emoji.
+ttf-nunito        # Nunito, expected by the elto-classic SDDM theme.

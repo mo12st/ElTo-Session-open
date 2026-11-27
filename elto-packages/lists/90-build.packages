@@ -1,0 +1,10 @@
+# ElTo 90-build: build-time only (installed with --with-build). Needed to
+# build elto-windowlist (plugin/windowlist) and to run the qemu spike boots.
+# Not part of a runtime install target.
+# Verified against the live Arch repos on 2026-11-27.
+
+base-devel        # Compiler/toolchain meta group (core).
+wayland           # Wayland client/server libraries (build dep).
+wayland-protocols # Wayland protocol XML (build dep).
+plasma-wayland-protocols # KDE Wayland protocol XML (window-list helper).
+python            # Used by the qemu spike scripts (VM-proven list).

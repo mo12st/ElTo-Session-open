@@ -1,0 +1,14 @@
+# ElTo 00-base: minimal Arch base system. Everything here is required before
+# any session package makes sense. Verified against the live Arch repos
+# (archlinux.org package API) on 2026-11-27; see VERIFICATION.md.
+
+base              # Arch base system (core). Kernel, systemd, glibc, pacman.
+linux-firmware    # Hardware firmware blobs (core).
+linux             # Stock Arch kernel (core).
+                  # NOTE: the ElTo kernel track (elto-kernel/) owns the kernel
+                  # choice and may replace this with a CachyOS-based kernel.
+                  # When it does, comment this line out so the two never fight.
+sudo              # Required by the session/qemu install scripts (core).
+git               # Fetching the ElTo repos (extra).
+nano              # Tiny rescue editor (core).
+xdg-user-dirs     # Standard ~/Desktop, ~/Documents, ... on first login (extra).
