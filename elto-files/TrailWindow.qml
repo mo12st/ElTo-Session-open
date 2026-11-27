@@ -14,11 +14,8 @@ FloatingWindow {
     visible: app.trailVisible
     onVisibleChanged: app.trailVisible = visible
 
-    // Aurorae frame (aurorae/ElToClassic): outer corner radius 10, border 10. The content sits inside the border,
-    // so its concentric radius is 10 - 10 = 0. A larger radius leaves gaps against the frame.
-    readonly property int frameRadius: 10
-    readonly property int frameBorder: 10
-    readonly property int contentRadius: Math.max(0, frameRadius - frameBorder)
+    // Soft content corners. The window frame (Aurorae) must follow this one value; do not change it here without the frame.
+    readonly property int contentRadius: th.radiusWindow
     readonly property string computerPath: "computer:"
     readonly property bool computerMode: path === computerPath
     property string path: app.start === "computer" ? computerPath : app.home
