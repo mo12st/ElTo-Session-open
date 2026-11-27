@@ -18,8 +18,8 @@ stderr only, so stdout stays machine-clean.
 
 <package-id> is a full PackageKit ID: name;version;arch;data as reported in
 search results ("id" field). Full IDs are required for install/remove so
-pkgcli never falls back to its interactive multiple-match prompt on stdin
-(which we close). See README.md. Scope: pacman/PackageKit only; Flatpak is a
+pkgcli never falls back to its interactive multiple-match prompt, which our
+pre-written tty confirmations could not answer numerically. See README.md. Scope: pacman/PackageKit only; Flatpak is a
 separate approved-later decision; worlds follow the World Engine schema.
 
 Note: pkgcli emits no progress events in JSON mode (pkgc-context.c
@@ -30,19 +30,26 @@ were partially confirmed by the implementer's VM run (search JSON, error
 JSON, exit 4 not-found / 5 auth-or-transaction-failure).
 """
 
+import fcntl
 import json
 import os
+import pty
 import re
 import shutil
 import signal
 import subprocess
 import sys
+import termios
+import threading
 import time
 
 PKGCLI = "pkgcli"
 SEARCH_TIMEOUT_S = 120
 INFO_TIMEOUT_S = 120
-# install/remove get no timeout: transactions can legitimately take a long time.
+# Overall cap for install/remove: downloads can legitimately take a long
+# time, but a prompt we cannot answer would hang forever. On expiry the
+# transaction is cancelled and the helper fails closed.
+TX_TIMEOUT_S = 1800
 CANCEL_GRACE_S = 10
 
 # Plain-mode detail labels from pkgc-util.c pkgc_print_package_detail()
@@ -109,10 +116,20 @@ def pkgcli_env():
     return env
 
 
-# Number of "y" lines pre-written to pkgcli's stdin for install/remove.
-# Interactive pkgcli simulates the transaction, then confirms once on stdin;
-# the buffer also covers any follow-up prompt (e.g. dependency removals).
-STDIN_CONFIRM_LINES = 64
+# Number of "y" lines written to pkgcli's controlling tty for
+# install/remove. Interactive pkgcli simulates the transaction, then
+# confirms once; the buffer also covers any follow-up prompt (e.g.
+# dependency removals).
+TTY_CONFIRM_LINES = 64
+
+
+def _become_tty_session_leader():
+    # Runs in the child after subprocess has dup2'd the pty slave onto
+    # fd 0. setsid first (start_new_session is NOT used for this path, so
+    # the ordering is explicit), then acquire the slave as the controlling
+    # terminal so pkgcli's /dev/tty open lands on our pty.
+    os.setsid()
+    fcntl.ioctl(0, termios.TIOCSCTTY, 0)
 
 
 def spawn_pkgcli(args, confirm=False):
@@ -121,20 +138,41 @@ def spawn_pkgcli(args, confirm=False):
     # interactive flag to 0 - which makes the daemon run the polkit check
     # without ALLOW_USER_INTERACTION, so install/remove die instantly with
     # "Failed to obtain authentication" (seen on the implementer's VM).
-    # Instead pkgcli stays interactive: it simulates and confirms on stdin.
-    # For transactions (confirm=True) we pre-write "y" lines, which answers
-    # only pkgcli's own local simulation prompt. The real transaction is
-    # still authenticated by polkit through the session agent, only-trusted
-    # stays on, and any prompt past the pre-written lines reads EOF and
-    # declines, so a user without admin rights still fails closed.
+    # pkgcli must stay interactive, but its simulation confirmation reads
+    # from /dev/tty, NOT stdin (VM run on the stdin-pipe fix: PackageKit
+    # warned "Error opening terminal for the process (/dev/tty)" and the
+    # install ended "user declined simulation"). So transactions get a
+    # real controlling terminal: a pty pair, setsid, and TIOCSCTTY on the
+    # slave. We answer the prompt by writing "y" lines to the master;
+    # stdout/stderr stay pipes so JSON parsing is unaffected. The real
+    # transaction is still authenticated by polkit through the session
+    # agent, only-trusted stays on, and if the prompt is never answered
+    # pkgcli declines the simulation itself - failing closed.
     argv = [PKGCLI, "--json", "--no-color"] + args
-    return subprocess.Popen(
-        argv,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        stdin=subprocess.PIPE if confirm else subprocess.DEVNULL,
-        env=pkgcli_env(), text=True, errors="replace",
-        start_new_session=True,  # own process group for clean cancellation
-    )
+    if not confirm:
+        return subprocess.Popen(
+            argv,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdin=subprocess.DEVNULL,
+            env=pkgcli_env(), text=True, errors="replace",
+            start_new_session=True,  # own process group for clean cancellation
+        )
+    master, slave = pty.openpty()
+    try:
+        proc = subprocess.Popen(
+            argv,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdin=slave,
+            env=pkgcli_env(), text=True, errors="replace",
+            preexec_fn=_become_tty_session_leader,
+        )
+    except Exception:
+        os.close(master)
+        os.close(slave)
+        raise
+    os.close(slave)  # the child owns the slave now; parent keeps the master
+    proc.elto_tty_master = master
+    return proc
 
 
 def read_json_lines(text):
@@ -318,16 +356,25 @@ def cmd_transaction(verb, package_id):
               "package": package_id, "note": "already-installed"})
         return
     proc = spawn_pkgcli([verb, package_id], confirm=True)
-    # Answer pkgcli's simulation confirmation without waiting for the
-    # prompt: the lines sit in the pipe until pkgcli reads them. A BrokenPipe
-    # means pkgcli exited before any prompt (e.g. id not found) and the real
-    # error is read from its output below.
-    try:
-        proc.stdin.write("y\n" * STDIN_CONFIRM_LINES)
-        proc.stdin.close()
-        proc.stdin = None  # nothing left to flush on cleanup
-    except BrokenPipeError:
-        proc.stdin = None
+    master = getattr(proc, "elto_tty_master", None)
+    # Answer pkgcli's simulation confirmation through the controlling tty
+    # without waiting for the prompt: the lines sit in the pty buffer until
+    # pkgcli reads them from /dev/tty. A failed write means pkgcli exited
+    # before any prompt (e.g. id not found) and the real error is read from
+    # its output below.
+    if master is not None:
+        try:
+            os.write(master, b"y\n" * TTY_CONFIRM_LINES)
+        except OSError:
+            pass
+    timed_out = []
+
+    def _tx_watchdog():
+        timed_out.append(True)
+        kill_gracefully(proc)
+
+    watchdog = threading.Timer(TX_TIMEOUT_S, _tx_watchdog)
+    watchdog.start()
     errors = []
     try:
         for obj, raw in stream_json_lines(proc):
@@ -350,6 +397,16 @@ def cmd_transaction(verb, package_id):
         kill_gracefully(proc)
         proc.wait()
         fail("cancelled", "interrupted; pkgcli asked to cancel the transaction")
+    finally:
+        watchdog.cancel()
+        if master is not None:
+            try:
+                os.close(master)
+            except OSError:
+                pass
+    if timed_out:
+        fail("timeout",
+             "transaction exceeded %ds; pkgcli asked to cancel" % TX_TIMEOUT_S)
     err = proc.stderr.read() if proc.stderr else ""
     if proc.returncode != 0:
         msg = "; ".join(errors) or err.strip() or \
