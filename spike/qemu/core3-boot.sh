@@ -90,16 +90,9 @@ echo "== right-click Terminal"
 echo "== CORE CHECKS"
 $S 'echo --os-release; cat /etc/os-release; ls -l /etc/os-release; echo --hostnamectl; hostnamectl 2>&1 | head -8; cat /etc/hostname; echo --issue; cat /etc/issue; echo --logo; ls -l /usr/share/pixmaps/elto-logo.png /usr/share/icons/hicolor/256x256/apps/elto-logo.png; echo --defaults; ls -l /etc/xdg/kdeglobals /etc/xdg/kwinrc /etc/xdg/plasmashellrc /etc/xdg/mimeapps.list /etc/sddm.conf.d/elto.conf; cat /etc/xdg/kwinrc /etc/xdg/plasmashellrc /etc/sddm.conf.d/elto.conf; grep -c . /etc/xdg/kdeglobals; grep -A1 "^\[Icons\]" /etc/xdg/kdeglobals; cat /etc/xdg/mimeapps.list; echo --pacman; pacman -Q pacman | head -1; grep -E "^ID" /usr/lib/os-release; ls /usr/share/aurorae/themes /usr/share/plasma/shells; echo --session; pgrep -a "quickshell|kwin" | cut -c1-100'
 shot /tmp/c1.ppm core1_session
-$S "cat > /tmp/ks.py" <<'PY'
-import os,subprocess
-p=subprocess.check_output(["pgrep","-n","quickshell"]).split()[0].decode()
-e=dict(l.split("=",1) for l in open("/proc/"+p+"/environ").read().split("\0") if "=" in l)
-for k in sorted(e):
-    if k.startswith(("XDG_CONFIG","QT_","KDE")): print("ENV",k,e[k])
-os.setsid()
-os.execvpe("kate",["kate"],e)
-PY
-$S "$U sh -c 'setsid python3 /tmp/ks.py >/tmp/kate.log 2>&1 </dev/null &'"; sleep 8
-$S "grep -a ^ENV /tmp/kate.log"
-shot /tmp/c2.ppm core2_kate_session_env
+echo "== kate via drawer (session launch, like dk11)"
+echo; $S "$U quickshell -p /opt/elto-session/panel-widgets/elto-shell.qml ipc call drawer toggle 2>&1 | tail -3"; sleep 2
+key k; key a; key t; key ret; sleep 8
+$S "pgrep -a kate | cut -c1-80"
+shot /tmp/c2.ppm core3_kate_from_session
 $S 'echo --reinstall idempotent; sudo bash /tmp/repo/elto-core/install.sh; echo rc=$?'
