@@ -30,5 +30,9 @@ install -d /opt/elto-session/elto-control
 cp -rL "$R"/elto-control/*.qml "$R/elto-control/theme-tool.py" "$R/elto-control/i18n.json" "$R/elto-control/icons" /opt/elto-session/elto-control/
 install -m755 "$R/elto-control/elto-control" /usr/local/bin/elto-control
 install -m644 "$R/elto-control/elto-control.desktop" /usr/share/applications/elto-control.desktop
+# polkit-agent-helper-1 must be setuid root or every password check fails ("needs to be setuid root").
+# The stock Arch image ships it 0755 (VM-verified), so set it explicitly. Idempotent.
+H=/usr/lib/polkit-1/polkit-agent-helper-1
+if [ -e "$H" ]; then chown root:root "$H"; chmod 4755 "$H"; fi
 bash "$R/elto-core/install.sh"
 echo installed

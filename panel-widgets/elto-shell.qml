@@ -10,6 +10,7 @@ ShellRoot {
     Notch { drawer: drawer }
 
     Dock {}
+    PolkitDialog {}
 
     Component.onCompleted: Sound.play("session-start")
 }
