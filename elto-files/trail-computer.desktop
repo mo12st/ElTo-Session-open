@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=This computer
+Comment=Drives and folders
+Exec=env TRAIL_START=computer quickshell -p /opt/elto-session/elto-files/trail.qml
+Icon=/opt/elto-session/elto-files/icons/drive-internal.svg
+Categories=System;FileManager;
