@@ -37,9 +37,18 @@ Singleton {
         return e !== null && e.real === true
     }
 
-    // the id the shell actually draws
+    // last id already warned about, so a bad world file does not spam the log on every re-evaluation
+    property string _warned: ""
+
+    // the id the shell actually draws; an unknown or not-yet-implemented id warns once and falls back
     function resolve(id) {
-        return root.isReal(id) ? root.entry(id).id : root.fallback
+        var raw = String(id === undefined || id === null ? "" : id).trim().toLowerCase()
+        if (root.isReal(raw)) return raw
+        if (raw !== "" && raw !== root._warned) {
+            root._warned = raw
+            console.log("ELTODOCK unknown or unsupported dock style '" + raw + "', falling back to " + root.fallback)
+        }
+        return root.fallback
     }
 
     function windowFor(id) {

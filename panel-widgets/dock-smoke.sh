@@ -18,8 +18,8 @@ pgrep -f '^kwin_wayland' >/dev/null || { echo KWIN-DIED; tail -30 /tmp/kwin.log;
 export WAYLAND_DISPLAY=wayland-dk
 
 fail=0
-run() { # label, expected resolved variant, options.dock value ("" = key absent)
-  local label="$1" want="$2" val="$3"
+run() { # label, expected resolved variant, options.dock value ("" = key absent), optional log line
+  local label="$1" want="$2" val="$3" warn="${4:-}"
   local ov=/tmp/elto-dock-overlay.json log=/tmp/qs-dock-$label.log
   if [ -n "$val" ]; then printf '{"options":{"dock":"%s"}}' "$val" > "$ov"; else printf '{}' > "$ov"; fi
   ELTO_THEME="$ov" ELTO_WINDOWLIST=/tmp/fake-windowlist quickshell -p /src/panel-widgets/dock-smoke.qml > "$log" 2>&1 &
@@ -27,6 +27,9 @@ run() { # label, expected resolved variant, options.dock value ("" = key absent)
   sleep 12
   if ! kill -0 "$pid" 2>/dev/null; then echo "QUICKSHELL-EXITED ($label)"; cat "$log"; fail=1; fi
   grep -a "ELTODOCK variant $want" "$log" >/dev/null || { echo "WRONG-VARIANT ($label, wanted $want)"; grep -a ELTODOCK "$log"; fail=1; }
+  if [ -n "$warn" ]; then
+    grep -a "$warn" "$log" >/dev/null || { echo "MISSING-WARNING ($label)"; grep -a ELTODOCK "$log"; fail=1; }
+  fi
   # Load failures only. "Unable to assign [undefined]" is pre-existing startup noise: Theme.qml
   # publishes its tokens before the base theme file lands, so every token warns once and then resolves.
   if grep -aE 'is not a type|is not installed|Cannot load|Failed to load|module .* not found|ReferenceError|Cannot read property' "$log"; then
@@ -38,7 +41,7 @@ run() { # label, expected resolved variant, options.dock value ("" = key absent)
 
 run island-absent island ""
 run bar bar bar
-run island-fallback island nonsense
+run island-fallback island nonsense "unknown or unsupported dock style"
 
 echo "== island (absent key)"; cat /tmp/qs-dock-island-absent.log
 echo "== bar"; cat /tmp/qs-dock-bar.log

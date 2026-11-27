@@ -1,9 +1,8 @@
 # Dock variants (shell side)
 
-Status: **CONCEPT, not VM-tested.** Nothing here has run on a real screen yet. What CI does prove is
-that the QML passes `qmllint` and that both variants plus the fallback case load in Quickshell under a
-nested KWin in a container; appearance and behaviour are unproven until the implementer runs the VM plan
-at the bottom.
+Status: **CONCEPT.** L1 only: the QML passes `qmllint` and both variants plus the fallback case load in
+Quickshell under a nested KWin in a container. Nothing has run on a real screen, so appearance and
+behaviour are unproven until the implementer runs the VM plan at the bottom.
 
 Contract: `elto-worlds/HANDOFF.md` section 2 (worlds foundation, PR #36). The overlay key is
 `options.dock`, the only real values are `island` and `bar`, and any other value falls back to
@@ -34,6 +33,15 @@ only), `bottomMargin` (island only), `tile`, `icon`, `gap`, `pad`, `pillWidth`, 
   to it. If the user wants the snail at the end of the bar that is an artistic addition and needs his
   approval first.
 
+## Shared layer, one view per variant
+
+`Dock.qml` is the model and the only place with behaviour: the pinned list from the theme overlay, the
+window list, `openApps`/`activeApp`, `pin`/`unpin`/`entryFor`, and the resolved `style`. Each variant
+file is a `PanelWindow` that draws that model and nothing else: it takes `required property var dock`,
+declares its own `style`, and refuses to show unless `dock.style` matches. Adding a variant never
+touches the model, the window tracking or the theme schema, and both variants share one `dock` theme
+section instead of forking it.
+
 ## How a variant is chosen
 
 ```
@@ -45,8 +53,11 @@ overlay ~/.config/elto/theme.json   options.dock
 
 `DockStyle.resolve()` is the fallback rule from the contract in one place: absent, empty, unknown or
 reserved ids all return `island`, so a world or a hand-edited overlay can never leave the session
-without a dock. Each variant window also refuses to show itself unless `dock.style` matches its own
-id, which is a second lock against a stale instance.
+without a dock. A value that is present but unknown or not implemented warns once in the shell log
+(`ELTODOCK unknown or unsupported dock style '<id>', falling back to island`) and then behaves as
+island. A user-facing warning belongs in the Theme or Control page that owns the picker, not here.
+Each variant window also refuses to show itself unless `dock.style` matches its own id, which is a
+second lock against a stale instance.
 
 Switching is live: the overlay is watched by `Theme.qml`, `Dock.qml` reloads the window on
 `style` change, and a variant swap costs one Loader reload, not a shell restart.
@@ -131,11 +142,13 @@ Environment: the usual ElTo VM with the session running. The bar needs a real wi
    `dock-bar.png` at 1280x720 and at the VM's widest mode.
 3. **Live switch back.** Set `"island"` again. Expect the bar to disappear and the island to come
    back in the same session. Screenshot `dock-back-island.png`.
-4. **Fallback.** Set `"ridge-shelf"` (or `"nonsense"`). Expect island, no error in the shell log, and
-   `ELTODOCKBLUR`-style errors absent. This is the contract's fallback rule.
-5. **Bar contents.** Launch two apps (e.g. Kate, Dolphin): pills appear for both, clicking a pill
-   raises that window, right-clicking a pill opens Pin/Unpin above the strip and the menu is not
-   clipped by the screen edge, left-clicking a pinned icon launches it.
+4. **Fallback.** Set `"ridge-shelf"` (or `"nonsense"`). Expect island, one warning line
+   `ELTODOCK unknown or unsupported dock style ...` in the shell log, and no load error. This is the
+   contract's fallback rule.
+5. **Bar contents, multiple windows.** Launch two apps (e.g. Kate, Dolphin): pills appear for both,
+   clicking a pill raises that window, right-clicking a pill opens Pin/Unpin above the strip and the
+   menu is not clipped by the screen edge, left-clicking a pinned icon launches it. Close one: its
+   pill goes away and the divider disappears with the last pill.
 6. **Overflow.** Open enough windows to pass the screen width. Expect pills to be clipped at the
    right padding, nothing drawn past the strip, no shell error.
 7. **Glass.** Toggle `dock.glass` true in the bar: hairline becomes white, the 1 px border appears,
@@ -143,16 +156,28 @@ Environment: the usual ElTo VM with the session running. The bar needs a real wi
 8. **Blur.** Set `dock.blur: true` in the bar. If `BackgroundEffect` is unavailable, the log shows
    `ELTODOCKBLUR unsupported, plain dock` and the plain bar still appears (this also fixes the old
    island behaviour, which stayed blank after a blur failure).
+9. **Second monitor.** With two outputs attached, expect one bar on each screen, both flush to that
+   screen's bottom edge, both tracking the same window list, and the Pin/Unpin menu opening on the
+   screen where the click happened. Screenshot `dock-bar-dual.png`.
+10. **Fullscreen.** Play a fullscreen window (video or a game window) in both variants. Expect the
+    dock to keep its layer and not steal focus or input outside its own mask; the bar may sit over the
+    fullscreen surface, which is the known `ExclusionMode.Ignore` consequence recorded above. Report
+    what actually happens rather than what looks nicer.
+11. **Restart.** With `options.dock: "bar"`, restart the session shell. Expect the bar to come back as
+    a bar on the first frame, with no island flash, and no load error in the log.
 
 Proof is the screenshots plus a clean shell log. Anything not covered above stays unproven; do not
 merge on the strength of qmllint alone.
 
-## Verification level
+## Verification level (L0 design / L1 sandbox / L2 VM / L3 hardware)
 
-- Written against PR #36's contract (`elto-worlds/HANDOFF.md` section 2).
-- **Proven in CI:** `qmllint` passes on every QML file in the PR (`build, lint, secrets`), and the dock
-  smoke above loads both variants plus the fallback case in Quickshell 0.3.2 under nested KWin.
-- **Not proven:** appearance, layout on a real screen, click behaviour, glass and blur, the live
-  session, the VM, hardware. No screenshots were taken, because nothing was ever on a screen.
-- Nothing was verified on the machine where this was written: no Qt or Quickshell was available there,
-  so CI is the only place this code has run.
+- **L0 design:** this document, written against PR #36's contract (`elto-worlds/HANDOFF.md` 2).
+- **L1 sandbox: reached.** `qmllint` passes on every QML file in the PR (`build, lint, secrets`), and
+  the dock smoke loads both variants plus the fallback case in Quickshell 0.3.2 under nested KWin in
+  the Arch container.
+- **L2 VM: not reached.** Needs the plan above; that is the only place appearance, geometry, clicks,
+  glass, blur, fullscreen and multi-monitor are decided.
+- **L3 hardware: not reached.**
+- No screenshots exist, because nothing here has ever been on a screen. Nothing was run on the machine
+  where this was written either: no Qt or Quickshell was available there, so CI is the only place this
+  code has executed.
