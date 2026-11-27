@@ -27,14 +27,20 @@ def btn(bg, fg, hbg, glyph):
         out += f'<g id="{s}"><rect id="{s}-center" width="30" height="20" rx="10" fill="{col}"/>{glyph(g)}</g>\n'
     return svg(out)
 
-def frame(prefix, top, bg, T=32, B=6, S=6):
+def frame(prefix, top, bg, T=32, B=10, S=10):
+    # soft frame: all four corners rounded (radius S), border S wide. Aurorae stretches each piece
+    # to the border sizes in the rc, so keep S equal to BorderLeft/BorderRight/BorderBottom there.
+    W = S * 2 + 20
     o = f'<g id="{prefix}">\n'
     def r(n, x, y, w, h, f): return f'<rect id="{prefix}-{n}" x="{x}" y="{y}" width="{w}" height="{h}" fill="{f}"/>\n'
     o += f'<path id="{prefix}-topleft" d="M0 {S}A{S} {S} 0 0 1 {S} 0V{T}H0Z" fill="{top}"/>\n'
     o += r("top", S, 0, 20, T, top)
-    o += f'<path id="{prefix}-topright" d="M{S+20} 0A{S} {S} 0 0 1 {S*2+20} {S}V{T}H{S+20}Z" fill="{top}"/>\n'
+    o += f'<path id="{prefix}-topright" d="M{S+20} 0A{S} {S} 0 0 1 {W} {S}V{T}H{S+20}Z" fill="{top}"/>\n'
     o += r("left", 0, T, S, 20, bg) + r("center", S, T, 20, 20, bg) + r("right", S+20, T, S, 20, bg)
-    o += r("bottomleft", 0, T+20, S, B, bg) + r("bottom", S, T+20, 20, B, bg) + r("bottomright", S+20, T+20, S, B, bg)
+    y = T + 20
+    o += f'<path id="{prefix}-bottomleft" d="M0 {y}H{S}V{y+B}H{S}A{S} {S} 0 0 1 0 {y+B-S}Z" fill="{bg}"/>\n'
+    o += r("bottom", S, y, 20, B, bg)
+    o += f'<path id="{prefix}-bottomright" d="M{S+20} {y}H{W}V{y+B-S}A{S} {S} 0 0 1 {S+20} {y+B}Z" fill="{bg}"/>\n'
     return o + "</g>\n"
 
 def aurorae(d):
@@ -47,7 +53,7 @@ def aurorae(d):
          "minimize.svg": btn(c["btnYellow"], c["green"], c["btnYellowHover"], mini),
          "maximize.svg": btn(c["btnGreen"], c["green"], c["btnGreenHover"], maxi),
          "restore.svg": btn(c["btnGreen"], c["green"], c["btnGreenHover"], rest),
-         "decoration.svg": svg(frame("decoration", c["cream"], c["green"]) + frame("decoration-inactive", c["creamDark"], c["inactiveFrame"]), 32, 58)}
+         "decoration.svg": svg(frame("decoration", c["cream"], c["creamDark"]) + frame("decoration-inactive", c["creamDark"], c["inactiveBg"]), 40, 62)}
     for n, s in F.items():
         open(os.path.join(d, n), "w").write(s)
     rc = os.path.join(d, "ElToClassicrc")

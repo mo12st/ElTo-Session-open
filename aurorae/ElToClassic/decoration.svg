@@ -1,24 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="58" viewBox="0 0 32 58">
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="62" viewBox="0 0 40 62">
 <g id="decoration">
-<path id="decoration-topleft" d="M0 6A6 6 0 0 1 6 0V32H0Z" fill="#f6f1e4"/>
-<rect id="decoration-top" x="6" y="0" width="20" height="32" fill="#f6f1e4"/>
-<path id="decoration-topright" d="M26 0A6 6 0 0 1 32 6V32H26Z" fill="#f6f1e4"/>
-<rect id="decoration-left" x="0" y="32" width="6" height="20" fill="#283a32"/>
-<rect id="decoration-center" x="6" y="32" width="20" height="20" fill="#283a32"/>
-<rect id="decoration-right" x="26" y="32" width="6" height="20" fill="#283a32"/>
-<rect id="decoration-bottomleft" x="0" y="52" width="6" height="6" fill="#283a32"/>
-<rect id="decoration-bottom" x="6" y="52" width="20" height="6" fill="#283a32"/>
-<rect id="decoration-bottomright" x="26" y="52" width="6" height="6" fill="#283a32"/>
+<path id="decoration-topleft" d="M0 10A10 10 0 0 1 10 0V32H0Z" fill="#f6f1e4"/>
+<rect id="decoration-top" x="10" y="0" width="20" height="32" fill="#f6f1e4"/>
+<path id="decoration-topright" d="M30 0A10 10 0 0 1 40 10V32H30Z" fill="#f6f1e4"/>
+<rect id="decoration-left" x="0" y="32" width="10" height="20" fill="#efe9d8"/>
+<rect id="decoration-center" x="10" y="32" width="20" height="20" fill="#efe9d8"/>
+<rect id="decoration-right" x="30" y="32" width="10" height="20" fill="#efe9d8"/>
+<path id="decoration-bottomleft" d="M0 52H10V62H10A10 10 0 0 1 0 52Z" fill="#efe9d8"/>
+<rect id="decoration-bottom" x="10" y="52" width="20" height="10" fill="#efe9d8"/>
+<path id="decoration-bottomright" d="M30 52H40V52A10 10 0 0 1 30 62Z" fill="#efe9d8"/>
 </g>
 <g id="decoration-inactive">
-<path id="decoration-inactive-topleft" d="M0 6A6 6 0 0 1 6 0V32H0Z" fill="#efe9d8"/>
-<rect id="decoration-inactive-top" x="6" y="0" width="20" height="32" fill="#efe9d8"/>
-<path id="decoration-inactive-topright" d="M26 0A6 6 0 0 1 32 6V32H26Z" fill="#efe9d8"/>
-<rect id="decoration-inactive-left" x="0" y="32" width="6" height="20" fill="#7d8c84"/>
-<rect id="decoration-inactive-center" x="6" y="32" width="20" height="20" fill="#7d8c84"/>
-<rect id="decoration-inactive-right" x="26" y="32" width="6" height="20" fill="#7d8c84"/>
-<rect id="decoration-inactive-bottomleft" x="0" y="52" width="6" height="6" fill="#7d8c84"/>
-<rect id="decoration-inactive-bottom" x="6" y="52" width="20" height="6" fill="#7d8c84"/>
-<rect id="decoration-inactive-bottomright" x="26" y="52" width="6" height="6" fill="#7d8c84"/>
+<path id="decoration-inactive-topleft" d="M0 10A10 10 0 0 1 10 0V32H0Z" fill="#efe9d8"/>
+<rect id="decoration-inactive-top" x="10" y="0" width="20" height="32" fill="#efe9d8"/>
+<path id="decoration-inactive-topright" d="M30 0A10 10 0 0 1 40 10V32H30Z" fill="#efe9d8"/>
+<rect id="decoration-inactive-left" x="0" y="32" width="10" height="20" fill="#e0d9c4"/>
+<rect id="decoration-inactive-center" x="10" y="32" width="20" height="20" fill="#e0d9c4"/>
+<rect id="decoration-inactive-right" x="30" y="32" width="10" height="20" fill="#e0d9c4"/>
+<path id="decoration-inactive-bottomleft" d="M0 52H10V62H10A10 10 0 0 1 0 52Z" fill="#e0d9c4"/>
+<rect id="decoration-inactive-bottom" x="10" y="52" width="20" height="10" fill="#e0d9c4"/>
+<path id="decoration-inactive-bottomright" d="M30 52H40V52A10 10 0 0 1 30 62Z" fill="#e0d9c4"/>
 </g>
 </svg>

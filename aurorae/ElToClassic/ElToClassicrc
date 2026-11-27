@@ -10,20 +10,20 @@ RightButtons=IAX
 Shadow=false
 
 [Layout]
-BorderLeft=6
-BorderRight=6
-BorderBottom=6
+BorderLeft=10
+BorderRight=10
+BorderBottom=10
 BorderTop=0
 TitleEdgeTop=0
 TitleEdgeBottom=0
-TitleEdgeLeft=6
-TitleEdgeRight=6
+TitleEdgeLeft=10
+TitleEdgeRight=10
 TitleEdgeTopMaximized=0
 TitleEdgeBottomMaximized=0
 TitleEdgeLeftMaximized=0
 TitleEdgeRightMaximized=0
-TitleBorderLeft=6
-TitleBorderRight=6
+TitleBorderLeft=10
+TitleBorderRight=10
 TitleHeight=32
 ButtonWidth=30
 ButtonHeight=20
