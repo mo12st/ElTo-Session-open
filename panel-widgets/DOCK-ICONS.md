@@ -8,21 +8,28 @@ rounds happened and none shipped:
 2. Three treatments (A ink-over-wash, B palette colour, C paper wash). Rejected.
 3. Three Apple-shaped tile directions on Phosphor Fill symbols (D paper plate, E ink plate, F palette
    plates). **Rejected too: the flat glyph on a tile is the problem.**
-4. Now three illustrated rounds, G / H / I, where every icon is a drawn object with layers, gradients,
-   highlights and depth instead of a glyph sitting on a plate. **He picks one, or asks for something
+4. Three illustrated directions (G / H / I) where each icon is a drawn object with layers, gradients and
+   depth. **Rejected as well.**
+5. Now a written spec plus two concepts built strictly to it: see `DOCK-ICON-SPEC.md` (grid, keylines,
+   one light direction, one depth step, corner scale, palette with measured contrast floors, metaphor,
+   legibility gate at 22 and 30 px). Concepts 1 (paper plate) and 2 (ink plate) differ only in the
+   value structure; the geometry, light and depth are identical. **He picks one, or asks for something
    else, before any file changes.**
 
 The brief, as relayed: Apple-style dimensional icons, layered shapes, soft gradients, highlights and
 depth, each drawn originally in the ElTo palette with the snail and paper identity. Self-drawn, free
 licences only, no Apple assets, no paid tools.
 
-## The three directions
+## The two concepts on the table
 
-| # | direction | what it is |
+| # | concept | what it is |
 | --- | --- | --- |
-| G | paper plate | cream squircle; each object in full ElTo colour (ochre folder, ink terminal, rust notebook, sage image, ink gear, paper palette, ink window, rust clock) with its own soft shadow inside the plate |
-| H | ink plate | deep ink squircle; the same objects in paper and sage so they read as lit objects on a dark desk |
-| I | cut paper | no plate at all: the object is a paper cut-out with a drawn ink edge and a cast shadow, sitting straight on the bar |
+| 1 | paper plate | cream squircle, ink object, rust and sage details |
+| 2 | ink plate | ink squircle, paper object, rust and sage details |
+
+Both follow `DOCK-ICON-SPEC.md` exactly: same grid, same 58-unit live area, same corner scale, same light,
+same 4-unit depth step, same three-shape budget, same measured contrast floors. Only the value structure
+differs, so the choice is about palette, not about drawing.
 
 Every icon is drawn here as SVG (100x100 viewBox, gradients and layered paths), then composited at
 render time for the object's soft shadow, the plate's top gloss and bottom shade, and a faint embossed
