@@ -58,36 +58,8 @@ ShellRoot {
                     renderType: Text.NativeRendering
                 }
 
-                // language switch (writes control.json, every string rebinds live)
-                Row {
-                    x: 20; y: 64; spacing: 6
-                    Repeater {
-                        model: [{ code: "en", label: "EN" }, { code: "ar", label: "ع" }]
-                        Rectangle {
-                            required property var modelData
-                            readonly property bool cur: I18n.lang === modelData.code
-                            width: 40; height: 28; radius: 14
-                            color: cur ? Theme.selection : "transparent"
-                            border.width: cur ? 0 : 1
-                            border.color: Theme.divider
-                            Text {
-                                anchors.centerIn: parent
-                                text: modelData.label
-                                color: Theme.text
-                                font.family: Theme.sans
-                                font.pixelSize: 13
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: Settings.set("language", modelData.code)
-                            }
-                        }
-                    }
-                }
-
                 Column {
-                    x: 12; y: 110; spacing: 4
+                    x: 12; y: 72; spacing: 4
                     width: side.width - 24
                     Repeater {
                         model: app.pages
