@@ -7,6 +7,7 @@ Item {
     readonly property var th: app.theme
     onVisibleChanged: if (visible) app.refreshDrives()
 
+    readonly property real cardScale: 0.84
     readonly property var folders: ["Documents", "Downloads", "Pictures", "Music", "Videos"]
     readonly property var words: ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
     function word(n) { return n < words.length ? words[n] : String(n) }
@@ -79,7 +80,7 @@ Item {
             Text { id: dHead; y: 236; text: "Drives"; color: th.text; font.family: th.serif; font.italic: true; font.pixelSize: 18 }
             Rectangle { y: 246; x: 60; width: parent.width - 60; height: 1; color: th.divider }
             Flickable {
-                y: 266; width: parent.width; height: 160
+                y: 266; width: parent.width; height: 140
                 contentWidth: dRow.width; contentHeight: height; clip: true
                 boundsBehavior: Flickable.StopAtBounds
                 Row {
@@ -87,12 +88,17 @@ Item {
                     spacing: 14
                     Repeater {
                         model: app.drives
+                        Item {
+                            id: wrap
+                            required property var modelData
+                            width: card.width * page.cardScale; height: card.height * page.cardScale
                         Rectangle {
                             id: card
-                            required property var modelData
+                            property var modelData: wrap.modelData
+                            scale: page.cardScale; transformOrigin: Item.TopLeft
                             readonly property int pc: page.pct(modelData)
                             readonly property color tone: pc >= 85 ? th.accent : th.textMuted
-                            width: Math.max(160, (page.width - 28) / 3); height: 156; radius: 16
+                            width: Math.max(170, (page.width - 28) / 3 / page.cardScale - 6); height: 156; radius: 16
                             color: Qt.lighter(th.surface, 1.35)
                             border.width: 1; border.color: Qt.rgba(0, 0, 0, 0.05)
                             Canvas {          // dashed inner outline
@@ -164,6 +170,7 @@ Item {
                                 anchors.fill: parent; z: -1; cursorShape: Qt.PointingHandCursor
                                 onClicked: app.openPath(card.modelData.mount)
                             }
+                        }
                         }
                     }
                 }
