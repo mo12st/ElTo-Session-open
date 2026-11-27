@@ -135,14 +135,17 @@ ShellRoot {
 
             // Themes page: the implementer's own component (panel-widgets/ThemesPage.qml,
             // VM-proven in Customize), embedded whole. It draws its own header at the same
-            // metrics as ours. Its UI strings are English-only for now; localizing them means
-            // editing the implementer's file, tracked as a follow-up.
+            // metrics as ours, shifted down by a 56px strip that reserves room for the
+            // Import world bundle button: a bottom placement was covered by the dock in the
+            // VM test, so the button lives in this top strip where nothing can cover it.
+            // Its UI strings are English-only for now; localizing them means editing the
+            // implementer's file, tracked as a follow-up.
             ThemesPage {
                 visible: app.current === "themes"
                 x: side.width
-                y: 0
+                y: 56
                 width: parent.width - side.width
-                height: parent.height
+                height: parent.height - 56
             }
 
             // ---- import a world bundle (.elworld) from the themes page.
@@ -182,7 +185,7 @@ ShellRoot {
             ElButton {
                 visible: app.current === "themes"
                 x: side.width + 28
-                y: parent.height - 48
+                y: 12
                 text: I18n.t("importBundle")
                 onClicked: bundlePanel.visible = !bundlePanel.visible
             }
@@ -192,7 +195,7 @@ ShellRoot {
                 visible: false
                 z: 20
                 x: side.width + 28
-                y: parent.height - 48 - 116
+                y: 56
                 width: 540
                 height: 108
                 radius: Theme.radiusCard
