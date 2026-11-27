@@ -24,12 +24,20 @@ confirms `usr/bin/pkgcli` is the sole binary (archlinux.org, 2026-11-27).
    Second VM run: search/info/not-found/usage confirmed working; two bugs
    found and fixed: (a) install failed as `transaction-failed` "user
    declined simulation" because pkgcli simulates and confirms on stdin
-   unless `-y` (`pkgc-context.c pkgc_context_apply_settings`, lines
-   ~210-227: simulate = !noninteractive, interactive = !noninteractive);
-   install/remove now pass `-y`, which leaves `only-trusted` and polkit
-   untouched; (b) search returns installed entries with repo `installed`,
-   so results now carry `install_id` (null for installed entries) and
-   install of an installed id is an idempotent already-installed no-op.
+   (`pkgc-context.c pkgc_context_apply_settings`, lines ~210-227: simulate
+   = !noninteractive, interactive = !noninteractive); (b) search returns
+   installed entries with repo `installed`, so results now carry
+   `install_id` (null for installed entries) and install of an installed
+   id is an idempotent already-installed no-op.
+   Third VM run (polkit PR #55): the interim `-y` fix for (a) also set the
+   transaction's interactive flag to 0, so the daemon ran the polkit check
+   without ALLOW_USER_INTERACTION and install/remove failed instantly with
+   "Failed to obtain authentication". Fixed: no `-y` anywhere; pkgcli stays
+   interactive and the helper pre-writes a fixed block of "y" lines to
+   stdin that answer only pkgcli's own simulation confirmation. The real
+   transaction is still polkit-authenticated through the session agent,
+   `only-trusted` stays on, and prompts past the buffer read EOF and
+   decline, so unprivileged users still fail closed.
 4. **Remaining formats modeled on PackageKit v1.4.1 source**, fetched
    2026-11-27 from github.com/hughsie/PackageKit (tag v1.4.1):
    - JSON package object fields: `client/pkgc-util.c`
@@ -53,7 +61,8 @@ confirms `usr/bin/pkgcli` is the sole binary (archlinux.org, 2026-11-27).
    - full package IDs skip interactive resolution
      (`pk_package_id_check`): `pkgc-util.c` `pkgc_resolve_package()`
      (lines ~1104-1120); the multiple-match path prompts via scanf on
-     stdin, which is why stdin is closed and bare names are refused;
+     stdin, which our pre-written "y" lines cannot answer, so bare names
+     are refused before pkgcli runs;
    - SIGINT cancels the transaction via the cancellable:
      `client/pkgcli.c` `pkc_handle_sigint()` (lines ~42-56);
    - backend selftest object: `client/pkgc-query.c` `pkgc_backend_info()`
@@ -89,10 +98,13 @@ confirms `usr/bin/pkgcli` is the sole binary (archlinux.org, 2026-11-27).
    description, license, sizes, url. Record whether `_source` is `json` or
    `plain` (see the `show --json` note above).
 5. `./elto-discovery install <full-id of a small package, e.g. sl>` as the
-   regular session user. Expect no more "user declined simulation": `-y`
-   skips pkgcli's own confirmation. Record exactly what polkit does:
-   allowed without prompt, prompted (which agent answered?), or denied.
-   Decision input for the Core track (polkit agent/rule in the session).
+   regular session user, with the PR #55 polkit setup applied. Expect the
+   simulation confirmation to be answered by the helper (no "user declined
+   simulation", no hang) and the polkit auth dialog from the session agent
+   to appear; after authenticating, the install succeeds. Also record the
+   wrong-password and cancel paths: they must fail closed, with
+   "Failed to obtain authentication" (pkgcli exit 5) mapped to the
+   `transaction-failed` error code and the polkit message preserved.
 5b. `./elto-discovery search firefox` entries with status `installed`
    (after step 5) must have `install_id: null`; installing an installed id
    returns ok with note `already-installed`.
