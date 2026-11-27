@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=ElTo Welcome (first run)
+Comment=Shows the ElTo welcome tour once per major version
+Exec=/opt/elto-session/welcome/elto-welcome-autostart.sh
+OnlyShowIn=KDE;
+NoDisplay=true
