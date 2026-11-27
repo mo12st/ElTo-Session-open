@@ -107,7 +107,7 @@ PanelWindow {
                 font.family: Theme.sans; font.pixelSize: 15; font.bold: true
                 color: Theme.text
                 focus: true
-                onAccepted: { if (win.flow && text.length > 0) win.flow.submit(text) }
+                onAccepted: { if (win.flow && text.length > 0) { console.warn('POLKITFLOW submit len=' + text.length + ' respReq=' + win.flow.isResponseRequired); win.flow.submit(text) } }
             }
 
             SequentialAnimation {
@@ -145,7 +145,11 @@ PanelWindow {
 
     Connections {
         target: win.flow
+        function onIsCompletedChanged() { console.warn("POLKITFLOW completed=" + win.flow.isCompleted + " ok=" + win.flow.isSuccessful + " cancelled=" + win.flow.isCancelled) }
+        function onIsResponseRequiredChanged() { console.warn("POLKITFLOW responseRequired=" + win.flow.isResponseRequired + " prompt=" + win.flow.inputPrompt) }
+        function onSupplementaryMessageChanged() { console.warn("POLKITFLOW supp=" + win.flow.supplementaryMessage + " err=" + win.flow.supplementaryIsError) }
         function onAuthenticationFailed() {
+            console.warn("POLKITFLOW authenticationFailed")
             failedHint.visible = true
             pw.text = ""
             pw.forceActiveFocus()
