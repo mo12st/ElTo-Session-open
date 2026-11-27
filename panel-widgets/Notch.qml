@@ -97,12 +97,18 @@ Scope {
                 onHoveredChanged: {
                     if (hovered) {
                         closer.stop(); hideT.stop()
-                        if (win.shown || win.baseShown) { win.revealed = true; root.open = true }
-                        else if (root.mode === "auto-hide") win.revealed = true
+                        // only auto-hide tracks "revealed"; in show mode a hover must not leave it set
+                        if (root.mode === "auto-hide") win.revealed = true
+                        if (win.shown) root.open = true
                     } else { closer.restart(); hideT.restart() }
                 }
             }
             onShownChanged: if (!shown) root.open = false
+
+            // tuck away on start and on every mode change (stale reveal state from show mode must not survive)
+            function tuck() { revealed = false; hideT.stop(); if (!hh.hovered) root.open = false }
+            Component.onCompleted: tuck()
+            Connections { target: root; function onModeChanged() { win.tuck() } }
 
             // thin hot zone at the top edge, only active while auto-hide has the notch tucked away
             Item {
