@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://elto.local/world.schema.json",
   "title": "ElTo World",
-  "description": "One ElTo world: a complete theme package from bootloader to mouse cursor. Extends the shell theme.json format (version 1) with optional per-layer sections. Every layer section is optional; a missing layer stays at its default.",
+  "description": "One ElTo world: a complete theme package from bootloader to mouse cursor, with real character (wallpaper sets, sounds, dock variants, notch modes). Extends the shell theme.json format (version 1/2). schema_version 3 is the versioned contract: worlds without schema_version are treated as schema 2. Every layer section is optional; a missing layer stays at its default, and the shell must ignore values it does not implement.",
   "type": "object",
   "required": ["name", "label", "version", "colors", "roles"],
   "additionalProperties": false,
@@ -10,31 +10,82 @@
     "name": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9-]*$",
-      "description": "World id, matches the directory name under elto-worlds/."
+      "description": "World slug, matches the directory name under elto-worlds/worlds/."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "Stable world id. Required at schema_version 3; should equal name. Used for the installed package, the sound theme and bundle identity."
     },
     "label": { "type": "string", "description": "Human name shown in the Themes page." },
-    "version": { "const": 2, "description": "2 = world format. Version 1 files (shell-only theme.json) are still accepted by the shell." },
+    "version": { "const": 2, "description": "2 = world format (kept for the v1/v2 tooling). The versioned contract is schema_version." },
+    "schema_version": { "const": 3, "description": "3 = versioned world schema: id, defaults, asset lists, sounds, compatibility. Absent means schema 2." },
     "description": { "type": "string" },
     "author": { "type": "string" },
     "license": { "type": "string", "description": "License of the world definition itself." },
-    "assetsLicense": { "type": "string", "description": "License of bundled art. Every asset must also appear in the world directory CREDITS file." },
+    "assetsLicense": { "type": "string", "description": "Fallback license of bundled art; per-asset licenses live in the assets manifest." },
+    "identity": {
+      "type": "object",
+      "description": "World character: a one-line story and a signature detail that makes the world distinct.",
+      "additionalProperties": false,
+      "properties": {
+        "story": { "type": "string" },
+        "signature": { "type": "string" }
+      }
+    },
+    "compatible": {
+      "type": "object",
+      "description": "Versions this world expects. Free-form level strings; the tool warns instead of failing on a mismatch.",
+      "additionalProperties": false,
+      "properties": {
+        "shell": { "type": "string", "description": "ElTo shell feature level, e.g. '1'." },
+        "tool": { "type": "string", "description": "Minimum elto-world tool schema, e.g. '3'." }
+      }
+    },
+    "defaults": {
+      "type": "object",
+      "description": "World defaults applied on apply/reset. User overrides live in ~/.config/elto/theme.json and win until 'elto-world reset' restores these.",
+      "additionalProperties": false,
+      "properties": {
+        "wallpaper": { "$ref": "#/$defs/asset", "description": "Default wallpaper from the world's set." },
+        "dock": { "type": "string", "description": "Dock variant: 'island' (implemented), 'bar' (next), more later. Unknown values fall back to island." },
+        "notch": { "type": "string", "description": "Notch style, e.g. 'clock'." },
+        "notchMode": { "type": "string", "description": "Known values: show (default), hidden, auto-hide (collapsed strip that reveals on hover after a short delay). Unknown values warn visibly and fall back to show, per the approved review; they are not hard errors." },
+        "notchAutoHideMs": { "type": "integer", "minimum": 0, "maximum": 5000, "description": "Reveal delay for auto-hide, milliseconds." },
+        "notchRespectFullscreen": { "type": "boolean", "description": "Stay hidden while a window is fullscreen." },
+        "sounds": { "type": "boolean", "description": "World sounds on by default. User can disable; never forced." }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "description": "Asset manifest. sha256/bytes are required inside .elworld bundles, optional while the world lives in git (assets pending).",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind", "license"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "$ref": "#/$defs/asset" },
+          "kind": { "type": "string", "description": "wallpaper, sound, greeter, boot, cursor, icon, preview, other." },
+          "license": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "bytes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
 
     "colors": {
       "type": "object",
-      "description": "Palette tokens. Same semantics as theme.json v1.",
       "additionalProperties": { "$ref": "#/$defs/hex" },
       "minProperties": 1
     },
     "roles": {
       "type": "object",
-      "description": "Role -> palette token mapping. Same semantics as theme.json v1.",
       "additionalProperties": { "type": "string" },
       "required": ["surface", "surfaceAlt", "text", "textMuted", "accent", "selection", "divider", "disabled"]
     },
-    "shape": { "type": "object", "description": "Radii, shadows, grain. Unchanged from theme.json v1." },
+    "shape": { "type": "object" },
     "fonts": {
       "type": "object",
-      "description": "Font family names. Unchanged from theme.json v1.",
       "properties": {
         "serif": { "type": "string" },
         "serifItalic": { "type": "string" },
@@ -44,136 +95,148 @@
     },
     "icons": {
       "type": "object",
-      "description": "Shell icon set (unchanged) plus the system icon theme choice.",
       "properties": {
-        "set": { "type": "string", "description": "Shell glyph set, e.g. lucide." },
+        "set": { "type": "string" },
         "strokeWidth": { "type": "number" },
         "size": { "type": "integer" },
-        "systemTheme": { "type": "string", "description": "Installed icon theme name for KDE apps. Default breeze (recolors from the color scheme).", "default": "breeze" }
+        "systemTheme": { "type": "string", "default": "breeze" }
       }
     },
-    "options": { "type": "object", "description": "Shell options (dock style, notch, wallpaper, motion). Unchanged from theme.json v1." },
+    "options": {
+      "type": "object",
+      "description": "Shell options. Unchanged v1 keys plus wallpapers (the world's wallpaper set).",
+      "properties": {
+        "wallpapers": {
+          "type": "array",
+          "description": "The world's wallpaper set as {path, label} objects, paths under assets/wallpapers/. options.wallpaper stays the active pick for the v1 shell. Plain-string entries fall back to {path: entry} with a warning.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": { "$ref": "#/$defs/asset" },
+              "label": { "type": "string", "description": "Picker display name." }
+            }
+          }
+        }
+      }
+    },
     "notch": { "type": "object" },
     "dock": { "type": "object" },
     "drawer": { "type": "object" },
-
-    "layout": {
+    "sounds": {
       "type": "object",
-      "description": "World behavior and arrangement, not recolor (per the concept art: each world differs in layout and behavior). Values are strings the shell defines and implements; the shell must ignore values it does not know and fall back to the default layout, so a world file never breaks the session. These fields declare intent only - shell support per value is tracked in the Worlds gap report and is the implementer's domain.",
+      "description": "Freedesktop-style sound theme: short wav files per event, played in-process by the shell (no process spawned per event), always disableable.",
       "additionalProperties": false,
       "properties": {
-        "bar": { "type": "string", "description": "Primary bar arrangement. Seen in the art: 'notch-island' (current default), 'top-bar', 'bottom-taskbar', 'bottom-console', 'bottom-tasks'" },
-        "rail": { "type": "string", "description": "Side rail: 'none' (default), 'left' (aero habitat rail, retro95 project shelf), 'right' (y2k command rail)" },
-        "launcher": { "type": "string", "description": "Launcher style: 'drawer' (default), 'cascading-menu' (retro95), 'capsules' (retroaero), 'keyboard-index' (y2k)" },
-        "windowControls": { "type": "string", "description": "Titlebar button placement: 'right' (default), 'close-left' (retroaero), 'menu-left-close-right' (aero), 'menu-left-square-right' (retro95), 'left-close-right' (y2k)" },
-        "motionProfile": { "type": "string", "description": "Motion target: 'soft' (default), 'immediate-stepped' (retro95), 'linear' (y2k), 'dissolve' (aero), 'glossy-pulse' (retroaero), 'off'" }
+        "enabled": { "type": "boolean", "default": true },
+        "events": {
+          "type": "object",
+          "description": "Event -> wav asset. Known events: session-start, session-end, notification, drawer-open, drawer-close, lock, unlock, error, wallpaper-change.",
+          "additionalProperties": { "type": "string", "pattern": "^assets/.*\\.wav$" }
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "description": "World behavior and arrangement, not recolor. Declarative: the shell ignores values it does not know and falls back to its default layout.",
+      "additionalProperties": false,
+      "properties": {
+        "bar": { "type": "string" },
+        "rail": { "type": "string" },
+        "launcher": { "type": "string" },
+        "windowControls": { "type": "string" },
+        "motionProfile": { "type": "string" }
       }
     },
 
     "kde": {
       "type": "object",
-      "description": "KDE applications layer.",
       "additionalProperties": false,
       "properties": {
         "colorscheme": {
           "type": "object",
-          "description": "Generate a .colors file from colors+roles and apply with plasma-apply-colorscheme.",
           "additionalProperties": false,
           "properties": {
             "generate": { "type": "boolean", "default": true },
-            "schemeName": { "type": "string", "description": "Display name of the generated scheme, e.g. 'ElTo Soft Paper'." }
+            "schemeName": { "type": "string" }
           }
         }
       }
     },
-
     "kvantum": {
       "type": "object",
-      "description": "Optional Kvantum layer. Deferred until the colorscheme-only look is VM-checked.",
       "additionalProperties": false,
       "properties": {
         "enabled": { "type": "boolean", "default": false },
-        "template": { "type": "string", "description": "Template name under elto-worlds/templates/kvantum/." }
+        "template": { "type": "string" }
       }
     },
-
     "cursor": {
       "type": "object",
-      "description": "Mouse cursor layer.",
       "additionalProperties": false,
       "properties": {
-        "theme": { "type": "string", "description": "Installed xcursor theme name. Default breeze_cursors.", "default": "breeze_cursors" },
+        "theme": { "type": "string", "default": "breeze_cursors" },
         "size": { "type": "integer", "default": 24 },
         "custom": {
           "type": "object",
-          "description": "Build an ElTo cursor set from SVG sources with xcursorgen, once art exists.",
           "additionalProperties": false,
           "properties": {
-            "sourceDir": { "type": "string", "description": "Asset-relative dir with cursor SVGs + index.theme manifest." }
+            "sourceDir": { "type": "string" }
           },
           "required": ["sourceDir"]
         }
       }
     },
-
     "aurorae": {
       "type": "object",
-      "description": "Window titlebar: per-world variant generated from the ElToClassic template.",
       "additionalProperties": false,
       "properties": {
         "template": { "type": "string", "default": "ElToClassic" },
-        "frame": { "$ref": "#/$defs/colorRef", "description": "Frame color: palette token or #hex." },
+        "frame": { "$ref": "#/$defs/colorRef" },
         "frameInactive": { "$ref": "#/$defs/colorRef" },
-        "title": { "$ref": "#/$defs/colorRef", "description": "Title text color." }
+        "title": { "$ref": "#/$defs/colorRef" }
       }
     },
-
     "sddm": {
       "type": "object",
-      "description": "Login screen. Applied system-wide by elto-world install-system.",
       "additionalProperties": false,
       "properties": {
-        "theme": { "type": "string", "default": "elto-classic", "description": "QML theme base from the sddm spike." },
-        "layout": { "type": "string", "description": "Greeter arrangement. Seen in the art: 'card-center' (aero, classic, flow, mono), 'card-left' (retro95), 'dialog-center' (faithful), 'terminal' (unix, y2k), 'pill-center' (retroaero). The QML theme must ignore unknown layouts and use its default." },
-        "background": { "$ref": "#/$defs/asset", "description": "Background image, asset-relative path." },
+        "theme": { "type": "string", "default": "elto-classic" },
+        "layout": { "type": "string" },
+        "background": { "$ref": "#/$defs/asset" },
         "backgroundColor": { "$ref": "#/$defs/colorRef" },
         "accentColor": { "$ref": "#/$defs/colorRef" }
       }
     },
-
     "lock": {
       "type": "object",
-      "description": "Lock screen package.",
       "additionalProperties": false,
       "properties": {
-        "layout": { "type": "string", "description": "Same layout vocabulary as sddm.layout; defaults to the world's sddm layout when absent." },
-        "background": { "$ref": "#/$defs/asset", "description": "Defaults to the sddm background when absent." },
+        "layout": { "type": "string" },
+        "background": { "$ref": "#/$defs/asset" },
         "backgroundColor": { "$ref": "#/$defs/colorRef" },
         "accentColor": { "$ref": "#/$defs/colorRef" }
       }
     },
-
     "plymouth": {
       "type": "object",
-      "description": "Boot splash. Root layer, Phase 3, applied only by install-system after explicit approval.",
       "additionalProperties": false,
       "properties": {
         "enabled": { "type": "boolean", "default": false },
         "background": { "$ref": "#/$defs/asset" },
         "backgroundColor": { "$ref": "#/$defs/colorRef" },
-        "snail": { "$ref": "#/$defs/asset", "description": "Center emblem." },
-        "spinnerFrames": { "type": "string", "description": "Asset-relative glob, e.g. assets/plymouth/spinner-*.png. Keep frames few." }
+        "snail": { "$ref": "#/$defs/asset" },
+        "spinnerFrames": { "type": "string" }
       }
     },
-
     "grub": {
       "type": "object",
-      "description": "Bootloader menu theme. Root layer, Phase 3. Only when ElTo-OS boots with GRUB.",
       "additionalProperties": false,
       "properties": {
         "enabled": { "type": "boolean", "default": false },
         "background": { "$ref": "#/$defs/asset" },
-        "font": { "type": "string", "description": "Font family converted with grub-mkfont." },
+        "font": { "type": "string" },
         "itemColor": { "$ref": "#/$defs/colorRef" },
         "selectedColor": { "$ref": "#/$defs/colorRef" },
         "selectedBackground": { "$ref": "#/$defs/colorRef" }
