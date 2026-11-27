@@ -1,6 +1,6 @@
 // Trail: ElTo file browser (v1) and the "This computer" page, as standalone Quickshell windows.
 // Run: quickshell -p elto-files/trail.qml
-// Start page: TRAIL_START=computer | an absolute folder path | (unset: home folder).
+// Start page: TRAIL_START=computer (This computer page) | an absolute folder path | (unset: home folder).
 // v1 scope: browse, open (xdg-open), sidebar, breadcrumb, back/forward, drive cards with Eject.
 // File operations (copy, move, delete, network) come later through KDE KIO, not copied Dolphin code.
 // Theme is read like the welcome app: themes/soft-paper/theme.json + the user overlay, read-only.
@@ -14,8 +14,7 @@ ShellRoot {
     readonly property string home: Quickshell.env("HOME")
     readonly property string helper: Quickshell.shellPath("trail-helper.py")
     readonly property string start: Quickshell.env("TRAIL_START") || ""
-    property bool trailVisible: start !== "computer"
-    property bool computerVisible: start === "computer"
+    property bool trailVisible: true
     property string trailGoto: start.indexOf("/") === 0 ? start : home
     property int gotoSerial: 0
     property var drives: []
@@ -71,7 +70,6 @@ ShellRoot {
         trailGoto = p; gotoSerial++; trailVisible = true
     }
     function openFile(p) { Quickshell.execDetached(["xdg-open", p]) }
-    function showComputer() { computerVisible = true; refreshDrives() }
     function refreshDrives() { drivesProc.running = true; refreshCounts() }
     function refreshCounts() {
         var names = ["Documents", "Downloads", "Pictures", "Music", "Videos"]
@@ -79,9 +77,7 @@ ShellRoot {
         countsProc.running = true
     }
     function eject(dev) { if (dev) { ejectProc.command = ["python3", helper, "eject", dev]; ejectProc.running = true } }
-    function maybeQuit() { if (!trailVisible && !computerVisible) Qt.quit() }
-    onTrailVisibleChanged: maybeQuit()
-    onComputerVisibleChanged: maybeQuit()
+    onTrailVisibleChanged: if (!trailVisible) Qt.quit()
 
     Process {
         id: drivesProc
@@ -96,9 +92,8 @@ ShellRoot {
         id: ejectProc
         stdout: StdioCollector { onStreamFinished: app.refreshDrives() }
     }
-    Timer { interval: 5000; repeat: true; running: app.computerVisible; onTriggered: app.refreshDrives() }
+    Timer { interval: 5000; repeat: true; running: app.trailVisible; onTriggered: app.refreshDrives() }
     Component.onCompleted: refreshDrives()
 
     TrailWindow { app: app }
-    ComputerWindow { app: app }
 }

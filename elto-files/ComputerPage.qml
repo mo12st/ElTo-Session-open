@@ -1,17 +1,11 @@
-// "This computer" page: folder shortcuts and drive cards with usage bars and Eject.
-import Quickshell
+// "This computer" page, shown inside the Trail window: folder shortcuts and drive cards with usage bars and Eject.
 import QtQuick
 
-FloatingWindow {
-    id: win
+Item {
+    id: page
     required property var app
     readonly property var th: app.theme
-    title: "This computer"
-    implicitWidth: 700; implicitHeight: 490
-    minimumSize: Qt.size(660, 470)
-    color: "transparent"
-    visible: app.computerVisible
-    onVisibleChanged: { app.computerVisible = visible; if (visible) app.refreshDrives() }
+    onVisibleChanged: if (visible) app.refreshDrives()
 
     readonly property var folders: ["Documents", "Downloads", "Pictures", "Music", "Videos"]
     readonly property var words: ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
@@ -19,13 +13,8 @@ FloatingWindow {
     function gb(b) { var v = b / 1e9; return (v >= 10 ? Math.round(v) : Math.round(v * 10) / 10) + " GB" }
     function pct(d) { return d.total > 0 ? Math.round(d.used * 100 / d.total) : 0 }
 
-    Rectangle {
+    Item {
         anchors.fill: parent
-        radius: th.radiusWindow; color: th.surface; clip: true
-        border.width: 1; border.color: th.divider
-
-        Item {
-            anchors { fill: parent; leftMargin: 32; rightMargin: 32; topMargin: 22; bottomMargin: 22 }
 
             Text {
                 id: title
@@ -34,7 +23,7 @@ FloatingWindow {
             }
             Text {
                 anchors { right: parent.right; bottom: title.bottom; bottomMargin: 14 }
-                text: win.word(app.drives.length) + " drive" + (app.drives.length === 1 ? "" : "s") + ", " + win.word(win.folders.length) + " folders"
+                text: page.word(app.drives.length) + " drive" + (app.drives.length === 1 ? "" : "s") + ", " + page.word(page.folders.length) + " folders"
                 color: th.textMuted; font.family: th.serif; font.italic: true; font.pixelSize: 13
             }
             // hand-drawn rule with a snail at the end
@@ -62,11 +51,11 @@ FloatingWindow {
                 id: fRow
                 y: 116; width: parent.width
                 Repeater {
-                    model: win.folders
+                    model: page.folders
                     Item {
                         required property string modelData
                         readonly property string p: app.home + "/" + modelData
-                        width: fRow.width / win.folders.length; height: 104
+                        width: fRow.width / page.folders.length; height: 104
                         Image {
                             anchors { top: parent.top; horizontalCenter: parent.horizontalCenter }
                             width: 64; height: 56; source: app.icon("folder")
@@ -101,9 +90,9 @@ FloatingWindow {
                         Rectangle {
                             id: card
                             required property var modelData
-                            readonly property int pc: win.pct(modelData)
+                            readonly property int pc: page.pct(modelData)
                             readonly property color tone: pc >= 85 ? th.accent : th.textMuted
-                            width: 192; height: 156; radius: 16
+                            width: Math.max(160, (page.width - 28) / 3); height: 156; radius: 16
                             color: Qt.lighter(th.surface, 1.35)
                             border.width: 1; border.color: Qt.rgba(0, 0, 0, 0.05)
                             Canvas {          // dashed inner outline
@@ -162,13 +151,13 @@ FloatingWindow {
                             }
                             Text {
                                 x: 16; y: 124
-                                text: win.gb(card.modelData.used) + " of " + win.gb(card.modelData.total) + " used"
+                                text: page.gb(card.modelData.used) + " of " + page.gb(card.modelData.total) + " used"
                                 color: th.text; font.family: th.sans; font.pixelSize: 9; font.weight: Font.Medium
                             }
                             Text {
                                 anchors { right: parent.right; rightMargin: 16 }
                                 y: 123
-                                text: win.gb(card.modelData.free) + " free"
+                                text: page.gb(card.modelData.free) + " free"
                                 color: th.textMuted; font.family: th.serif; font.italic: true; font.pixelSize: 10
                             }
                             MouseArea {
@@ -179,6 +168,5 @@ FloatingWindow {
                     }
                 }
             }
-        }
     }
 }
