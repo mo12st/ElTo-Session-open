@@ -45,6 +45,25 @@ Scope {
 
     SystemClock { id: clk; precision: SystemClock.Minutes }
 
+    // ---- notch modes (options.notchMode: show | hidden | auto-hide, fallback show) ----
+    readonly property string mode: Theme.notchMode
+    // Fullscreen info comes from the elto-windowlist helper (no per-screen data), so it applies to all screens.
+    // The helper is only started when notchRespectFullscreen is on.
+    WindowList { id: wlf; enabled: Theme.notchRespectFullscreen }
+    readonly property bool fsBlock: Theme.notchRespectFullscreen && wlf.fullscreenActive
+    // Keyboard / script fallback: `quickshell ipc call notch reveal|toggle|status`. Always works, even in hidden mode.
+    property bool kbReveal: false
+    Timer { id: kbT; interval: 3000; onTriggered: root.kbReveal = false }
+    IpcHandler {
+        target: "notch"
+        function reveal(): void { root.kbReveal = true; kbT.restart() }
+        function toggle(): void {
+            if (root.open || root.kbReveal) { root.open = false; root.kbReveal = false; kbT.stop() }
+            else { root.kbReveal = true; kbT.stop(); root.open = true }
+        }
+        function status(): string { return root.mode + (root.fsBlock ? " fullscreen-blocked" : "") + (root.kbReveal ? " kb-revealed" : "") }
+    }
+
     Variants {
         model: Quickshell.screens
         PanelWindow {
@@ -58,12 +77,35 @@ Scope {
             implicitWidth: root.dw + 40
             implicitHeight: 460
             color: "transparent"
-            mask: Region { item: card; regions: [ Region { item: mediaHit } ] }
+            mask: Region { item: card; regions: [ Region { item: mediaHit }, Region { item: hot } ] }
+
+            // visible state per screen
+            property bool revealed: false
+            readonly property bool baseShown: root.mode === "show" ? true
+                : root.mode === "hidden" ? false
+                : (revealed || root.open)
+            readonly property bool shown: root.kbReveal || (baseShown && !root.fsBlock)
 
             Timer { id: closer; interval: 260; onTriggered: root.open = false }
+            Timer { id: hideT; interval: Theme.notchAutoHideMs; onTriggered: win.revealed = false }
             HoverHandler {
                 id: hh
-                onHoveredChanged: { if (hovered) { closer.stop(); root.open = true } else closer.restart() }
+                onHoveredChanged: {
+                    if (hovered) {
+                        closer.stop(); hideT.stop()
+                        if (win.shown || win.baseShown) { win.revealed = true; root.open = true }
+                        else if (root.mode === "auto-hide") win.revealed = true
+                    } else { closer.restart(); hideT.restart() }
+                }
+            }
+            onShownChanged: if (!shown) root.open = false
+
+            // thin hot zone at the top edge, only active while auto-hide has the notch tucked away
+            Item {
+                id: hot
+                x: (parent.width - width) / 2; y: 0
+                width: (root.mode === "auto-hide" && !win.shown && !root.fsBlock) ? root.sw + 60 : 0
+                height: width > 0 ? 5 : 0
             }
 
             // soft shadow: stacked translucent rounded shapes
@@ -81,7 +123,8 @@ Scope {
             Rectangle {
                 id: card
                 x: (parent.width - width) / 2
-                y: -30
+                y: win.shown ? -30 : -(height + 50)
+                Behavior on y { NumberAnimation { duration: Theme.ms(root.nt.openMs); easing.type: Easing.OutCubic } }
                 width: root.open ? root.dw : root.sw
                 height: (root.open ? drawer.implicitHeight + 30 : root.nt.idleHeight + 30)
                 radius: root.open ? root.nt.drawerRadius : root.nt.idleHeight / 2 + 2
@@ -214,10 +257,10 @@ Scope {
                 id: mediaHit
                 x: card.x + (card.width - width) / 2
                 y: card.y + card.height + 10
-                width: root.hasPlayer ? 380 : 0
-                height: root.hasPlayer ? root.nt.mediaHeight : 0
+                width: (root.hasPlayer && win.shown) ? 380 : 0
+                height: (root.hasPlayer && win.shown) ? root.nt.mediaHeight : 0
                 Behavior on y { NumberAnimation { duration: Theme.ms(root.nt.openMs); easing.type: Easing.OutCubic } }
-                opacity: root.hasPlayer ? 1 : 0
+                opacity: (root.hasPlayer && win.shown) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: Theme.ms(root.nt.openMs) } }
                 Rectangle {
                     anchors.fill: parent; radius: 24; color: Theme.surface
