@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=ElTo Control
+Name[ar]=تحكم ElTo
+Comment=System and session settings
+Comment[ar]=إعدادات النظام والجلسة
+Exec=elto-control
+Icon=/opt/elto-session/icons/elto-customize.svg
+Categories=Settings;
