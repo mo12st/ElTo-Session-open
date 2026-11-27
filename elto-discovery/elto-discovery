@@ -109,9 +109,15 @@ def pkgcli_env():
     return env
 
 
-def spawn_pkgcli(args):
+def spawn_pkgcli(args, yes=False):
+    # -y marks pkgcli non-interactive: no simulation and no confirmation
+    # prompt (pkgc-context.c pkgc_context_apply_settings: simulate =
+    # !noninteractive, interactive = !noninteractive). Without it an install
+    # ends as "user declined simulation" because we close stdin. only-trusted
+    # stays on and polkit auth is unaffected. Used for install/remove only.
+    argv = [PKGCLI, "--json", "--no-color"] + (["-y"] if yes else []) + args
     return subprocess.Popen(
-        [PKGCLI, "--json", "--no-color"] + args,
+        argv,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         stdin=subprocess.DEVNULL,  # never let pkgcli prompt us on stdin
         env=pkgcli_env(), text=True, errors="replace",
@@ -181,17 +187,23 @@ def package_from_json(obj):
     {"name", "version", "arch", "repo", "state"} -> our result shape."""
     repo = obj.get("repo", "")
     state = obj.get("state", "")
+    pkg_id = ";".join([obj.get("name", ""), obj.get("version", ""),
+                       obj.get("arch", ""), repo])
+    status = ("installed" if state == "installed" or
+              repo.startswith("installed") else state or "unknown")
     return {
-        "id": ";".join([obj.get("name", ""), obj.get("version", ""),
-                        obj.get("arch", ""), repo]),
+        "id": pkg_id,
         "name": obj.get("name", ""),
         "version": obj.get("version", ""),
         "arch": obj.get("arch", ""),
         "repo": repo,
         # state is pk_info_enum_to_string: "available", "installed",
         # "installing", ...; pass through, normalizing the two common ones
-        "status": ("installed" if state == "installed" or
-                   repo.startswith("installed") else state or "unknown"),
+        "status": status,
+        # pkgcli search returns installed entries too (repo "installed").
+        # Only an available entry is installable; the UI must pass
+        # install_id to install, never an installed entry's id.
+        "install_id": pkg_id if status == "available" else None,
     }
 
 
@@ -286,7 +298,13 @@ def cmd_transaction(verb, package_id):
         fail("usage",
              "%s needs a full package id (name;version;arch;data) from a "
              "search result, got: %r" % (verb, package_id), exit_code=2)
-    proc = spawn_pkgcli([verb, package_id])
+    data = package_id.split(";")[3]
+    if verb == "install" and (data.startswith("installed") or data == "local"):
+        # installing an installed entry is a no-op; report the end state
+        emit({"event": "done", "ok": True, "command": verb,
+              "package": package_id, "note": "already-installed"})
+        return
+    proc = spawn_pkgcli([verb, package_id], yes=True)
     errors = []
     try:
         for obj, raw in stream_json_lines(proc):

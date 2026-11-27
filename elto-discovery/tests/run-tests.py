@@ -106,22 +106,22 @@ case "$*" in
   "--json --no-color show nope;1-1;x86_64;extra")
     printf '%s\n' '{"error":"Could not find packages: No packages were found"}'
     exit 1;;
-  "--json --no-color install sl;5.05-3;x86_64;extra") cat <<'EOF'
+  "--json --no-color -y install sl;5.05-3;x86_64;extra") cat <<'EOF'
 @INSTALL_OK_OUT@EOF
     exit 0;;
-  "--json --no-color install installed-pkg;1-1;x86_64;extra")
+  "--json --no-color -y install installed-pkg;1-1;x86_64;extra")
     printf '%s\n' '{"info":"The selected package is already installed."}'
     exit 0;;
-  "--json --no-color install nope;0-1;x86_64;extra")
+  "--json --no-color -y install nope;0-1;x86_64;extra")
     printf '%s\n' '{"error":"@INSTALL_NOT_FOUND_ERR@"}'
     exit 4;;
-  "--json --no-color install bad;1-1;x86_64;extra")
+  "--json --no-color -y install bad;1-1;x86_64;extra")
     printf '%s\n' '{"error":"@INSTALL_CANCELLED_ERR@"}'
     exit 5;;
-  "--json --no-color install denied;1-1;x86_64;extra")
+  "--json --no-color -y install denied;1-1;x86_64;extra")
     printf '%s\n' '{"error":"@INSTALL_AUTH_ERR@"}'
     exit 5;;
-  "--json --no-color remove nope;0-1;x86_64;installed")
+  "--json --no-color -y remove nope;0-1;x86_64;installed")
     printf '%s\n' '{"error":"@REMOVE_NOT_FOUND_ERR@"}'
     exit 1;;
   "--json --no-color backend") cat <<'EOF'
@@ -205,6 +205,11 @@ def main():
           by_name.get("flatpak", {}).get("status") == "installed")
     check("dashed name parsed", by_name.get("lib32-glibc", {}).get("version")
           == "2.40+r123+gc567890-1", repr(by_name.get("lib32-glibc")))
+    check("available entry has install_id",
+          vim.get("install_id") == "vim;9.1.190-1;x86_64;extra", repr(vim))
+    check("installed entry has no install_id",
+          by_name.get("flatpak", {}).get("install_id") is None,
+          repr(by_name.get("flatpak")))
 
     # search: empty
     events, _ = run_helper(env, "search", "zzz-nothing", expect_exit=0)
@@ -283,6 +288,14 @@ def main():
     events, _ = run_helper(env, "install", "sl", expect_exit=2)
     check("bare name refused with usage",
           events[-1]["error"]["code"] == "usage", repr(events[-1]))
+
+    # install: an installed repo id is an idempotent no-op (no pkgcli call:
+    # the stub has no matching pattern and would exit 42)
+    events, _ = run_helper(env, "install", "vim;9.1.190-1;x86_64;installed",
+                           expect_exit=0)
+    check("installed id is already-installed no-op",
+          events[-1]["ok"] is True
+          and events[-1].get("note") == "already-installed", repr(events[-1]))
 
     # selftest against stub
     events, _ = run_helper(env, "selftest", expect_exit=0)
