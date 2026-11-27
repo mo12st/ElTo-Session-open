@@ -1,6 +1,12 @@
 # Dock icons: held, illustrated round as concepts
 
-Status: **held. Nothing implemented, nothing merged.** The dock still draws the shell's Lucide glyphs.
+Status: **held.** No drawn direction from the rounds below shipped. The dock draws the shell's Lucide
+glyphs, except for a temporary set of real GNOME app icons now applied for judging (see below).
+
+Temporary: `icons/dock/gnome/` holds eight real GNOME app icons, unmodified, wired through two theme keys
+(`dock.glyphDir`, `dock.glyphTint` in `themes/soft-paper/theme.json`). Five of them fill the dock slots
+that have an icon in the set; `globe` (browser) and `mail` stay on Lucide because the set has no browser
+or mail app in it. Licences and sources: THIRD-PARTY-LICENSES.md. Swap back with `"glyphDir": "lucide"`.
 Twelve rounds happened and none shipped:
 
 1. Four line-icon sets (Lucide as today, Iconoir 1.5px, Phosphor Light, Tabler). Iconoir was shipped and
@@ -107,7 +113,8 @@ system area in this PR.
 
 1. Vendor the eight SVGs under `icons/dock/<direction>/` with the logical dock names (`folder`,
    `terminal`, `globe`, `notebook-pen`, `image`, `mail`, `palette`, `window`).
-2. `LIcon.qml`: a `dir` property (default `lucide`) plus a flag to skip the tint pass for these.
+2. `LIcon.qml`: a `dir` property (default `lucide`) plus a flag to skip the tint pass for these. Done for
+   the temporary GNOME set (`dir`, `tintArt`, and a fall back to the Lucide glyph if a file is missing).
 3. The dock window files pass the chosen direction; unknown or missing falls back to today's Lucide glyphs.
 4. Licence text only if a third-party source ends up in the tree; everything above is drawn here.
 5. VM step 12 in DOCK-VARIANTS.md is the proof; nothing before that counts.
