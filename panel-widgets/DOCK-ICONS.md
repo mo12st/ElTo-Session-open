@@ -1,79 +1,58 @@
-# Dock icons: proposal (needs the user's pick)
+# Dock icons: held, three richer directions as concepts
 
-Status: **proposal only, nothing changed.** No icon file in the repo was touched. Choosing a set is an
-artistic decision, so it waits for his approval; the switch itself is one small commit after that.
+Status: **nothing implemented, nothing merged.** The dock still draws the shell's Lucide glyphs. Two
+rounds happened and neither shipped:
 
-## What the dock draws today
+1. I proposed four line-icon sets (Lucide as today, Iconoir 1.5px, Phosphor Light, Tabler) and shipped
+   Iconoir for the dock. He rejected all four as ugly, then said the problem is the look itself: too
+   plain, too simple, thin line glyphs. That change was reverted in `b68f055` and `c3cc6dd`; the branch
+   is back to the shell's icons, and the dock smoke's icon-file check went with it.
+2. Now three richer directions are prepared as concept images only, labelled CONCEPT. **He picks one, or
+   asks for something else, before any file changes.**
 
-- `panel-widgets/LIcon.qml` loads `icons/lucide/<name>.svg` from the repo, paints it white, and tints it
-  with `MultiEffect` to a theme color. The path is hardcoded, so every icon in the shell (notch, drawer,
-  Control) comes from the same Lucide folder: 18 SVGs, `stroke-width="2"`.
-- The dock's pinned apps use the glyph names in `dock.glyphs` of the theme (`folder`, `terminal`,
-  `globe`, `notebook-pen`, `image`, `mail`, `palette`), tinted `Theme.text`, at `dock.icon` (22 px) inside
-  a `dock.tile` (40 px) tile. An app with no glyph falls back to its own icon theme image
-  (`IconImage`), which is right: the glyph is a calm stand-in, not the real app mark.
-- Both dock variants also draw one Lucide glyph, `panel-top`, as the leading mark inside every window
-  pill, at 16 px, tinted `Theme.textMuted`.
-- License today: Lucide, ISC, recorded in `THIRD-PARTY-LICENSES.md`.
+## The three directions
 
-## What is off
+All three use **Phosphor Fill** as the source shapes (MIT, https://github.com/phosphor-icons/core,
+`assets/fill/<name>-fill.svg`, verified by fetching every glyph on 2026-11-27), coloured from the ElTo
+palette: ink `#164437`, rust `#a05040`, deep sage `#7fa08c`, ochre `#b08246`, on paper `#f6f1e4`.
 
-1. A 2 px stroke at 22 px on cream paper reads crisp and technical next to the serif and the aquarelle
-   walls. The dock is the calmest surface in the session and its icons are the loudest marks on it.
-2. `panel-top` is a *panel* icon used as a *window* marker. It says "a panel" next to a window title,
-   which is the one place where the dock is semantically wrong rather than just stylistically off.
+| # | direction | what it is | why it is richer |
+| --- | --- | --- | --- |
+| A | ink over wash | solid glyph silhouette filled with a sage wash, an ink edge drawn over it | two tones and a drawn edge; reads as ink line filled with colour rather than an outline icon |
+| B | palette colour | solid glyph, one ElTo ink per glyph family (ink, rust, sage, ochre) | colour carries meaning; the most character, the most risk of noise in a row of seven |
+| C | paper wash | solid glyph rendered as an aquarelle wash: uneven alpha, softened edge, paper grain, rust ink | the only one that looks painted; the closest to the world's paper walls |
 
-## Candidates (all free, license verified from the upstream LICENSE file)
+Two images were produced for the review and sent with the status report: the three directions at 44 px
+per glyph, and the same three at dock size (22 px in a 40 px tile) on the paper bar. Both were rendered
+with ImageMagick outside Quickshell, so they show the drawing, not the shell's tint path.
 
-| set | license | stroke | source | dock glyphs |
-| --- | --- | --- | --- | --- |
-| Lucide (today) | ISC | 2 px, round caps | https://github.com/lucide-icons/lucide (LICENSE) | all present |
-| **Iconoir** | MIT | 1.5 px, round caps | https://github.com/iconoir-icons/iconoir (LICENSE) | all present as `folder`, `terminal`, `globe`, `journal`, `media-image`, `mail`, `palette`, `app-window` |
-| Phosphor (Light) | MIT | filled silhouette, thin | https://github.com/phosphor-icons/core (LICENSE) | all present as `*-light` files |
-| Tabler (outline) | MIT | 2 px, round caps | https://github.com/tabler/tabler-icons (LICENSE) | all present as `folder`, `terminal`, `globe`, `notebook`, `photo`, `mail`, `palette`, `app-window` |
+## Honest limits of these concepts
 
-Each one was checked by fetching the actual files from the upstream repository on 2026-11-27, not from
-memory: every name in the table returned HTTP 200 and was rendered. Phosphor ships `fill` silhouettes,
-not strokes, so its "Light" weight is thin filled shapes; the other three are stroke icons.
+- A and C are **treatments**, not icon sets: I generated them from Phosphor Fill silhouettes with a wash,
+  an edge and grain. They are reproducible as a build step, but they are not hand-painted art. If he
+  wants real aquarelle glyphs, that is his own brush, or art he approves; nothing free that I could
+  verify looks like a painted ElTo glyph.
+- At 22 px the ink edge in A thins to about one pixel and the wash fill dominates, so A reads closer to
+  "soft filled" than to "outlined". That is visible in the at-size image, not hidden.
+- No icon has been checked inside the shell's `MultiEffect` tint path. A and B are single-colour shapes
+  and would tint like today's glyphs; C is multi-alpha and would need to be shipped pre-coloured rather
+  than tinted, which is a small change to `LIcon`.
+- Licences: Phosphor is MIT and covers all eight dock glyphs (`folder`, `terminal`, `globe`, `notebook`,
+  `image`, `envelope`, `palette`, `app-window`). Attribution text is ready to add to
+  `THIRD-PARTY-LICENSES.md` if a direction is picked.
 
-A preview was rendered for this review (44 px, ink `#164437` on cream `#f6f1e4`, ImageMagick outside the
-shell) and sent to the user with the proposal. It is not committed: it is a review aid, not art.
+## If he picks one
 
-## Recommendation
+1. Vendor the eight Phosphor Fill SVGs into `icons/dock/<direction>/` under the logical dock names
+   (`folder`, `terminal`, `globe`, `notebook-pen`, `image`, `mail`, `palette`, `window`), pre-coloured or
+   white depending on the direction.
+2. `LIcon.qml`: `dir` property (default `lucide`) and, for C, a flag to skip the tint pass.
+3. The two dock window files pass the dock's folder.
+4. `THIRD-PARTY-LICENSES.md` gets the Phosphor MIT text; the dock smoke's icon-file check comes back so a
+   blank tile fails CI instead of showing up on screen.
+5. VM step 12 in DOCK-VARIANTS.md is the proof; nothing before that counts.
 
-**Iconoir regular, 1.5 px, MIT.** It is the same line-icon language as today, so the dock still belongs
-with the notch and the drawer, but the thinner stroke and rounder terminals sit calmly on paper. Second
-choice is Phosphor Light if he wants the glyphs to read as ink silhouettes instead of lines; Tabler is
-the "keep the current look, better coverage" option and the least interesting.
+## Also open
 
-Vendored as `icons/dock/iconoir/` with the **logical dock names** (`folder.svg`, `terminal.svg`,
-`globe.svg`, `notebook-pen.svg` copied from Iconoir's `journal`, `image.svg` from `media-image`,
-`mail.svg`, `palette.svg`, `window.svg` from `app-window`), so `dock.glyphs` values, the theme schema and
-every world file stay exactly as they are. The rename happens once, when the files are vendored; no name
-mapping is needed at runtime.
-
-Wiring, if approved (one commit, no schema change):
-
-1. Add the eight SVGs with `currentColor` replaced by `#ffffff` (same trick the Lucide files use) plus
-   the MIT notice in `THIRD-PARTY-LICENSES.md`.
-2. `LIcon.qml`: `property string dir: "lucide"` and source `"../icons/" + root.dir + "/" + name + ".svg"`.
-   Default keeps every existing caller unchanged.
-3. `DockWindow.qml` and `DockBar.qml`: pass `dir: "dock/iconoir"` for the pinned glyphs and the pill mark.
-4. Nothing else: `dock.glyphs`, `themes/soft-paper/theme.json` and `world.schema.json` are untouched.
-
-## Second question in the same area
-
-The window pill's leading mark. Three options, in order of my preference:
-
-1. Drop it and let the pill show only the window title in serif italic. The calmest, and it removes a
-   redundant mark: the title already says which window it is.
-2. Keep a mark but use the app's own icon (`entryFor(appid)` + `IconImage`) so the pill matches the tile.
-3. Keep a generic glyph, but a window one (`window`/`app-window`) instead of `panel-top`.
-
-I would not decide this without him: option 1 changes how the pill reads, which is a design call.
-
-## Verification level
-
-L0 design only. Nothing here is in the shell: no icon file was added, no QML was changed for this, and
-the preview was rendered outside Quickshell. If he picks a set, the switch is L1 (CI load test) at best
-until the implementer sees it in the VM.
+The window pill's leading mark: drop it and keep only the serif title, keep a generic window glyph, or
+use the app's own icon. Still his call; untouched.
