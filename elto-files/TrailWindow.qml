@@ -83,16 +83,37 @@ FloatingWindow {
             else if (ev.modifiers & Qt.AltModifier && ev.key === Qt.Key_Right) { win.forward(); ev.accepted = true }
         }
 
-        // ---- sidebar ----
+        // ---- sidebar: look and arrangement follow the world's card art (shape.cardArt) ----
         Rectangle {
             id: side
+            readonly property string ca: th.cardArt
+            readonly property color sideCol: ca === "paper" ? Qt.alpha(Qt.darker(th.surface, 1.025), th.surfaceAlpha)
+                : ca === "w95" ? th.surface
+                : ca === "vapor" ? Qt.darker(th.surface, 1.1)
+                : ca === "aero" ? Qt.alpha(Qt.lighter(th.surface, 1.12), th.surfaceAlpha)
+                : ca === "pearl" ? Qt.alpha(Qt.lighter(th.surface, 1.1), th.surfaceAlpha)
+                : ca === "chrome" ? Qt.darker(th.surface, 1.35)
+                : ca === "term" ? "transparent" : "transparent"
             width: 176; height: parent.height
             color: "transparent"
-            Rectangle { anchors.fill: parent; radius: win.contentRadius; color: Qt.alpha(Qt.darker(th.surface, 1.025), th.surfaceAlpha) }
-            Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: win.contentRadius; color: Qt.alpha(Qt.darker(th.surface, 1.025), th.surfaceAlpha) }
+            Rectangle { anchors.fill: parent; radius: win.contentRadius; color: side.sideCol }
+            Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: win.contentRadius; color: side.sideCol }
+            Rectangle {   // right edge line, per era
+                visible: side.ca !== "paper"
+                anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
+                width: side.ca === "vapor" || side.ca === "pearl" ? 2 : 1
+                color: side.ca === "chrome" ? th.accent : side.ca === "vapor" ? th.text : side.ca === "pearl" ? Qt.alpha("white", 0.9) : side.ca === "w95" ? Qt.darker(th.surface, 1.8) : side.ca === "term" ? th.textMuted : th.divider
+            }
+            Rectangle {   // glass sheen at the top of aero and pearl panes
+                visible: side.ca === "aero" || side.ca === "pearl"; width: parent.width; height: parent.height / 3; radius: win.contentRadius
+                gradient: Gradient { GradientStop { position: 0; color: Qt.alpha("white", 0.35) } GradientStop { position: 1; color: "transparent" } }
+            }
             Column {
-                x: 12; y: 16; width: parent.width - 24; spacing: 4
+                x: side.ca === "w95" || side.ca === "term" ? 6 : 12; y: 16; width: parent.width - (side.ca === "w95" || side.ca === "term" ? 12 : 24)
+                spacing: side.ca === "w95" || side.ca === "term" ? 0 : side.ca === "paper" ? 4 : 3
+                SideHead { label: "Computer" }
                 SideRow { label: "This computer"; icon: "computer"; selected: win.computerMode; onClicked: win.go(win.computerPath) }
+                SideHead { label: "Places" }
                 Repeater {
                     model: win.places
                     SideRow {
@@ -213,19 +234,69 @@ FloatingWindow {
         }
     }
 
+    component SideHead: Item {
+        property string label
+        readonly property string ca: th.cardArt
+        visible: ca !== "paper" && ca !== "w95"
+        width: parent.width; height: visible ? (ca === "pearl" ? 26 : 24) : 0
+        Rectangle {   // pearl: gradient bar, vapor: title strip
+            visible: parent.ca === "pearl" || parent.ca === "vapor"; anchors.fill: parent; anchors.topMargin: 2
+            radius: parent.ca === "pearl" ? 8 : 0
+            gradient: Gradient { orientation: Gradient.Horizontal
+                GradientStop { position: 0; color: parent.parent.ca === "pearl" ? Qt.lighter(th.accent, 1.3) : th.accent }
+                GradientStop { position: 1; color: parent.parent.ca === "pearl" ? th.accent : th.selection } }
+        }
+        Text {
+            id: ht
+            x: parent.ca === "pearl" || parent.ca === "vapor" ? 8 : 4; anchors.verticalCenter: parent.verticalCenter
+            text: parent.ca === "term" ? "# " + parent.label.toLowerCase() : parent.ca === "chrome" ? "// " + parent.label : parent.label
+            color: parent.ca === "pearl" || parent.ca === "vapor" ? page_accentText() : parent.ca === "aero" ? Qt.darker(th.accent, 1.5) : parent.ca === "chrome" ? th.accent : th.textMuted
+            font.family: parent.ca === "term" || parent.ca === "vapor" ? th.mono : th.sans
+            font.pixelSize: parent.ca === "aero" ? 12 : 10
+            font.bold: parent.ca === "pearl" || parent.ca === "chrome" || parent.ca === "vapor"
+            font.capitalization: parent.ca === "chrome" || parent.ca === "plain" ? Font.AllUppercase : Font.MixedCase
+            font.letterSpacing: parent.ca === "chrome" ? 2 : parent.ca === "plain" ? 1.5 : 0
+        }
+        Rectangle {   // aero: fading rule
+            visible: parent.ca === "aero"; x: ht.width + 12; y: 12; width: parent.width - x; height: 1
+            gradient: Gradient { orientation: Gradient.Horizontal
+                GradientStop { position: 0; color: Qt.alpha(th.accent, 0.6) }
+                GradientStop { position: 1; color: Qt.alpha(th.accent, 0) } }
+        }
+    }
+    function page_accentText() { return th.lum(th.accent) < 0.5 ? th.surface : th.text }
     component SideRow: Rectangle {
         id: row
         property string label
         property string icon
         property bool selected
+        readonly property string ca: th.cardArt
+        readonly property bool solidSel: ca === "paper" || ca === "w95" || ca === "vapor" || ca === "term"
+        readonly property color fg: !selected ? th.text : ca === "term" ? th.surface : solidSel ? th.onSel() : ca === "pearl" ? page_accentText() : th.text
         signal clicked()
-        width: parent.width; height: 34; radius: th.radiusCard
-        color: selected ? th.selection : (ma.containsMouse ? Qt.alpha(th.text, 0.06) : "transparent")
+        width: parent.width
+        height: ca === "w95" ? 26 : ca === "term" ? 22 : ca === "aero" ? 30 : ca === "vapor" ? 28 : ca === "plain" ? 30 : ca === "paper" ? 34 : 32
+        radius: ca === "paper" ? th.radiusCard : ca === "aero" ? 4 : ca === "pearl" ? height / 2 : ca === "chrome" ? 2 : 0
+        color: selected ? (ca === "term" ? th.text : solidSel ? th.selection : ca === "pearl" ? th.accent : ca === "chrome" ? Qt.alpha(th.accent, 0.2) : ca === "aero" ? Qt.alpha(th.accent, 0.22) : "transparent")
+                        : (ma.containsMouse ? Qt.alpha(ca === "aero" || ca === "pearl" || ca === "chrome" ? th.accent : th.text, ca === "paper" ? 0.06 : 0.12) : "transparent")
+        border.width: selected ? (ca === "w95" || ca === "aero" ? 1 : ca === "vapor" ? 2 : 0) : (ca === "aero" && ma.containsMouse ? 1 : 0)
+        border.color: ca === "aero" ? Qt.alpha(th.accent, 0.6) : th.text
         Behavior on color { ColorAnimation { duration: th.ms(120) } }
-        LIcon { th: win.th; x: 12; anchors.verticalCenter: parent.verticalCenter; size: 16; name: row.icon; tint: row.selected ? th.onSel() : th.text }
+        Rectangle {   // chrome and plain: marker bar on the selected row
+            visible: row.selected && (row.ca === "chrome" || row.ca === "plain"); width: row.ca === "chrome" ? 4 : 2; height: parent.height
+            color: row.ca === "chrome" ? th.accent : th.text
+        }
+        LIcon { th: win.th; x: row.ca === "w95" || row.ca === "term" ? 6 : 12; anchors.verticalCenter: parent.verticalCenter; size: row.ca === "w95" ? 15 : 16; name: row.icon; tint: row.fg }
         Text {
-            x: 38; anchors.verticalCenter: parent.verticalCenter
-            text: row.label; color: row.selected ? th.onSel() : th.text; font.family: th.sans; font.pixelSize: 12
+            x: row.ca === "w95" ? 28 : row.ca === "term" ? 28 : 38; anchors.verticalCenter: parent.verticalCenter
+            text: row.ca === "term" ? (row.selected ? "> " : "  ") + row.label : row.label
+            color: row.fg
+            font.family: row.ca === "term" || row.ca === "vapor" ? th.mono : th.sans
+            font.pixelSize: row.ca === "w95" || row.ca === "chrome" || row.ca === "vapor" ? 11 : row.ca === "term" ? 12 : row.ca === "plain" ? 13 : 12
+            font.bold: row.ca === "pearl" || row.ca === "chrome" || (row.ca === "plain" && row.selected)
+            font.weight: row.ca === "plain" && !row.selected ? Font.Light : font.weight
+            font.capitalization: row.ca === "chrome" ? Font.AllUppercase : Font.MixedCase
+            font.letterSpacing: row.ca === "chrome" ? 1.5 : 0
         }
         MouseArea { id: ma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: row.clicked() }
     }
