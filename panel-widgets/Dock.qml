@@ -10,6 +10,10 @@ import QtQuick
 Scope {
     id: root
     readonly property var dk: Theme.dockT
+    // icon folder for the pinned glyphs: "lucide" (white line glyphs, tinted) or a vendored multi-colour set
+    // under icons/. glyphTint false draws the files as they are. Both are theme keys, so a swap is one line.
+    readonly property string glyphDir: root.dk.glyphDir || "lucide"
+    readonly property bool glyphTint: root.dk.glyphTint !== false
     property string activeApp: ""
     property var openApps: ({})
     property bool blurBroken: false

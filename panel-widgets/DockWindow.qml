@@ -74,7 +74,7 @@ PanelWindow {
                         opacity: app.running ? 1 : (am.containsMouse ? 0.6 : 0)
                         Behavior on opacity { NumberAnimation { duration: Theme.ms(140) } }
                     }
-                    LIcon { visible: app.modelData.glyph !== ""; anchors.centerIn: parent; name: app.modelData.glyph; size: win.dk.icon; tint: Theme.text
+                    LIcon { visible: app.modelData.glyph !== ""; anchors.centerIn: parent; name: app.modelData.glyph; size: win.dk.icon; tint: Theme.text; dir: win.dock.glyphDir; tintArt: win.dock.glyphTint
                         scale: am.pressed ? 0.92 : (am.containsMouse && Theme.motion ? 1.08 : 1)
                         Behavior on scale { NumberAnimation { duration: Theme.ms(120); easing.type: Easing.OutCubic } } }
                     IconImage { visible: app.modelData.glyph === ""; anchors.centerIn: parent; implicitSize: win.dk.icon
