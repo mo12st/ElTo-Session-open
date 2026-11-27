@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Windows Program
+Comment=Open a Windows program with its own Wine/Proton prefix
+Exec=elto-run-windows %f
+NoDisplay=true
+MimeType=application/x-ms-dos-executable;application/vnd.microsoft.portable-executable;application/x-msdownload;application/x-msi;application/x-ms-shortcut;
+Categories=Utility;

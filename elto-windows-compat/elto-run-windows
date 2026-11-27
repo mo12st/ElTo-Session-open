@@ -1,0 +1,33 @@
+#!/bin/sh
+# elto-run-windows: open a Windows program (.exe/.msi/.lnk) with one prefix per app.
+# Uses umu-run (Proton) when present, plain wine otherwise. No daemon.
+set -u
+f=${1:-}
+[ -n "$f" ] && [ -f "$f" ] || { echo "usage: elto-run-windows FILE.exe|.msi|.lnk" >&2; exit 2; }
+f=$(readlink -f "$f")
+data=${XDG_DATA_HOME:-$HOME/.local/share}/elto
+logd=${XDG_CACHE_HOME:-$HOME/.cache}/elto/windows
+dir=$(dirname "$f")
+id=$(printf '%s' "$dir" | sha1sum | cut -c1-12)
+export WINEPREFIX="$data/prefixes/$id"
+export PROTONPATH=${PROTONPATH:-GE-Proton}
+export GAMEID=${GAMEID:-umu-0}
+mkdir -p "$WINEPREFIX" "$logd"
+log="$logd/$(basename "$f").log"
+note() { command -v notify-send >/dev/null 2>&1 && notify-send -a ElTo "$1" "${2:-}"; echo "$1 ${2:-}" >&2; }
+case "$f" in
+  *.[mM][sS][iI]) set -- msiexec /i "$f" ;;
+  *.[lL][nN][kK]) set -- start /unix "$f" ;;
+  *) set -- "$f" ;;
+esac
+cd "$dir" || exit 1
+if command -v umu-run >/dev/null 2>&1; then
+  note "ElTo" "Opening $(basename "$f")"
+  exec umu-run "$@" >"$log" 2>&1
+elif command -v wine >/dev/null 2>&1; then
+  note "ElTo" "Opening $(basename "$f") with Wine"
+  exec wine "$@" >"$log" 2>&1
+else
+  note "Windows programs need Wine or umu-launcher" "Install them to open $(basename "$f")"
+  exit 127
+fi
