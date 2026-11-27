@@ -45,11 +45,16 @@ install/remove run pkgcli interactive (never `-y`): `-y` also sets the
 PackageKit transaction's interactive flag to 0, and the daemon then runs the
 polkit check without ALLOW_USER_INTERACTION, so the install dies instantly
 with "Failed to obtain authentication" (seen on the implementer's VM).
-Interactive pkgcli simulates first and confirms on stdin, so the helper
-pre-writes a fixed block of "y" lines that answer only pkgcli's own
-simulation prompt. The real transaction is still authenticated by polkit
-through the session agent, `only-trusted` stays on, and any prompt past the
-pre-written lines reads EOF and declines.
+Interactive pkgcli simulates first, then confirms by reading /dev/tty - NOT
+stdin (the VM run showed "Error opening terminal for the process (/dev/tty)"
+and a "user declined simulation" end when only stdin was fed). The helper
+therefore runs pkgcli with a real controlling terminal (pty + setsid +
+TIOCSCTTY) and writes a fixed block of "y" lines to the pty master, which
+answers only pkgcli's own simulation prompt. stdout/stderr stay pipes, so
+the JSON contract is unaffected. The real transaction is still authenticated
+by polkit through the session agent, `only-trusted` stays on, and if the
+prompt is never answered pkgcli declines the simulation itself. A watchdog
+cancels any transaction that runs past 30 minutes and fails closed.
 
 ## Output contract
 
@@ -109,10 +114,11 @@ flag is the primary signal; exit codes are for shell scripting.
 ## Safety properties
 
 - install/remove never pass `-y` (it would disable polkit's interactive
-  authentication); the pre-written "y" lines answer only pkgcli's local
-  simulation prompt. Signature trust (`only-trusted`) and polkit
-  authorization still gate the real transaction, and anything beyond the
-  buffered lines reads EOF and declines.
+  authentication); the "y" lines written to the pty master answer only
+  pkgcli's local simulation prompt on /dev/tty. Signature trust
+  (`only-trusted`) and polkit authorization still gate the real
+  transaction, an unanswered prompt declines the simulation, and a
+  30-minute watchdog cancels and fails closed on a hang.
 - stdin for read-only calls (search/info/selftest) is closed: pkgcli can
   never block on a prompt there.
 - pkgcli runs with `LC_ALL=C` and `--no-color` (+ `NO_COLOR=1`): parsing does

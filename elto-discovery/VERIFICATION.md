@@ -32,12 +32,18 @@ confirms `usr/bin/pkgcli` is the sole binary (archlinux.org, 2026-11-27).
    Third VM run (polkit PR #55): the interim `-y` fix for (a) also set the
    transaction's interactive flag to 0, so the daemon ran the polkit check
    without ALLOW_USER_INTERACTION and install/remove failed instantly with
-   "Failed to obtain authentication". Fixed: no `-y` anywhere; pkgcli stays
-   interactive and the helper pre-writes a fixed block of "y" lines to
-   stdin that answer only pkgcli's own simulation confirmation. The real
-   transaction is still polkit-authenticated through the session agent,
-   `only-trusted` stays on, and prompts past the buffer read EOF and
-   decline, so unprivileged users still fail closed.
+   "Failed to obtain authentication". Fourth VM run (PR #57, run
+   46050673541): feeding the confirmation on stdin does not work either -
+   pkgcli's simulation prompt reads /dev/tty, so the run warned "Error
+   opening terminal for the process (/dev/tty)" and ended "user declined
+   simulation". Fixed: no `-y` anywhere, and install/remove run with a real
+   controlling terminal (pty.openpty + setsid + TIOCSCTTY on the slave);
+   the helper writes a fixed block of "y" lines to the pty master, which
+   answers only pkgcli's own simulation confirmation. stdout/stderr stay
+   pipes so the JSON contract is unchanged. The real transaction is still
+   polkit-authenticated through the session agent, `only-trusted` stays
+   on, an unanswered prompt declines the simulation, and a 30-minute
+   watchdog cancels and fails closed on a hang.
 4. **Remaining formats modeled on PackageKit v1.4.1 source**, fetched
    2026-11-27 from github.com/hughsie/PackageKit (tag v1.4.1):
    - JSON package object fields: `client/pkgc-util.c`
@@ -60,8 +66,8 @@ confirms `usr/bin/pkgcli` is the sole binary (archlinux.org, 2026-11-27).
      `pkgc_manage_on_task_finished_cb()` (lines ~122-172);
    - full package IDs skip interactive resolution
      (`pk_package_id_check`): `pkgc-util.c` `pkgc_resolve_package()`
-     (lines ~1104-1120); the multiple-match path prompts via scanf on
-     stdin, which our pre-written "y" lines cannot answer, so bare names
+     (lines ~1104-1120); the multiple-match path prompts via scanf,
+     which our pre-written tty "y" lines cannot answer, so bare names
      are refused before pkgcli runs;
    - SIGINT cancels the transaction via the cancellable:
      `client/pkgcli.c` `pkc_handle_sigint()` (lines ~42-56);
@@ -98,13 +104,15 @@ confirms `usr/bin/pkgcli` is the sole binary (archlinux.org, 2026-11-27).
    description, license, sizes, url. Record whether `_source` is `json` or
    `plain` (see the `show --json` note above).
 5. `./elto-discovery install <full-id of a small package, e.g. sl>` as the
-   regular session user, with the PR #55 polkit setup applied. Expect the
-   simulation confirmation to be answered by the helper (no "user declined
-   simulation", no hang) and the polkit auth dialog from the session agent
-   to appear; after authenticating, the install succeeds. Also record the
-   wrong-password and cancel paths: they must fail closed, with
-   "Failed to obtain authentication" (pkgcli exit 5) mapped to the
-   `transaction-failed` error code and the polkit message preserved.
+   regular session user, with the PR #55 polkit setup applied. Expect no
+   "/dev/tty" warning and no "user declined simulation": the simulation
+   confirmation is answered by the helper through the pty, and the polkit
+   auth dialog from the session agent should appear; after authenticating,
+   the install succeeds. Also record the wrong-password and cancel paths:
+   they must fail closed, with "Failed to obtain authentication" (pkgcli
+   exit 5) mapped to the `transaction-failed` error code and the polkit
+   message preserved. Note the helper's 30-minute watchdog: a hung
+   transaction is cancelled and reported as a `timeout` error.
 5b. `./elto-discovery search firefox` entries with status `installed`
    (after step 5) must have `install_id: null`; installing an installed id
    returns ok with note `already-installed`.
