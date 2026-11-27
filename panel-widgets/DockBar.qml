@@ -97,7 +97,7 @@ PanelWindow {
 
         Rectangle {
             id: split
-            visible: win.dock.wl.model.count > 0 && win.dock.pinnedItems.length > 0
+            visible: win.dock.wl !== null && win.dock.wl.model.count > 0 && win.dock.pinnedItems.length > 0
             x: pinned.x + pinned.width + win.dk.gap
             width: 1; height: win.dk.tile * 0.7
             anchors.verticalCenter: parent.verticalCenter
@@ -117,7 +117,7 @@ PanelWindow {
                 id: pillRow
                 spacing: win.dk.gap
                 Repeater {
-                    model: win.dock.wl.model
+                    model: win.dock.wl ? win.dock.wl.model : null
                     Rectangle {
                         id: wp
                         required property string uuid
