@@ -1,6 +1,6 @@
 # Dock icons: held, illustrated round as concepts
 
-Status: **nothing implemented, nothing merged.** The dock still draws the shell's Lucide glyphs. Six
+Status: **nothing implemented, nothing merged.** The dock still draws the shell's Lucide glyphs. Seven
 rounds happened and none shipped:
 
 1. Four line-icon sets (Lucide as today, Iconoir 1.5px, Phosphor Light, Tabler). Iconoir was shipped and
@@ -16,7 +16,12 @@ rounds happened and none shipped:
    object 66-70), varying the plates, and redesigning six of the eight metaphors. Spec v2 and concept 3
    ("illustrated artifacts") follow that: variable depth, one soft shadow, three plate colours, an object
    at 74% of the plate, and new drawings for terminal, notebook, image, settings, palette, window and
-   clock. **He picks, or asks for something else, before any file changes.**
+   clock. **Rejected: ugly, and green is not allowed.**
+7. Green is rejected for dock icons: no sage and no ink-green in plates, objects or details. Spec v2 keeps
+   its sizes, depth, shadow and legibility rules, and its palette is now paper, cream, rust, ochre, warm
+   brown, charcoal and clay rose, with charcoal, warm brown and dark ochre plates. Concept 3 was redrawn
+   with that palette and checked at 22 and 30 px. **He picks, or asks for something else, before any file
+   changes.**
 
 The brief, as relayed: Apple-style dimensional icons, layered shapes, soft gradients, highlights and
 depth, each drawn originally in the ElTo palette with the snail and paper identity. Self-drawn, free
@@ -26,7 +31,7 @@ licences only, no Apple assets, no paid tools.
 
 | # | concept | what it is |
 | --- | --- | --- |
-| 3 | illustrated artifacts | paper objects on ink, dark sage and dark ochre plates; variable depth; one overlap per object as the family gesture; per-icon redesigns |
+| 3 | illustrated artifacts | paper objects on charcoal, warm brown and dark ochre plates; variable depth; one overlap per object as the family gesture; per-icon redesigns; no green anywhere |
 
 Built to `DOCK-ICON-SPEC.md` v2. Concept 1 (cream plates) is rejected: its plate disappears against the
 cream dock. Concept 2's value structure survives inside concept 3, with the plate no longer dominant and

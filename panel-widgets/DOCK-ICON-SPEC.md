@@ -30,10 +30,13 @@ unreadable without the plate, the icon has failed.
 
 - Paper: matte, warm, low-contrast gradient, no gloss.
 - Ink: dense, dark, smooth; used for structure and for the prompt.
-- Sage and ochre: secondary materials, muted.
-- Rust: a restrained accent, never a mandatory stripe. It appears on four icons here, not eight.
+- Ochre: warm secondary material.
+- Clay rose: the muted accent that is not green.
+- Rust: a restrained accent, never a mandatory stripe.
 - Cream: secondary paper surface, for page blocks and rear layers.
 - No artificial bevel, no mandatory highlight strip, no gloss overlay.
+- **No green and no sage anywhere**: not in plates, not in objects, not in details. Green is rejected for
+  dock icons. The structural dark is charcoal, not ink green.
 
 ## 4. Depth
 
@@ -53,15 +56,16 @@ unreadable without the plate, the icon has failed.
 
 ## 6. Colour and contrast
 
-- Seven values: ink `#164437`, deep ink `#0d2b22`, paper `#f6f1e4`, cream `#e3dac4`, sage `#7fa08c`,
-  ochre `#b08246`, rust `#a05040`; plus dark sage `#3e5c4b`, dark ochre `#7d5a2e` and pale cream
+- Seven values, none of them green: paper `#f6f1e4`, cream `#e3dac4`, rust `#a05040`, ochre `#b08246`,
+  warm brown `#4a3527`, charcoal `#26241f`, clay rose `#a8756a`; plus dark ochre `#7d5a2e` and pale cream
   `#cfc4a8` as plate and layer values.
-- Plates vary within the family: ink for five icons, dark sage for notebook and palette, dark ochre for
-  clock. Not eight identical dark tiles, not eight cream tiles that vanish into the dock.
-- Measured on every build: object against plate 5.5:1 to 9.7:1. The floor is 4.5:1; the clock's ink ring
-  against its ochre plate is 1.7:1 by design, because the ring is structure and the paper face is the
-  object.
-- Rust is kept away from ink where it only reaches 1.9:1; rust appears on paper or cream, where it is 4-5:1.
+- Plates vary within the family: charcoal for five icons, warm brown for terminal and settings, dark ochre
+  for clock. Not eight identical dark tiles, not eight cream tiles that vanish into the dock.
+- Measured on every build: object against plate 13.8:1 on charcoal, 10.2:1 on warm brown, 5.5:1 on dark
+  ochre. The floor is 4.5:1; the clock's charcoal ring against its ochre plate is 1.7:1 by design, because
+  the ring is structure and the paper face is the object.
+- Rust is kept away from charcoal where it only reaches 1.9:1; rust appears on paper or cream, where it is
+  4-5:1.
 
 ## 7. Sizes
 
