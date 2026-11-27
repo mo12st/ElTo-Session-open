@@ -74,6 +74,25 @@ executables, files over 25 MB, bundles over 100 MB, missing licenses and checksu
 are all rejected. There is no install script mechanism and no online store; bundles move by
 file sharing only.
 
+### Bundle commands (hardened reader, `bundle.py`)
+
+```
+elto-world inspect <file.elworld>              # verify, print license + size per asset, writes nothing
+elto-world unpack  <file.elworld> <destdir>    # verify, stage, validate, atomic rename; refuses an existing destdir
+elto-world install <file.elworld> [--replace]  # into ~/.local/share/elto/worlds/<id>/; does NOT apply
+```
+
+Everything is verified before any byte reaches its final place: safe paths (no `..`, absolute,
+backslash, drive letter, duplicate or case-colliding names), regular files only (no symlinks,
+no encryption), allowlisted types under `assets/` (scripts, `.desktop`, `.qml`, unknown types
+rejected), SVG with scripts/event handlers/external references rejected, a license on every
+asset, sha256 and byte counts checked against real bytes (not zip headers), zip-bomb ratio
+guard, and the pack limits (25 MB per file, 500 files, 150 MB total). A world is never
+overwritten: `install` stops if it exists; `--replace` keeps the old copy as `<id>.bak-<time>`.
+References in world.json to assets not in the bundle are warnings (art may be pending),
+as in `check`. After install, `elto-world apply ~/.local/share/elto/worlds/<id>` applies it.
+Tests: `python3 elto-worlds/tests/test_bundle.py` (24 tests, sandbox only; NOT VM-tested).
+
 ## The world format
 
 Everything in a theme.json v1 keeps the same meaning (colors, roles, shape, fonts, icons,
