@@ -47,7 +47,10 @@ ShellRoot {
         readonly property color divider: role("divider")
         readonly property int radiusWindow: shapeT.radiusWindow !== undefined ? shapeT.radiusWindow : 22
         // Readable colour on top of `selection`, derived from the selection luminance (no schema token for it yet).
-        readonly property color onSelection: (selection.r * 0.299 + selection.g * 0.587 + selection.b * 0.114) < 0.5 ? surface : text
+        function lum(c) { return c.r * 0.299 + c.g * 0.587 + c.b * 0.114 }
+        readonly property color onSelection: lum(selection) < 0.5 ? surface : text
+        // Folder colour for era folder art: the world colour named folder, else the accent.
+        readonly property color folderYellow: colors.folder !== undefined ? colors.folder : accent
         readonly property color disabled: role("disabled")
         readonly property int radiusPill: shapeT.radiusPill !== undefined ? shapeT.radiusPill : 999
         readonly property int radiusCard: shapeT.radiusCard !== undefined ? shapeT.radiusCard : 14
@@ -55,7 +58,9 @@ ShellRoot {
         readonly property int bevel: typeof shapeT.bevel === "number" ? Math.max(0, Math.min(3, Math.round(shapeT.bevel))) : 0
         readonly property bool glass: shapeT.glass === true
         readonly property real surfaceAlpha: typeof shapeT.surfaceAlpha === "number" ? Math.max(0.3, Math.min(1, shapeT.surfaceAlpha)) : 1
-        readonly property string folderArt: ["manila", "flat", "outline", "glass"].indexOf(shapeT.folderArt) >= 0 ? shapeT.folderArt : "manila"
+        readonly property string folderArt: ["manila", "flat", "outline", "glass", "classic95", "aero", "luna", "chrome"].indexOf(shapeT.folderArt) >= 0 ? shapeT.folderArt : "manila"
+        readonly property string iconArt: ["line", "thin", "bold", "pixel", "gloss", "ascii"].indexOf(shapeT.iconArt) >= 0 ? shapeT.iconArt : "line"
+        readonly property string mono: fonts.mono || "DejaVu Sans Mono"
         readonly property string snailStyle: ["solid", "outline", "pixel", "glass"].indexOf(shapeT.snail) >= 0 ? shapeT.snail : "solid"
         readonly property string serif: fonts.serif || "Noto Serif Display"
         readonly property string sans: fonts.sans || "Noto Sans"

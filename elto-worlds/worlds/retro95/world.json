@@ -34,7 +34,8 @@
     "line": "#8d86b0",
     "fade": "#7d76a0",
     "titleFrom": "#e078c8",
-    "titleTo": "#6c7fd8"
+    "titleTo": "#6c7fd8",
+    "folder": "#fdc94e"
   },
   "roles": {
     "surface": "surface",
@@ -55,8 +56,9 @@
     "shadowOffsetY": 12,
     "paperGrain": 0.0,
     "bevel": 1,
-    "folderArt": "manila",
-    "snail": "solid"
+    "folderArt": "classic95",
+    "snail": "solid",
+    "iconArt": "pixel"
   },
   "fonts": {
     "serif": "VT323",

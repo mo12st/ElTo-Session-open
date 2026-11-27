@@ -53,8 +53,9 @@
     "shadowBlur": 24,
     "shadowOffsetY": 12,
     "paperGrain": 0.0,
-    "folderArt": "manila",
-    "snail": "solid"
+    "folderArt": "chrome",
+    "snail": "solid",
+    "iconArt": "thin"
   },
   "fonts": {
     "serif": "Exo 2",

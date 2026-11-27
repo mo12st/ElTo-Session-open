@@ -5,7 +5,8 @@ Item {
     id: art
     required property var th
     property bool usb: false
-    readonly property string style: th.folderArt
+    // Drive art follows the folder era in a simplified way: legacy styles as is, era styles mapped to the nearest one.
+    readonly property string style: ({ classic95: "flat", aero: "glass", luna: "manila", chrome: "manila" })[th.folderArt] || th.folderArt
     implicitWidth: 64; implicitHeight: usb ? 32 : 40
     width: implicitWidth; height: implicitHeight
     readonly property color body: style === "flat" ? th.surfaceAlt : Qt.tint(th.surfaceAlt, Qt.alpha(th.accent, 0.14))

@@ -33,7 +33,8 @@
     "blush": "#ee9fb8",
     "aqua": "#9ee5f9",
     "line": "#b8dde8",
-    "fade": "#8fb0bc"
+    "fade": "#8fb0bc",
+    "folder": "#f4c24d"
   },
   "roles": {
     "surface": "surface",
@@ -52,7 +53,9 @@
     "shadowAlpha": 0.28,
     "shadowBlur": 24,
     "shadowOffsetY": 12,
-    "paperGrain": 0.0
+    "paperGrain": 0.0,
+    "folderArt": "luna",
+    "iconArt": "gloss"
   },
   "fonts": {
     "serif": "Quicksand",

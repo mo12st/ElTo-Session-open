@@ -53,7 +53,8 @@
     "shadowOffsetY": 12,
     "paperGrain": 0.0,
     "folderArt": "outline",
-    "snail": "outline"
+    "snail": "outline",
+    "iconArt": "thin"
   },
   "fonts": {
     "serif": "Inter",

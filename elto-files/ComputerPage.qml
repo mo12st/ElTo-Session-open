@@ -125,7 +125,7 @@ Item {
                                 Bevel { th: page.th }
                                 Row {
                                     anchors.centerIn: parent; spacing: 4
-                                    LIcon { size: 8; anchors.verticalCenter: parent.verticalCenter; name: "close"; tint: th.text }
+                                    LIcon { th: page.th; size: 8; anchors.verticalCenter: parent.verticalCenter; name: "close"; tint: th.text }
                                     Text { text: "Eject"; color: th.text; font.family: th.sans; font.pixelSize: 10; font.weight: Font.Medium }
                                 }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: app.eject(card.modelData.dev) }
