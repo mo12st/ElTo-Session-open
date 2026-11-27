@@ -419,9 +419,13 @@ def read_overlay():
             return {}
     return {}
 
-def build_overlay(w, wdir, run, cur):
+def build_overlay(w, wdir, run, cur, installed_wallpapers=(), warnings=None):
     """World defaults over the current overlay. Managed sections are replaced;
-    managed option keys are set; unrelated user keys are kept."""
+    managed option keys are set; unrelated user keys are kept.
+    options.wallpaper is only pointed at a wallpaper this run actually
+    installed into ~/.config/elto/wallpapers/ (stored as the basename the
+    shell looks up there); otherwise the existing value is kept and a
+    warning is emitted. Pointing at a missing file turns the desktop blank."""
     for sec in MANAGED_SECTIONS:
         if sec in w:
             cur[sec] = w[sec]
@@ -430,7 +434,21 @@ def build_overlay(w, wdir, run, cur):
                      "applied_at": time.strftime("%Y-%m-%dT%H:%M:%S")}
     dfl = w.get("defaults") or {}
     opts = dict(cur.get("options") or {})
-    opts["wallpaper"] = dfl.get("wallpaper", (w.get("options") or {}).get("wallpaper", opts.get("wallpaper")))
+    candidate = dfl.get("wallpaper", (w.get("options") or {}).get("wallpaper"))
+    if candidate:
+        base = os.path.basename(candidate)
+        if base in installed_wallpapers:
+            opts["wallpaper"] = base
+        elif opts.get("wallpaper"):
+            if warnings is not None:
+                warnings.append("options.wallpaper: world default %s not installed "
+                                "(asset missing); keeping existing wallpaper %s"
+                                % (candidate, opts["wallpaper"]))
+        else:
+            opts.pop("wallpaper", None)
+            if warnings is not None:
+                warnings.append("options.wallpaper: world default %s not installed "
+                                "(asset missing); no wallpaper set" % candidate)
     for k in ("dock", "notch", "notchMode", "notchAutoHideMs", "notchRespectFullscreen"):
         if k in dfl:
             opts[k] = dfl[k]
@@ -595,9 +613,9 @@ def apply_world(w, wdir, dry_run, reset_mode=False):
         # --- file phase: staged, rolled back as a unit on failure
         pkg = os.path.join(XDG_CONFIG, "elto", "themes", w["name"], "theme.json")
         run_obj.write(pkg, json.dumps(w, indent=2, ensure_ascii=False) + "\n", "theme-package")
-        install_wallpapers(w, wdir, run_obj)
+        installed_wps = install_wallpapers(w, wdir, run_obj)
         install_sounds(w, wdir, run_obj)
-        cur = build_overlay(w, wdir, run_obj, read_overlay())
+        cur = build_overlay(w, wdir, run_obj, read_overlay(), installed_wps, warnings)
         run_obj.write(overlay_path(), json.dumps(cur, indent=2, ensure_ascii=False), "shell-overlay")
         if (w.get("kde") or {}).get("colorscheme", {}).get("generate", True):
             text, scheme = gen_colorscheme(w)
