@@ -48,7 +48,7 @@ ShellRoot {
         readonly property int radiusWindow: shapeT.radiusWindow !== undefined ? shapeT.radiusWindow : 22
         // Readable colour on top of `selection`, derived from the selection luminance (no schema token for it yet).
         function lum(c) { return c.r * 0.299 + c.g * 0.587 + c.b * 0.114 }
-        readonly property color onSelection: lum(selection) < 0.5 ? surface : text
+        function onSel() { return lum(selection) < 0.5 ? Qt.lighter(surface, 1.8) : text }
         // Folder colour for era folder art: the world colour named folder, else the accent.
         readonly property color folderYellow: colors.folder !== undefined ? colors.folder : accent
         readonly property color disabled: role("disabled")
