@@ -76,7 +76,7 @@ Item {
                         st: page.st
                         bridge: page.bridge
                         item: modelData
-                        onToggled: function (on) { page.bridge.setEnabled(modelData.key, on, function () { page.reload() }) }
+                        onToggled: function (on) { page.bridge.setEnabled(modelData.key, on, function () {}) }
                         onRemoveRequested: page.bridge.remove(modelData.key, function () { page.reload() })
                     }
                     PartRow {

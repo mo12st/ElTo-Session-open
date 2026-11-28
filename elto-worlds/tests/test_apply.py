@@ -431,6 +431,39 @@ class KdePartsTest(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(dst, "cursors", "left_ptr")))
         self.assertTrue(os.path.isfile(os.path.join(dst, "index.theme")))
         self.assertTrue(any(s["step"] == "cursor-note" for s in out["steps"]))
+        # the libXcursor default link is data and always written, tools or not
+        default_meta = os.path.join(self.env["XDG_DATA_HOME"], "icons", "default", "index.theme")
+        self.assertTrue(os.path.isfile(default_meta))
+        with open(default_meta) as f:
+            self.assertIn("Inherits=Pink", f.read())
+        # every settings target a KWin Wayland session reads is written,
+        # with or without kwriteconfig6/plasma-apply-cursortheme
+        cfg = self.env["XDG_CONFIG_HOME"]
+        for rel, key in (("kcminputrc", "cursorTheme=Pink"),
+                         ("kdeglobals", "cursorTheme=Pink"),
+                         (os.path.join("gtk-3.0", "settings.ini"), "gtk-cursor-theme-name=Pink"),
+                         (os.path.join("gtk-4.0", "settings.ini"), "gtk-cursor-theme-name=Pink")):
+            path = os.path.join(cfg, rel)
+            self.assertTrue(os.path.isfile(path), rel)
+            with open(path) as f:
+                self.assertIn(key, f.read(), rel)
+        self.assertTrue(any(s["step"] == "cursor-live" for s in out["steps"]))
+
+    def test_ini_set_preserves_other_groups(self):
+        rc, out = self.cli("applypart", self.imp("cursor"), "cursor", "Pink")
+        self.assertEqual(rc, 0, out)
+        cfg = self.env["XDG_CONFIG_HOME"]
+        with open(os.path.join(cfg, "kcminputrc"), "w") as f:
+            f.write("[Keyboard]\nNumLock=0\n[Mouse]\ncursorTheme=Old\ncursorSize=24\n")
+        rc, out = self.cli("applypart", self.imp("cursor"), "cursor", "Pink")
+        self.assertEqual(rc, 0, out)
+        with open(os.path.join(cfg, "kcminputrc")) as f:
+            text = f.read()
+        self.assertIn("[Keyboard]", text)
+        self.assertIn("NumLock=0", text)
+        self.assertIn("cursorSize=24", text)
+        self.assertIn("cursorTheme=Pink", text)
+        self.assertNotIn("cursorTheme=Old", text)
 
     def test_apply_icons_copies_theme_dir(self):
         rc, out = self.cli("applypart", self.imp("icons"), "icons", "Tiberius")

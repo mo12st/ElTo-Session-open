@@ -446,6 +446,106 @@ class KdeDetailAndDirTest(unittest.TestCase):
         self.assertRaises(store.StoreError, self.store.kde_dir, "kde-nope")
 
 
+JUNK_XML = b"""<?xml version="1.0"?>
+<ocs><data>
+ <content><details>full</details>
+  <id>2001</id><name>Calm Paper</name><summary>A soft papery wallpaper in warm tones</summary>
+  <description>A hand-painted wallpaper that keeps the desktop quiet.</description>
+  <personid>ana</personid><score>50</score><downloads>120</downloads>
+  <downloadlink1>http://x/calm.zip</downloadlink1>
+ </content>
+ <content><details>full</details>
+  <id>2002</id><name>My logo</name><summary>Kpc os</summary>
+  <description>my logo v2</description>
+  <personid>spammy</personid><score>50</score>
+  <downloadlink1>http://x/logo.png</downloadlink1>
+ </content>
+ <content><details>full</details>
+  <id>2003</id><name>Superheroes avatars</name><summary>Awesome pics to be use as user pictures</summary>
+  <description>Avatar pack for profiles.</description>
+  <personid>spammy</personid><score>50</score>
+  <downloadlink1>http://x/av.zip</downloadlink1>
+ </content>
+ <content><details>full</details>
+  <id>2004</id><name>Broken thing</name><summary>A perfectly fine description of a wallpaper pack here</summary>
+  <description>Long enough description to pass the text check easily.</description>
+  <personid>ana</personid><score>50</score>
+ </content>
+ <content><details>full</details>
+  <id>2005</id><name>garden</name><summary>A garden painting is a masterpiece that always calm</summary>
+  <description>Same garden upload, first copy.</description>
+  <personid>buddy</personid><score>50</score><downloads>10</downloads>
+  <downloadlink1>http://x/g1.zip</downloadlink1>
+ </content>
+ <content><details>full</details>
+  <id>2006</id><name>Garden</name><summary>A garden painting is a masterpiece that always calm</summary>
+  <description>Same garden upload, better copy.</description>
+  <personid>buddy</personid><score>50</score><downloads>55</downloads>
+  <downloadlink1>http://x/g2.zip</downloadlink1>
+ </content>
+</data></ocs>"""
+
+
+class JunkFilterTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.payload = {"%s/content/data?categories=158&pagesize=40" % store.OCS_BASE: JUNK_XML}
+
+        def fetcher(url, **kw):
+            if url in self.payload:
+                return self.payload[url]
+            raise OSError("no network in tests")
+
+        self.store = store.Store(root=self.tmp.name, fetcher=fetcher)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def by_id(self, items):
+        return {i["id"]: i for i in items}
+
+    def test_every_item_is_annotated(self):
+        items = self.store.kde_listing("wallpapers")
+        for it in items:
+            self.assertIn("filtered", it)
+            self.assertIn("filter_reason", it)
+
+    def test_thin_text_filtered(self):
+        it = self.by_id(self.store.kde_listing("wallpapers"))["2002"]
+        self.assertTrue(it["filtered"])
+        self.assertEqual(it["filter_reason"], "almost no description")
+
+    def test_off_topic_wallpaper_filtered_with_what_it_says(self):
+        it = self.by_id(self.store.kde_listing("wallpapers"))["2003"]
+        self.assertTrue(it["filtered"])
+        self.assertIn("avatars", it["filter_reason"])
+
+    def test_no_files_filtered(self):
+        it = self.by_id(self.store.kde_listing("wallpapers"))["2004"]
+        self.assertTrue(it["filtered"])
+        self.assertEqual(it["filter_reason"], "no downloadable file")
+
+    def test_good_item_kept(self):
+        it = self.by_id(self.store.kde_listing("wallpapers"))["2001"]
+        self.assertFalse(it["filtered"])
+        self.assertEqual(it["filter_reason"], "")
+
+    def test_duplicate_keeps_best_downloaded(self):
+        items = self.by_id(self.store.kde_listing("wallpapers"))
+        self.assertTrue(items["2005"]["filtered"])
+        self.assertIn("duplicate", items["2005"]["filter_reason"])
+        self.assertFalse(items["2006"]["filtered"])
+
+    def test_misfit_rule_scoped_to_wallpapers(self):
+        # the same "avatars" title in a non-wallpaper category stays visible
+        xml = JUNK_XML.replace(b"Superheroes avatars", b"Avatar Cursor Pack") \
+                      .replace(b"Awesome pics to be use as user pictures",
+                               b"A cursor theme with superhero pointer art, many sizes")
+        self.payload["%s/content/data?categories=107&pagesize=40" % store.OCS_BASE] = xml
+        it = self.by_id(self.store.kde_listing("cursor"))["2003"]
+        self.assertFalse(it["filtered"])
+
+
 class FunctionsTest(unittest.TestCase):
     def test_listing_only(self):
         items = store.list_functions()
