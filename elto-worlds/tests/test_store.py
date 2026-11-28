@@ -212,5 +212,81 @@ class FunctionsTest(unittest.TestCase):
             self.assertTrue(it["url"].startswith("http"))
 
 
+
+
+class CliTest(unittest.TestCase):
+    """The UI bridge: store.py --cli as a subprocess, JSON on stdout."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.env = dict(os.environ, XDG_DATA_HOME=self.tmp.name)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def run_cli(self, *args, stdin=None):
+        import subprocess
+        proc = subprocess.run([sys.executable, STORE_PY, "--cli"] + list(args),
+                              input=stdin, capture_output=True, text=True, env=self.env)
+        return proc.returncode, json.loads(proc.stdout)
+
+    def test_worlds(self):
+        rc, out = self.run_cli("worlds")
+        self.assertEqual(rc, 0)
+        self.assertTrue(out["ok"])
+        self.assertTrue(out["items"])
+        self.assertTrue(all(w["kind"] == "data" for w in out["items"]))
+
+    def test_functions(self):
+        rc, out = self.run_cli("functions")
+        self.assertEqual(rc, 0)
+        self.assertTrue(all(i["listingOnly"] for i in out["items"]))
+
+    def test_installed_empty(self):
+        rc, out = self.run_cli("installed")
+        self.assertEqual(rc, 0)
+        self.assertEqual(out["items"], [])
+
+    def test_kde_unavailable_without_network(self):
+        self.env["ELTO_OCS_BASE"] = "http://127.0.0.1:9/ocs"
+        rc, out = self.run_cli("kde", "window-frame")
+        self.assertEqual(rc, 1)
+        self.assertFalse(out["ok"])
+        self.assertIn("unavailable", out["error"])
+
+    def test_install_roundtrip_and_remove(self):
+        # no network here either: install must fail cleanly, registry untouched
+        rc, out = self.run_cli("install", stdin=json.dumps(kde_entry()))
+        self.assertEqual(rc, 1)
+        self.assertFalse(out["ok"])
+        rc, out = self.run_cli("installed")
+        self.assertEqual(out["items"], [])
+
+    def test_unknown_command(self):
+        rc, out = self.run_cli("frobnicate")
+        self.assertEqual(rc, 1)
+        self.assertFalse(out["ok"])
+
+    def test_installarg_code_entry_refused(self):
+        rc, out = self.run_cli("installarg", json.dumps(kde_entry(kind="code")))
+        self.assertEqual(rc, 1)
+        self.assertIn("code", out["error"])
+
+    def test_status_command_reports_overlay(self):
+        import subprocess
+        elto = os.path.join(HERE, "..", "elto-world")
+        env = dict(os.environ, XDG_CONFIG_HOME=self.tmp.name)
+        proc = subprocess.run([elto, "status"], capture_output=True, text=True, env=env)
+        out = json.loads(proc.stdout)
+        self.assertEqual(proc.returncode, 0)
+        self.assertTrue(out["ok"])
+        self.assertIsNone(out["world"])
+        self.assertEqual(out["options"], {})
+
+    def test_code_entry_refused(self):
+        rc, out = self.run_cli("install", stdin=json.dumps(kde_entry(kind="code")))
+        self.assertEqual(rc, 1)
+        self.assertIn("code", out["error"])
+
 if __name__ == "__main__":
     unittest.main()
