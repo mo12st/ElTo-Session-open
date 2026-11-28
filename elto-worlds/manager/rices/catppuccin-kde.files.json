@@ -1,0 +1,297 @@
+{
+  "commit": "6606b5179cfc1e9ba5c3b6b70e15c468e2dddca2",
+  "fileCount": 57,
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "814096d2c34cc216c624738a49356f32b7237733b4f7edb0685f4e50ef5074ba",
+      "size": 1067
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeBlue.colors",
+      "sha256": "f0f0bf5e0d685006c7be45c7b068c9a82ea1c372b67876e8a68baddbd5369186",
+      "size": 3380
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeFlamingo.colors",
+      "sha256": "658cb3d65d8fba3e33594c707c3e125afa212c3e455a4d922d5ba085257c45c7",
+      "size": 3388
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeGreen.colors",
+      "sha256": "c7ce7329956db7860938a616b929455b9d0f3d4326d78154c89f3e049d014932",
+      "size": 3382
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeLavender.colors",
+      "sha256": "8d33acc7d5aa19bca10df2d06e9b702711c3087dbaf481eb0ac290ef3efa25e9",
+      "size": 3388
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeMaroon.colors",
+      "sha256": "f5a0917d76f1003085a424802016d1cdb3a7dedf1c3b1a7e448b39f698671706",
+      "size": 3384
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeMauve.colors",
+      "sha256": "7caa03bf81b5349d83d7d303742c26e2c0aac293e83dcbf38fe03afa495b6e5d",
+      "size": 3382
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappePeach.colors",
+      "sha256": "ecfda3cde9c1175c373376d7e0197cb1f4979cf5ba03044d74763170689014f0",
+      "size": 3382
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappePink.colors",
+      "sha256": "161ae1571191a06b166fcab79c07de602b9cebab7ae7ca95033ab121dc45c379",
+      "size": 3380
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeRed.colors",
+      "sha256": "9fff65cb1aa3b070bb4852488a675b02852f0b9853fcf3cd67c57356f924f9d4",
+      "size": 3378
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeRosewater.colors",
+      "sha256": "fee0572f567f95705c6e0cf2aa5bec9b0f5787528a0f42cdaf3aa82d98760d97",
+      "size": 3390
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeSapphire.colors",
+      "sha256": "466b385118d36472b0adc256e29bcdce49c025948cf40c1303665e95524341c1",
+      "size": 3388
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeSky.colors",
+      "sha256": "ea409baf876d7d814ea848cccb312cc669d8644b07ac6dd515eed87837e15576",
+      "size": 3378
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeTeal.colors",
+      "sha256": "a83afc3853e387a9984712e64721b34d9450d09cbcefcbbc22e12e42dfc0d6c1",
+      "size": 3380
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinFrappeYellow.colors",
+      "sha256": "34bbc6b5de07447c63fc15830f78e643ed43093327f82c16cf7e493084ab340a",
+      "size": 3384
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteBlue.colors",
+      "sha256": "44e9378b854526779dc40d6f55332951f18f92b3fe55adfc7b9aa1992a99444b",
+      "size": 3387
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteFlamingo.colors",
+      "sha256": "b5bda2c9163a4c31cdb8c59aaecfc74015febcbb06c6e928fb21c3dce053f0bc",
+      "size": 3387
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteGreen.colors",
+      "sha256": "a3074d39638fc92713aa2faf495d9b90ff51efc5426f16fec8973cb939344af4",
+      "size": 3349
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteLavender.colors",
+      "sha256": "b72aa5e529009d1b88e54c4a84212d58401978172c7a315824c7cbbcdf232333",
+      "size": 3387
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteMaroon.colors",
+      "sha256": "357cb3612efeaed83bf918d87fc4dcf761997522886c08335e7d33deaddbffdf",
+      "size": 3351
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteMauve.colors",
+      "sha256": "e6de1bf2078a84f03ddbf60b1c1eb20b5d1d0ec9d998626c2983c99e75b87879",
+      "size": 3389
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLattePeach.colors",
+      "sha256": "2ad2cab4e73ac2fd252741010d9f282430d944b0d154a8539a26643efec73911",
+      "size": 3365
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLattePink.colors",
+      "sha256": "b1c8d0069c17e6a043c36a5ca97a5ef1c71048e11ea0ee76efe4b9576ddbf912",
+      "size": 3379
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteRed.colors",
+      "sha256": "c4c216009bcc027d52385c27d3f4ce04a1596b18f7c4f222f4eca6d0bf57ed78",
+      "size": 3369
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteRosewater.colors",
+      "sha256": "5b6b355925bef7b9606ddd5dc0e870f3e765b0903af9ea0f13868f0995deee5e",
+      "size": 3389
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteSapphire.colors",
+      "sha256": "88aeb23faad71c603e8a8ebbbb0179bf2c67de27ac482d838a5fddacf22095ad",
+      "size": 3371
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteSky.colors",
+      "sha256": "30076ea928d00794e5f8b0c1e42faba7d584bbb48c58486353606f2eca10bf01",
+      "size": 3345
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteTeal.colors",
+      "sha256": "7e2f9bd28c7f04898461626ba265d414d578cea89e189a5849076b694eed5edd",
+      "size": 3363
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinLatteYellow.colors",
+      "sha256": "bc6638d83ba691a0b6a4bc10e7cc89f07e8167e1968acaf00b1ef0368f220a90",
+      "size": 3367
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoBlue.colors",
+      "sha256": "0c25f19add634a6c4b6e941de32b2409acae363d8f186718ac3a89c784c82923",
+      "size": 3386
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoFlamingo.colors",
+      "sha256": "e18208bb004224549091b360dc133d68d5dcc9337aa24d9fe8d24dd5f26c7d2c",
+      "size": 3394
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoGreen.colors",
+      "sha256": "60e7cd3191a1870979caa66c1365da45179ce92ed8786d6e9836b259d9b904ba",
+      "size": 3388
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoLavender.colors",
+      "sha256": "150d625a35c464e965fa5e888c88e33037bcb7387f5ccf6ba65bc63ee1e9188a",
+      "size": 3394
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoMaroon.colors",
+      "sha256": "ae31c9cd0dba09fd8311743038436d65ead9749deea14f574eb3c1b8afa12d4a",
+      "size": 3390
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoMauve.colors",
+      "sha256": "fdedcc178d70dac67c8e42f96c12b407887b3f175c41f0e9a764b15ebb6e9387",
+      "size": 3388
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoPeach.colors",
+      "sha256": "3350c2aa634f9b23027dac1abc2040e82a17e47964b92c98cd1bebb6c1ca3212",
+      "size": 3388
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoPink.colors",
+      "sha256": "2cf8405d2ef40a618062d4b5b0f84c27229873978ee96c4a84c4fc3eb03cea5b",
+      "size": 3386
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoRed.colors",
+      "sha256": "60369312f1eb6b1a0b0958c8b21d0a11f519df783aca083806a3b1c201c1481a",
+      "size": 3384
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoRosewater.colors",
+      "sha256": "e1d696a932a595a6f21fe303cd44a1497c2a2f5ddab2291ebc7ebe9d9dd81068",
+      "size": 3396
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoSapphire.colors",
+      "sha256": "6954a50d0c0d91041479d62336eb908213f57a8cb90ee49505413e2d4591b365",
+      "size": 3394
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoSky.colors",
+      "sha256": "4ab17c2715bc9f8c473320e62a9fc3f38c4ac0ac8594223cb09a8baa9b51f7d1",
+      "size": 3384
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoTeal.colors",
+      "sha256": "7c601c9717c971be4f32b8319e342e6a0380690ddaa14466c8c9a0e8a59cbe23",
+      "size": 3386
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMacchiatoYellow.colors",
+      "sha256": "202b3c88a9931133715ca09f04f48c322a6c568b06f525291480caf5032ab43b",
+      "size": 3390
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaBlue.colors",
+      "sha256": "64b1bbad83fa326ae2d16dd6046e64dc0dbb9862df25daafb99207c07fd94416",
+      "size": 3371
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaFlamingo.colors",
+      "sha256": "f6ea03a65e9271917f0dd3caf3d5692e9c227ebc713e2a2004828a11bf236547",
+      "size": 3379
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaGreen.colors",
+      "sha256": "a1f97e4711116f52e529b5acd1182fa9889e73f8a7df7b60450074a0a75e8ae5",
+      "size": 3373
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaLavender.colors",
+      "sha256": "d100716a75e1d4429d00e899ea6c98bc1b118c252bec89d1236e86123fe04d0e",
+      "size": 3379
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaMaroon.colors",
+      "sha256": "7a19cbdc9383738014f359c0d45b52873f1312840635ef345f61ddafe49d5d33",
+      "size": 3375
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaMauve.colors",
+      "sha256": "cc55fefa8918e13155c2d0acc21ec525f4d8447e620929c26a881ac7a694116d",
+      "size": 3373
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaPeach.colors",
+      "sha256": "3029e0ffda00b0a680d05242235553828d2d96cf8783d6bca508de535f294f5e",
+      "size": 3373
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaPink.colors",
+      "sha256": "627b49233b09000fb03c24a8b3f6773aac43c08779a872fc39a5ac54a1da1e4c",
+      "size": 3371
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaRed.colors",
+      "sha256": "f9bba38c1c37ec6aeaf8d7d6cbc5cbd9b8f135992a6447d057bcab2c93246e20",
+      "size": 3369
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaRosewater.colors",
+      "sha256": "0df5dc91451f779b8c50ef64c47a8280d9c5d5dcfc3fb074c80928da004d9c5f",
+      "size": 3381
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaSapphire.colors",
+      "sha256": "5b824d7106eed08c9d53ea3594ed5d23dc49cab637daaf0d89b3a3d2cf245799",
+      "size": 3379
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaSky.colors",
+      "sha256": "9e77d62dfdac9c1c516c96da1d6feebbe205a2e7fffd9bd6f81210ddcee01a75",
+      "size": 3369
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaTeal.colors",
+      "sha256": "8261d9195189554f9617bf6b7b301f6e94417fe319ce3ef6774a74a4cff66e70",
+      "size": 3371
+    },
+    {
+      "path": "generated/color-schemes/CatppuccinMochaYellow.colors",
+      "sha256": "06f8f8c520b60a996cf741e8782b212b2dfb73950035fcaf52c6f62bb66d901b",
+      "size": 3375
+    }
+  ],
+  "format": "eltoricefiles/1",
+  "id": "catppuccin-kde",
+  "subsetDirs": [
+    "generated/color-schemes"
+  ],
+  "totalBytes": 190315
+}

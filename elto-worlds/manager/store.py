@@ -12,6 +12,10 @@ Stdlib only. Serves the Theme Manager (PR 3):
 - KDE items that ship code are listed greyed (kind "code") and never import
 - Functions (bars, widgets, ...) are listing-only from functions.json with
   their upstream links; there is no install path for them
+- Rices (rices.json) are curated upstream KDE theme repos: tier A cards with
+  a reviewed, commit-pinned per-file manifest install their data subset
+  byte-for-byte (rices/*.files.json); anything missing or changed in the
+  tarball is refused. Tier B / uncurated cards are listing-only links.
 - enable/disable/remove work on the registry; system paths are the polkit
   helper's job (PR 4), this module never touches them
 
@@ -46,6 +50,7 @@ CACHE_TTL = 3600                         # seconds a live listing is fresh
 
 CATALOG_JSON = os.path.join(HERE, "..", "catalog", "catalog.json")
 FUNCTIONS_JSON = os.path.join(HERE, "functions.json")
+RICES_JSON = os.path.join(HERE, "rices.json")
 WORLDS_DIR = os.path.join(HERE, "..", "worlds")
 WORLD_SLUG = re.compile(r"^[a-z0-9-]+$")
 
@@ -129,6 +134,28 @@ def list_functions(path=FUNCTIONS_JSON):
     for it in items:
         it["kind"] = "code"
         it["listingOnly"] = True
+    return items
+
+
+def list_rices(path=None):
+    """Rice cards. Curated tier-A entries install their reviewed pinned data
+    subset via Store.install_rice; everything else is a link-out card."""
+    path = path or RICES_JSON
+    try:
+        with open(path) as f:
+            items = json.load(f)
+    except OSError:
+        return []
+    for it in items:
+        if it.get("curated"):
+            it.setdefault("kind", "data")
+        else:
+            # not installable: either a code item (kind set in the card) or a
+            # tier-A repo whose reviewed pinned subset is not built yet
+            it.setdefault("kind", "data")
+            it["listingOnly"] = True
+            if it["kind"] != "code":
+                it["curationPending"] = True
     return items
 
 
@@ -321,6 +348,119 @@ class Store:
         self._save_registry(items)
         return dest
 
+    # -- rice import (reviewed, commit-pinned data subset) --
+    def install_rice(self, rice_id):
+        """Install the curated data subset of one rice, byte-for-byte against
+        its reviewed manifest. The manifest pins the upstream commit and every
+        file's sha256; the tarball is fetched fresh but only manifest bytes
+        land on disk - a missing, resized or altered file refuses the whole
+        install. Upstream scripts are never read, let alone run."""
+        entry = next((r for r in list_rices() if r["id"] == rice_id), None)
+        if entry is None:
+            raise StoreError("no rice %r" % (rice_id,))
+        if not entry.get("curated") or not entry.get("manifest"):
+            raise StoreError("rice %r has no reviewed pinned subset; listing-only" % rice_id)
+        mpath = os.path.join(HERE, entry["manifest"])
+        try:
+            with open(mpath) as f:
+                manifest = json.load(f)
+        except (OSError, ValueError) as e:
+            raise StoreError("bad manifest for %r: %s" % (rice_id, e))
+        if manifest.get("format") != "eltoricefiles/1" or manifest.get("commit") != entry.get("commit"):
+            raise StoreError("manifest does not match the pinned card for %r" % rice_id)
+        files = manifest.get("files") or []
+        if not files or len(files) > bundle.MAX_FILES:
+            raise StoreError("manifest file list empty or over cap for %r" % rice_id)
+        for mf in files:
+            rel = mf.get("path") or ""
+            if not bundle.safe_name(rel):
+                raise StoreError("unsafe path in manifest: %r" % rel)
+            if CODE_EXTS.search(rel) and not rel.lower().endswith(".desktop"):
+                raise StoreError("code file in manifest: %r" % rel)
+            if int(mf.get("size", 0)) > bundle.MAX_ASSET:
+                raise StoreError("manifest file over per-file cap: %r" % rel)
+
+        url = "https://codeload.github.com/%s/tar.gz/%s" % (entry["repo"], entry["commit"])
+        data = self.fetcher(url)
+        if not tarfile.is_tarfile(io.BytesIO(data)):
+            raise StoreError("upstream tarball is not a tar archive")
+        tf = tarfile.open(fileobj=io.BytesIO(data))
+        # GitHub tarballs wrap everything in one <owner>-<repo>-<sha>/ root;
+        # strip that first component and match manifest paths exactly.
+        members = {}
+        for m in tf.getmembers():
+            if not m.isfile():
+                continue
+            parts = m.name.split("/", 1)
+            if len(parts) != 2:
+                continue
+            members.setdefault(parts[1], m)
+
+        key = "rice-" + rice_id
+        version = str(entry.get("version") or entry["commit"][:12])
+        dest = os.path.join(self.root, "imports", "%s-%s" % (key, version))
+        staging = tempfile.mkdtemp(dir=os.path.join(self.root, "tmp"))
+        try:
+            names = []
+            for mf in files:
+                rel = mf["path"]
+                m = members.get(rel)
+                if m is None:
+                    raise StoreError("manifest file missing in tarball: %r" % rel)
+                if m.size != int(mf["size"]):
+                    raise StoreError("size drift for %r (pinned %d, got %d)" % (rel, mf["size"], m.size))
+                fobj = tf.extractfile(m)
+                blob = fobj.read(bundle.MAX_ASSET + 1)
+                if sha256(blob) != mf["sha256"]:
+                    raise StoreError("sha256 drift for %r; upstream content changed, refusing" % rel)
+                target = os.path.join(staging, rel)
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                with open(target, "wb") as f:
+                    f.write(blob)
+                names.append(rel)
+            for root, _dirs, fns in os.walk(staging):
+                for fn in fns:
+                    p = os.path.join(root, fn)
+                    low = fn.lower()
+                    if low.endswith(".desktop"):
+                        _check_desktop(p)
+                    if low.endswith(".svg"):
+                        _check_svg(p)
+            part = {
+                "format": "eltopart/1",
+                "source": "github-rice",
+                "kind": "data",
+                "category": "rices",
+                "title": entry.get("label"),
+                "version": version,
+                "author": entry.get("author"),
+                "license": entry.get("license"),
+                "sourceUrl": url,
+                "detailPage": entry.get("upstream"),
+                "pinnedCommit": entry["commit"],
+                "applies": entry.get("applies") or [],
+                "linksOnly": entry.get("linksOnly") or [],
+                "imported": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "files": sorted(names),
+                "note": "reviewed pinned data subset (rices/%s.files.json); upstream code parts linked, never installed" % rice_id,
+            }
+            with open(os.path.join(staging, "part.json"), "w") as f:
+                json.dump(part, f, indent=2, sort_keys=True)
+            if os.path.lexists(dest):
+                shutil.rmtree(dest)
+            os.rename(staging, dest)
+        except BaseException:
+            shutil.rmtree(staging, ignore_errors=True)
+            raise
+
+        items = [i for i in self._registry_items() if i["key"] != key]
+        items.append({"key": key, "kind": "data", "category": "rices",
+                      "title": entry.get("label"), "version": version, "path": dest,
+                      "source": "github-rice", "pinnedCommit": entry["commit"],
+                      "enabled": True})
+        self._save_registry(items)
+        return dest
+
     # -- world install (copy from the repo worlds dir, register) --
     def install_world(self, world_id):
         """Install one ElTo world into the user worlds dir. Worlds are repo
@@ -409,6 +549,8 @@ def cli(argv):
     store.py --cli worlds
     store.py --cli kde <category>
     store.py --cli functions
+    store.py --cli rices
+    store.py --cli installrice <id>
     store.py --cli installed
     store.py --cli install            (entry JSON on stdin)
     store.py --cli installworld <id>  (copy an ElTo world into the user dir)
@@ -425,6 +567,11 @@ def cli(argv):
             _jprint({"ok": True, "items": items, "stale": any(i.get("stale") for i in items)})
         elif argv == ["functions"]:
             _jprint({"ok": True, "items": list_functions()})
+        elif argv == ["rices"]:
+            _jprint({"ok": True, "items": list_rices()})
+        elif len(argv) == 2 and argv[0] == "installrice":
+            dest = st.install_rice(argv[1])
+            _jprint({"ok": True, "path": dest})
         elif argv == ["installed"]:
             _jprint({"ok": True, "items": st.list_installed()})
         elif len(argv) == 2 and argv[0] == "installworld":
@@ -449,7 +596,7 @@ def cli(argv):
             st.remove(argv[1])
             _jprint({"ok": True})
         else:
-            _jprint({"ok": False, "error": "usage: worlds | kde <category> | functions | installed | install | installarg <entry-json> | installworld <id> | worlddir <id> | updates | enable <key> | disable <key> | remove <key>"})
+            _jprint({"ok": False, "error": "usage: worlds | kde <category> | functions | rices | installrice <id> | installed | install | installarg <entry-json> | installworld <id> | worlddir <id> | updates | enable <key> | disable <key> | remove <key>"})
             return 1
         return 0
     except (StoreError, ValueError, OSError) as e:
