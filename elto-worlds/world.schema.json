@@ -83,7 +83,42 @@
       "additionalProperties": { "type": "string" },
       "required": ["surface", "surfaceAlt", "text", "textMuted", "accent", "selection", "divider", "disabled"]
     },
-    "shape": { "type": "object" },
+    "shape": {
+      "type": "object",
+      "description": "Geometry and material tokens. The Trail data contract (signed off by the Trail agent) adds the file/presentation tokens below; the vocabulary of values is Trail's contract with the shell and file manager, and a reader must ignore values it does not implement and fall back, never fail.",
+      "properties": {
+        "bevel": {
+          "type": "string",
+          "description": "Edge bevel style, e.g. meadow's \"rounded-gloss\"."
+        },
+        "glass": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Translucency amount, 0 opaque to 1 fully glass; meadow sits at 0.4."
+        },
+        "folderArt": {
+          "type": "string",
+          "description": "Folder icon artwork style, e.g. meadow's \"luna\"."
+        },
+        "cardArt": {
+          "type": "string",
+          "description": "Card/panel artwork treatment, e.g. meadow's \"gloss-band\". Band worlds derive their band colors from the world palette (colors/roles), never hardcoded band colors."
+        },
+        "pageLayout": {
+          "type": "string",
+          "description": "Page/desktop layout mode, e.g. meadow's \"desktop-icons\"."
+        },
+        "iconArt": {
+          "type": "string",
+          "description": "Icon artwork treatment, e.g. meadow's \"gloss\"."
+        },
+        "folderView": {
+          "type": "string",
+          "description": "Default folder view in the file manager, e.g. meadow's \"details\"."
+        }
+      }
+    },
     "fonts": {
       "type": "object",
       "properties": {
