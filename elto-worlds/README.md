@@ -17,9 +17,11 @@ Everything here is CONCEPT until VM-verified by the implementer.
 - `world.schema.json` - the format contract (JSON Schema draft 2020-12). `elto-world check`
   implements the same rules with no dependencies.
 - `worlds/<name>/world.json` - the nine worlds from the user's concept art: aero, retro95,
-  classic, flow, faithful, unix, retroaero, y2k, mono. Palettes are sampled from the art and
-  are estimates for the artist to refine. `assets/` are pending the user's exports; the
-  validator warns, it does not fail.
+  classic, flow, faithful, unix, retroaero, y2k, mono; plus meadow, an original early-2000s
+  world (glossy rounded sky-blue titlebars, grass-green accents) added from a stub render,
+  no concept art yet. Palettes are sampled from the art where it exists and are estimates
+  for the artist to refine. `assets/` are pending the user's exports; the validator warns,
+  it does not fail.
 
 ## Usage
 
@@ -130,7 +132,7 @@ Assets always live under `assets/` inside the world directory.
 
 L0 design, L1 sandbox, L2 VM, L3 hardware. Current state:
 
-- L1 `elto-world check`: PASS on all nine worlds at schema v3 (plus negative tests: bad
+- L1 `elto-world check`: PASS on all ten worlds at schema v3 (plus negative tests: bad
   name, unknown role target, unknown layout key, unknown color ref are all rejected).
   Unknown vs unsupported option values warn visibly and fall back (unknown dock variant,
   unknown notch mode, unsupported ridge-shelf/hidden-thread concepts all verified).

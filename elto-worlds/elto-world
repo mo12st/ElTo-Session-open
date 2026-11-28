@@ -37,7 +37,10 @@ HEX = re.compile(r"^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 ASSET = re.compile(r"^assets/")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
-SCRIPT_EXT = re.compile(r"\.(sh|bash|zsh|py|pl|rb|js|exe|dll|so|bin|desktop)$", re.I)
+SCRIPT_EXT = re.compile(r"\.(sh|bash|zsh|py|pl|rb|js|mjs|qml|qmlc|exe|dll|so|bin|desktop)$", re.I)
+# Bundles are data-only by user decision (option 1, Telegram 28181657): SDDM, lock and
+# Plymouth rendering is built into ElTo and driven by bundle data, so no QML (or any
+# script/executable) ever ships inside a world or an .elworld bundle.
 
 LAYOUT_KEYS = {"bar", "rail", "launcher", "windowControls", "motionProfile"}
 COLORREF_KEYS = {"frame", "frameInactive", "title", "backgroundColor", "accentColor",
@@ -271,6 +274,16 @@ def validate(w, wdir):
                     errors.append("layout: unknown key " + k)
                 elif not isinstance(v, str):
                     errors.append("layout.%s must be a string" % k)
+
+    aur = w.get("aurorae") or {}
+    tmpl = aur.get("template")
+    if isinstance(tmpl, str) and "/" in tmpl:
+        if not ASSET.match(tmpl + "/x"):
+            errors.append("aurorae.template: per-world template must live under assets/")
+        elif not os.path.isdir(os.path.join(wdir, tmpl)):
+            warnings.append("aurorae.template: %s not present yet" % tmpl)
+        elif not os.path.isfile(os.path.join(wdir, tmpl, "decoration.svg")):
+            errors.append("aurorae.template: %s has no decoration.svg" % tmpl)
 
     for sec in ("aurorae", "sddm", "lock", "plymouth", "grub"):
         s = w.get(sec)
@@ -553,8 +566,17 @@ BUTTON_LAYOUTS = {
     "left-close-right": ("MIA", "X"),
 }
 
-def find_aurorae_template():
-    d = os.path.normpath(os.path.join(HERE, "..", "aurorae", "ElToClassic"))
+def find_aurorae_template(w=None, wdir=None):
+    # A world may ship its own Aurorae template as data (SVG + rc, no code) under
+    # assets/, e.g. aurorae.template: "assets/aurorae". Otherwise the shared
+    # template next to elto-worlds/ is used.
+    tmpl = ((w or {}).get("aurorae") or {}).get("template") or "ElToClassic"
+    if "/" in tmpl and wdir:
+        d = os.path.normpath(os.path.join(wdir, tmpl))
+        if os.path.isdir(d):
+            return d
+        return None
+    d = os.path.normpath(os.path.join(HERE, "..", "aurorae", tmpl))
     return d if os.path.isdir(d) else None
 
 def gen_aurorae(w, tmpl, outdir):
@@ -574,10 +596,11 @@ def gen_aurorae(w, tmpl, outdir):
                 s = s.replace(old, new)
             with open(dst, "w") as f:
                 f.write(s)
-        elif fn == "ElToClassicrc":
+        elif fn.endswith("rc"):
             with open(src) as f:
                 s = f.read()
-            s = re.sub(r"ActiveTextColor=.*", "ActiveTextColor=" + rgba255(resolve(w, "text")), s)
+            title_ref = ((w.get("aurorae") or {}).get("title")) or "text"
+            s = re.sub(r"ActiveTextColor=.*", "ActiveTextColor=" + rgba255(resolve(w, title_ref)), s)
             s = re.sub(r"InactiveTextColor=.*", "InactiveTextColor=" + rgba255(resolve(w, "disabled")), s)
             wc = (w.get("layout") or {}).get("windowControls", "right")
             left, right = BUTTON_LAYOUTS.get(wc, ("M", "IAX"))
@@ -625,7 +648,7 @@ def apply_world(w, wdir, dry_run, reset_mode=False):
             text, scheme = gen_colorscheme(w)
             path = os.path.join(XDG_DATA, "color-schemes", scheme.replace(" ", "") + ".colors")
             run_obj.write(path, text, "kde-colorscheme")
-        tmpl = find_aurorae_template()
+        tmpl = find_aurorae_template(w, wdir)
         aur_name = None
         if tmpl:
             aur_name = "ElTo" + w["name"]
@@ -732,8 +755,14 @@ def cmd_pack(wdir, out):
             full = os.path.join(root, n)
             rel = os.path.relpath(full, wdir)
             if SCRIPT_EXT.search(rel):
-                errors.append("refusing to pack executable or script: " + rel)
-                continue
+                inert_desktop = False
+                if rel.lower().endswith(".desktop"):
+                    with open(full, "rb") as fh:
+                        inert_desktop = not re.search(rb"^\s*(?:Try)?Exec\s*=",
+                                                      fh.read(), re.M)
+                if not inert_desktop:
+                    errors.append("refusing to pack executable or script: " + rel)
+                    continue
             size = os.path.getsize(full)
             if size > MAX_ASSET:
                 errors.append("asset over %d bytes: %s" % (MAX_ASSET, rel))
