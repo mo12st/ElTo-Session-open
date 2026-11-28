@@ -85,7 +85,7 @@
     },
     "shape": {
       "type": "object",
-      "description": "Geometry and material tokens. The Trail data contract (signed off by the Trail agent) adds the file/presentation tokens below; the vocabulary of values is Trail's contract with the shell and file manager, and a reader must ignore values it does not implement and fall back, never fail.",
+      "description": "Geometry and material tokens. The Trail data contract (per Trail coordination, pending user review) adds the file/presentation tokens below; the vocabulary of values is Trail's contract with the shell and file manager, and a reader must ignore values it does not implement and fall back, never fail.",
       "properties": {
         "bevel": {
           "type": "string",

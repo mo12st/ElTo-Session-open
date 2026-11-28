@@ -116,7 +116,7 @@ accepted with a warning). New sections, all optional:
 - `layout` - world behavior, not recolor: `bar`, `rail`, `launcher`, `windowControls`,
   `motionProfile`. Declarative: the shell must ignore values it does not implement and fall
   back to its default layout.
-- `shape` Trail data contract (signed off by the Trail agent): `bevel`, `glass` (0-1),
+- `shape` Trail data contract (per Trail coordination, pending user review): `bevel`, `glass` (0-1),
   `folderArt`, `cardArt`, `pageLayout`, `iconArt`, `folderView`. Same declarative rule:
   readers ignore unknown values and fall back. Band worlds derive their band colors from
   the world palette (colors/roles), never hardcoded. `colors.folder` names the folder tint
