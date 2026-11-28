@@ -10,6 +10,7 @@ Rectangle {
     property var item: ({})
     property string source: "elto"   // elto | kde
     signal installRequested(var item)
+    signal clicked(var item)
 
     readonly property bool isCode: item.kind === "code"
     readonly property var palette: {
@@ -24,6 +25,14 @@ Rectangle {
     color: isCode ? st.paper2 : "#ffffff"
     border.width: 1
     border.color: ma.containsMouse && !isCode ? st.accent : st.line
+
+    // card-wide tap target for the details view; sits below the Install
+    // button's own MouseArea so button clicks still win
+    MouseArea {
+        anchors.fill: parent
+        z: -1
+        onClicked: card.clicked(card.item)
+    }
 
     Row {
         x: 14; y: 12; width: parent.width - 28; spacing: 12

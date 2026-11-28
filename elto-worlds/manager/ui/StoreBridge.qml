@@ -85,6 +85,20 @@ QtObject {
             run([eltoWorld, "applypart", o.path, fmt, name], function (ao) { _applyPartDone(ao); cb(ao) })
         })
     }
+    function kdeParts(key, category, cb) {
+        _store(["kdedir", key], function (o) {
+            if (!o.ok) { cb(o); return }
+            run([eltoWorld, "kdeparts", o.path, category], cb)
+        })
+    }
+    function applyKdePart(key, fmt, name, cb) {
+        history.append({ title: key + " " + fmt + " " + name, state: "running", detail: "applying data part" })
+        _store(["kdedir", key], function (o) {
+            if (!o.ok) { _applyPartDone(o); cb(o); return }
+            run([eltoWorld, "applypart", o.path, fmt, name], function (ao) { _applyPartDone(ao); cb(ao) })
+        })
+    }
+    function kdeDetail(id, cb) { _store(["kdedetail", id], cb) }
     function _applyPartDone(o) {
         const i = history.count - 1
         if (o.ok) history.setProperty(i, "state", "done")

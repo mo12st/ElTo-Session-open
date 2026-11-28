@@ -15,6 +15,27 @@ Item {
     property string notice: ""
     property string search: ""
 
+    // KDE item details overlay (public store data only)
+    property var detailItem: null
+    property var detailInfo: null
+    property int detailImg: 0
+    property string detailNotice: ""
+
+    function openDetail(it) {
+        detailItem = it
+        detailInfo = null
+        detailImg = 0
+        detailNotice = ""
+        bridge.kdeDetail(it.id, function (o) {
+            if (o.ok && page.detailItem === it) page.detailInfo = o.item
+        })
+    }
+
+    function detailImages() {
+        if (detailInfo && detailInfo.previews && detailInfo.previews.length > 0) return detailInfo.previews
+        return detailItem && detailItem.preview ? [detailItem.preview] : []
+    }
+
     readonly property bool isKde: category !== "worlds" && category !== "filemanager" && category !== "functions" && category !== "rices"
 
     function matches(it) {
@@ -108,12 +129,160 @@ Item {
                     st: page.st
                     item: modelData
                     source: page.category === "worlds" ? "elto" : "kde"
+                    onClicked: function (it) { if (page.category !== "worlds") page.openDetail(it) }
                     onInstallRequested: function (it) {
                         if (it.kind === "code") { Qt.openUrlExternally(it.detailPage || it.url || ""); return }
                         if (page.category === "worlds") page.bridge.installWorld(it.id)
                         else page.bridge.installKde(it, function (o) {
                             page.notice = o.ok ? "" : ("Install failed safely: " + (o.error || "unknown error"))
                         })
+                    }
+                }
+            }
+        }
+    }
+
+    // KDE item details: name, author, version/date, downloads/score,
+    // license, preview images, description and its store page - all from
+    // the public OCS data the cards already use.
+    Rectangle {
+        anchors.fill: parent
+        visible: page.detailItem !== null
+        color: "#402b2b26"
+        MouseArea { anchors.fill: parent; onClicked: page.detailItem = null }
+
+        Rectangle {
+            anchors.centerIn: parent
+            width: Math.min(parent.width - 48, 560)
+            height: Math.min(parent.height - 48, 470)
+            radius: page.st.radius; color: "#ffffff"
+            border.width: 1; border.color: page.st.line
+            MouseArea { anchors.fill: parent }  // taps inside do not close
+
+            Flickable {
+                anchors.fill: parent; anchors.margins: 20
+                contentHeight: dcol.height; clip: true
+                Column {
+                    id: dcol
+                    width: parent.width - 40; spacing: 10
+
+                    Row {
+                        width: parent.width; spacing: 14
+                        Rectangle {
+                            width: 132; height: 132; radius: page.st.radiusSmall
+                            color: page.st.paper2; border.width: 1; border.color: page.st.line
+                            clip: true
+                            Image {
+                                anchors.fill: parent
+                                source: page.detailImages().length > 0 ? page.detailImages()[page.detailImg % page.detailImages().length] : ""
+                                asynchronous: true
+                                fillMode: Image.PreserveAspectFit
+                                visible: status === Image.Ready
+                            }
+                            Text {
+                                anchors.centerIn: parent
+                                text: page.detailItem ? (page.detailItem.title || "?").charAt(0).toUpperCase() : ""
+                                color: page.st.muted; font.pixelSize: 30; font.bold: true
+                            }
+                            Text {
+                                visible: page.detailImages().length > 1
+                                anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                                text: " < "; color: page.st.accent; font.pixelSize: 14; font.bold: true
+                                MouseArea { anchors.fill: parent; onClicked: page.detailImg = (page.detailImg + page.detailImages().length - 1) % page.detailImages().length }
+                            }
+                            Text {
+                                visible: page.detailImages().length > 1
+                                anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                                text: " > "; color: page.st.accent; font.pixelSize: 14; font.bold: true
+                                MouseArea { anchors.fill: parent; onClicked: page.detailImg = (page.detailImg + 1) % page.detailImages().length }
+                            }
+                        }
+                        Column {
+                            width: parent.width - 146; spacing: 5
+                            Text {
+                                text: page.detailItem ? (page.detailItem.title || "") : ""
+                                color: page.st.ink; font.pixelSize: 17; font.bold: true
+                                width: parent.width; wrapMode: Text.WordWrap
+                            }
+                            Text {
+                                visible: text !== ""
+                                text: page.detailItem && page.detailItem.author ? "by " + page.detailItem.author : ""
+                                color: page.st.muted; font.pixelSize: 12; width: parent.width; elide: Text.ElideRight
+                            }
+                            Text {
+                                visible: text !== ""
+                                text: {
+                                    if (!page.detailItem) return ""
+                                    const bits = []
+                                    if (page.detailItem.version) bits.push("v" + page.detailItem.version)
+                                    const d = (page.detailInfo && (page.detailInfo.changed || page.detailInfo.created)) || ""
+                                    if (d !== "") bits.push(d.split("T")[0])
+                                    if (page.detailItem.typename) bits.push(page.detailItem.typename)
+                                    return bits.join("  -  ")
+                                }
+                                color: page.st.muted; font.pixelSize: 11; width: parent.width; elide: Text.ElideRight
+                            }
+                            Text {
+                                visible: text !== ""
+                                text: {
+                                    if (!page.detailItem) return ""
+                                    const bits = []
+                                    if (page.detailItem.downloads && page.detailItem.downloads !== "") bits.push(page.detailItem.downloads + " downloads")
+                                    if (page.detailItem.score && page.detailItem.score !== "") bits.push("score " + page.detailItem.score)
+                                    if (page.detailItem.license && page.detailItem.license !== "") bits.push(page.detailItem.license)
+                                    return bits.join("  -  ")
+                                }
+                                color: page.st.gold; font.pixelSize: 11; width: parent.width; wrapMode: Text.WordWrap
+                            }
+                        }
+                    }
+
+                    Text {
+                        width: parent.width; wrapMode: Text.WordWrap
+                        text: page.detailInfo && page.detailInfo.description !== "" ? page.detailInfo.description
+                            : (page.detailItem ? (page.detailItem.summary || "") : "")
+                        color: page.st.ink; font.pixelSize: 12
+                    }
+
+                    Text {
+                        visible: page.detailNotice !== ""
+                        text: page.detailNotice; color: page.st.gold; font.pixelSize: 12
+                        width: parent.width; wrapMode: Text.WordWrap
+                    }
+
+                    Row {
+                        spacing: 10
+                        Rectangle {
+                            visible: page.detailItem && page.detailItem.kind !== "code"
+                            width: 92; height: 30; radius: 15
+                            color: dinstall.containsMouse ? page.st.accentHi : page.st.accent
+                            Text { anchors.centerIn: parent; text: "Install"; color: "#ffffff"; font.pixelSize: 12; font.bold: true }
+                            MouseArea {
+                                id: dinstall; anchors.fill: parent; hoverEnabled: true
+                                onClicked: {
+                                    const it = page.detailItem
+                                    page.bridge.installKde(it, function (o) {
+                                        page.detailNotice = o.ok ? "Installed - find it under Installed, then Apply its parts there."
+                                            : ("Install failed safely: " + (o.error || "unknown error"))
+                                    })
+                                }
+                            }
+                        }
+                        Rectangle {
+                            width: storeTxt.implicitWidth + 24; height: 30; radius: 15
+                            color: "transparent"; border.width: 1; border.color: page.st.line
+                            Text { id: storeTxt; anchors.centerIn: parent; text: "KDE Store page"; color: page.st.ink; font.pixelSize: 12 }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: Qt.openUrlExternally((page.detailInfo && page.detailInfo.detailPage) || (page.detailItem && page.detailItem.detailPage) || "")
+                            }
+                        }
+                        Rectangle {
+                            width: closeTxt.implicitWidth + 24; height: 30; radius: 15
+                            color: "transparent"; border.width: 1; border.color: page.st.line
+                            Text { id: closeTxt; anchors.centerIn: parent; text: "Close"; color: page.st.muted; font.pixelSize: 12 }
+                            MouseArea { anchors.fill: parent; onClicked: page.detailItem = null }
+                        }
                     }
                 }
             }

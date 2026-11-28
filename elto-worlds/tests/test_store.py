@@ -26,7 +26,12 @@ OCS_XML = b"""<?xml version="1.0"?>
 <ocs><meta><status>ok</status></meta><data>
  <content><id>1001</id><name>Paper Frame</name><summary>calm aurorae</summary>
   <version>1.2</version><personid>maker</personid><license>CC-BY-SA</license>
-  <score>78</score><downloads>5400</downloads><preview1>http://x/p.png</preview1>
+  <score>78</score><downloads>5400</downloads><preview1>http://x/item/1001</preview1>
+  <smallpreviewpic1>http://img/small1001.png</smallpreviewpic1>
+  <previewpic1>http://img/big1001.png</previewpic1><previewpic2>http://img/big1001b.png</previewpic2>
+  <description>Calm aurorae decoration, hand drawn.</description>
+  <created>2026-01-02T03:04:05</created><changed>2026-11-20T10:11:12</changed>
+  <typename>Plasma Color Schemes</typename>
   <detailpage>http://x/item/1001</detailpage>
   <downloadlink1>http://x/paper.zip</downloadlink1><downloadname1>paper.zip</downloadname1>
   <downloadfiletype1>application/zip</downloadfiletype1><downloadsize1>120</downloadsize1></content>
@@ -76,6 +81,17 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(items[0]["files"][0]["url"], "http://x/paper.zip")
         self.assertEqual(items[0]["license"], "CC-BY-SA")
         self.assertEqual(items[1]["files"][0]["url"], "http://x/glass.tar.gz")
+
+    def test_preview_prefers_smallpreviewpic_over_page_url(self):
+        items = store.parse_content_list(OCS_XML)
+        self.assertEqual(items[0]["preview"], "http://img/small1001.png")
+        self.assertEqual(items[0]["previews"], ["http://img/big1001.png", "http://img/big1001b.png"])
+        self.assertEqual(items[0]["description"], "Calm aurorae decoration, hand drawn.")
+        self.assertEqual(items[0]["typename"], "Plasma Color Schemes")
+        self.assertEqual(items[0]["changed"], "2026-11-20T10:11:12")
+        # item 1002 has no image fields: preview stays empty, never the page URL
+        self.assertEqual(items[1]["preview"], "")
+        self.assertEqual(items[1]["previews"], [])
 
     def test_bad_xml_rejected(self):
         self.assertRaises(store.StoreError, store.parse_content_list, b"<ocs><data>")
@@ -391,6 +407,43 @@ class InstallFormatsTest(unittest.TestCase):
             self.assertIn("cap 3", str(cm.exception))
         finally:
             store.KDE_MAX_FILES = old
+
+
+class KdeDetailAndDirTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.payload = {}
+
+        def fetcher(url, **kw):
+            if url in self.payload:
+                return self.payload[url]
+            raise OSError("no network in tests")
+
+        self.store = store.Store(root=self.tmp.name, fetcher=fetcher)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_detail_returns_full_item(self):
+        self.payload[store.OCS_BASE + "/content/data/1001?format=xml"] = OCS_XML
+        it = self.store.kde_detail("1001")
+        self.assertEqual(it["title"], "Paper Frame")
+        self.assertEqual(it["description"], "Calm aurorae decoration, hand drawn.")
+        self.assertEqual(it["previews"], ["http://img/big1001.png", "http://img/big1001b.png"])
+
+    def test_detail_bad_id_refused(self):
+        self.assertRaises(store.StoreError, self.store.kde_detail, "../etc")
+
+    def test_kdedir_roundtrip(self):
+        self.payload["http://x/paper.zip"] = GOOD_ZIP
+        dest = self.store.install_kde(kde_entry())
+        key = self.store.list_installed()[0]["key"]
+        self.assertTrue(key.startswith("kde-"))
+        self.assertEqual(self.store.kde_dir(key), dest)
+
+    def test_kdedir_rejects_foreign_and_unknown_keys(self):
+        self.assertRaises(store.StoreError, self.store.kde_dir, "rice-whitesur-kde")
+        self.assertRaises(store.StoreError, self.store.kde_dir, "kde-nope")
 
 
 class FunctionsTest(unittest.TestCase):

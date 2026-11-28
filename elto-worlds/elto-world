@@ -17,8 +17,10 @@ Commands:
                                   does not apply the world
   install-system <worlddir>       not implemented (Phase 2/3: SDDM, lock, Plymouth, GRUB)
   parts <dir>                     list applicable data parts of an installed rice dir
-  applypart <dir> <fmt> <name>    apply one rice part: colorscheme | aurorae | wallpaper |
-                                  desktoptheme (staged + rollback; activation best-effort)
+  kdeparts <dir> <category>       list applicable data parts of an imported KDE item dir
+  applypart <dir> <fmt> <name>    apply one data part: colorscheme | aurorae | wallpaper |
+                                  cursor | icons | sounds | kvantum | desktoptheme
+                                  (staged + rollback; activation best-effort)
 
 Format: world.schema.json in this directory (schema_version 3).
 Every command prints one JSON object on stdout.
@@ -919,6 +921,117 @@ def _wallpaper_image_any(pdir, name):
             return src
     return None
 
+IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".svg")
+
+KDE_PART_NOTES = {
+    "colorscheme": "",
+    "aurorae": "",
+    "wallpaper": "",
+    "cursor": "apps read the cursor theme from kdeglobals; already-running apps may need a restart",
+    "icons": "Qt and KDE apps pick this up; the ElTo shell draws its own shell icons",
+    "sounds": "installed into the XDG sounds dir; whether it plays depends on session sound support",
+    "kvantum": "only apps running with the Kvantum Qt style pick this up",
+}
+
+
+def _theme_dir(pdir, name, pred):
+    """Shallowest dir named `name` under pdir matching pred (the import
+    keeps upstream paths, and upstream layouts differ)."""
+    best = None
+    for root, dirs, _files in os.walk(pdir):
+        for d in dirs:
+            if d != name:
+                continue
+            full = os.path.join(root, d)
+            if pred(full):
+                depth = full.count(os.sep)
+                if best is None or depth < best[0]:
+                    best = (depth, full)
+    return best[1] if best else None
+
+
+def _walk_files(d):
+    for root, _dirs, files in os.walk(d):
+        for f in sorted(files):
+            yield os.path.join(root, f)
+
+
+def kde_parts(pdir, category):
+    """Apply-format variants in one KDE import dir, by store category. The
+    import keeps archive-relative upstream paths, so detection walks the
+    tree instead of assuming a layout."""
+    parts = {}
+    if category == "color-scheme":
+        parts["colorscheme"] = sorted({os.path.splitext(f)[0]
+                                       for full in _walk_files(pdir)
+                                       for f in [os.path.basename(full)] if f.endswith(".colors")})
+    elif category == "window-frame":
+        found = []
+        for full in _walk_files(pdir):
+            f = os.path.basename(full)
+            if f.endswith("rc") and not f.startswith(".") and "." not in f:
+                if _aurorae_assemble(pdir, f[:-2]):
+                    found.append(f[:-2])
+        parts["aurorae"] = sorted(set(found))
+    elif category == "wallpapers":
+        names = []
+        for full in _walk_files(pdir):
+            f = os.path.basename(full)
+            rel = os.path.relpath(full, pdir)
+            # images inside a wallpaper package belong to the package's own
+            # variant, not to a raw-file variant of their own
+            if f.lower().endswith(IMAGE_EXTS) and "contents/images" not in rel:
+                names.append(f)
+        for root, dirs, _f in os.walk(pdir):
+            for d in dirs:
+                if _wallpaper_image(pdir, os.path.relpath(os.path.join(root, d), pdir)):
+                    names.append(d)
+        parts["wallpaper"] = sorted(set(names))
+    elif category == "cursor":
+        out = set()
+        for root, dirs, _f in os.walk(pdir):
+            if "cursors" in dirs:
+                cd = os.path.join(root, "cursors")
+                if any(os.path.isfile(os.path.join(cd, x)) for x in os.listdir(cd)):
+                    out.add(os.path.basename(root))
+        parts["cursor"] = sorted(out)
+    elif category == "icons":
+        out = set()
+        for root, dirs, files in os.walk(pdir):
+            if "index.theme" in files and "cursors" not in dirs:
+                out.add(os.path.basename(root))
+        parts["icons"] = sorted(out)
+    elif category == "sounds":
+        out = set()
+        for root, _dirs, files in os.walk(pdir):
+            if "index.theme" in files and any(
+                    f.lower().endswith((".ogg", ".oga", ".wav", ".flac", ".mp3"))
+                    for full in _walk_files(root) for f in [os.path.basename(full)]):
+                out.add(os.path.basename(root))
+        parts["sounds"] = sorted(out)
+    elif category == "widgets":
+        out = set()
+        for full in _walk_files(pdir):
+            f = os.path.basename(full)
+            if f.endswith(".kvconfig"):
+                out.add(f[:-9])
+        parts["kvantum"] = sorted(out)
+    # boot-menu: nothing - GRUB themes live in /boot, a system path; the
+    # polkit helper (pending user decision) owns that, this tool does not.
+    return {k: v for k, v in parts.items() if v}
+
+
+def cmd_kdeparts(pdir, category):
+    if not os.path.isdir(pdir):
+        print(json.dumps({"ok": False, "error": "no such dir %r" % pdir}))
+        return 1
+    parts = kde_parts(pdir, category)
+    notes = {fmt: KDE_PART_NOTES.get(fmt, "") for fmt in parts}
+    print(json.dumps({"ok": True, "dir": pdir, "category": category,
+                      "parts": parts, "notes": notes}, indent=2))
+    return 0
+
+
 def cmd_parts(pdir):
     if not os.path.isdir(pdir):
         print(json.dumps({"ok": False, "error": "no such dir %r" % pdir}))
@@ -944,6 +1057,11 @@ def cmd_applypart(pdir, fmt, name):
                     src = cand
                     break
             if not src:
+                for root, _dirs, files in os.walk(pdir):
+                    if name + ".colors" in files:
+                        src = os.path.join(root, name + ".colors")
+                        break
+            if not src:
                 raise ValueError("no color scheme %r in %s" % (name, pdir))
             run_obj.copy(src, os.path.join(XDG_DATA, "color-schemes", name + ".colors"),
                          "kde-colorscheme")
@@ -954,12 +1072,24 @@ def cmd_applypart(pdir, fmt, name):
                 if pairs:
                     break
             if not pairs:
+                pairs = _aurorae_assemble(pdir, name)
+            if not pairs:
                 raise ValueError("no aurorae variant %r in %s" % (name, pdir))
             outdir = os.path.join(XDG_DATA, "aurorae", "themes", name)
             for src, dstname in pairs:
                 run_obj.copy(src, os.path.join(outdir, dstname), "aurorae")
         elif fmt == "wallpaper":
             src = _wallpaper_image_any(pdir, name)
+            if not src:
+                for root, dirs, files in os.walk(pdir):
+                    if name in files and name.lower().endswith(IMAGE_EXTS):
+                        src = os.path.join(root, name)
+                        break
+                    if name in dirs:
+                        cand = _wallpaper_image(pdir, os.path.relpath(os.path.join(root, name), pdir))
+                        if cand:
+                            src = cand
+                            break
             if not src:
                 raise ValueError("no wallpaper image for %r in %s" % (name, pdir))
             base = os.path.basename(src)
@@ -970,6 +1100,45 @@ def cmd_applypart(pdir, fmt, name):
             cur["options"] = opts
             run_obj.write(overlay_path(), json.dumps(cur, indent=2, ensure_ascii=False),
                           "shell-overlay")
+        elif fmt == "cursor":
+            src = _theme_dir(pdir, name, lambda d: os.path.isdir(os.path.join(d, "cursors")))
+            if not src:
+                raise ValueError("no cursor theme %r in %s" % (name, pdir))
+            dst = os.path.join(XDG_DATA, "icons", name)
+            for full in _walk_files(src):
+                run_obj.copy(full, os.path.join(dst, os.path.relpath(full, src)), "cursor")
+        elif fmt == "icons":
+            src = _theme_dir(pdir, name, lambda d: os.path.isfile(os.path.join(d, "index.theme")))
+            if not src:
+                raise ValueError("no icon theme %r in %s" % (name, pdir))
+            dst = os.path.join(XDG_DATA, "icons", name)
+            for full in _walk_files(src):
+                run_obj.copy(full, os.path.join(dst, os.path.relpath(full, src)), "icons")
+        elif fmt == "sounds":
+            src = _theme_dir(pdir, name, lambda d: os.path.isfile(os.path.join(d, "index.theme")))
+            if not src:
+                raise ValueError("no sound theme %r in %s" % (name, pdir))
+            dst = os.path.join(XDG_DATA, "sounds", name)
+            for full in _walk_files(src):
+                run_obj.copy(full, os.path.join(dst, os.path.relpath(full, src)), "sounds")
+        elif fmt == "kvantum":
+            src = _theme_dir(pdir, name, lambda d: any(f.endswith(".kvconfig") for f in os.listdir(d)))
+            if not src:
+                raise ValueError("no Kvantum theme %r in %s" % (name, pdir))
+            dst = os.path.join(XDG_CONFIG, "Kvantum", name)
+            for full in _walk_files(src):
+                run_obj.copy(full, os.path.join(dst, os.path.relpath(full, src)), "kvantum")
+            kv = os.path.join(XDG_CONFIG, "Kvantum", "kvantum.kvconfig")
+            try:
+                with open(kv) as f:
+                    cur = f.read()
+            except OSError:
+                cur = "[General]\n"
+            if re.search(r"(?m)^theme=.*$", cur):
+                cur = re.sub(r"(?m)^theme=.*$", "theme=" + name, cur)
+            else:
+                cur = cur.rstrip("\n") + "\ntheme=" + name + "\n"
+            run_obj.write(kv, cur, "kvantum-config")
         elif fmt == "desktoptheme":
             src = None
             for dt in _find_dirs(pdir, "plasma/desktoptheme"):
@@ -986,7 +1155,7 @@ def cmd_applypart(pdir, fmt, name):
                     run_obj.copy(full, os.path.join(XDG_DATA, "plasma", "desktoptheme",
                                                     name, rel), "desktoptheme")
         else:
-            raise ValueError("unknown part format %r (colorscheme | aurorae | wallpaper | desktoptheme)" % fmt)
+            raise ValueError("unknown part format %r (colorscheme | aurorae | wallpaper | cursor | icons | sounds | kvantum | desktoptheme)" % fmt)
     except Exception as e:
         rolled = run_obj.rollback()
         print(json.dumps({"ok": False, "error": str(e), "rolled_back": rolled,
@@ -1017,6 +1186,32 @@ def cmd_applypart(pdir, fmt, name):
         else:
             steps.append({"step": "kwinrc", "status": "skipped",
                           "detail": "kwriteconfig6 not available"})
+    elif fmt == "cursor":
+        if which("kwriteconfig6"):
+            run(["kwriteconfig6", "--file", "kdeglobals", "--group", "Mouse",
+                 "--key", "cursorTheme", name])
+            steps.append({"step": "kdeglobals", "status": "done", "detail": "cursorTheme=" + name})
+        else:
+            steps.append({"step": "kdeglobals", "status": "skipped",
+                          "detail": "kwriteconfig6 not available"})
+        steps.append({"step": "cursor-note", "status": "info",
+                      "detail": KDE_PART_NOTES["cursor"]})
+    elif fmt == "icons":
+        if which("kwriteconfig6"):
+            run(["kwriteconfig6", "--file", "kdeglobals", "--group", "Icons",
+                 "--key", "Theme", name])
+            steps.append({"step": "kdeglobals", "status": "done", "detail": "Icons Theme=" + name})
+        else:
+            steps.append({"step": "kdeglobals", "status": "skipped",
+                          "detail": "kwriteconfig6 not available"})
+        steps.append({"step": "icons-note", "status": "info",
+                      "detail": KDE_PART_NOTES["icons"]})
+    elif fmt == "sounds":
+        steps.append({"step": "sounds-note", "status": "info",
+                      "detail": KDE_PART_NOTES["sounds"]})
+    elif fmt == "kvantum":
+        steps.append({"step": "kvantum-note", "status": "info",
+                      "detail": KDE_PART_NOTES["kvantum"]})
     elif fmt == "desktoptheme":
         if which("plasma-apply-desktoptheme"):
             ok, err = run(["plasma-apply-desktoptheme", name])
@@ -1163,12 +1358,14 @@ def main():
             return cmd_install(os.path.abspath(a[1]), len(a) == 3)
         if len(a) == 2 and a[0] == "parts":
             return cmd_parts(os.path.abspath(a[1]))
+        if len(a) == 3 and a[0] == "kdeparts":
+            return cmd_kdeparts(os.path.abspath(a[1]), a[2])
         if len(a) == 4 and a[0] == "applypart":
             return cmd_applypart(os.path.abspath(a[1]), a[2], a[3])
         if len(a) == 2 and a[0] == "install-system":
             print(json.dumps({"ok": False, "error": "install-system is Phase 2/3 (SDDM, lock, Plymouth, GRUB): not implemented"}))
             return 2
-        raise ValueError("usage: status | check <dir> | apply <dir> [--dry-run] | reset [<dir>] | pack <dir> <out.elworld> | inspect <file.elworld> | unpack <file.elworld> <destdir> | install <file.elworld> [--replace] | parts <dir> | applypart <dir> <fmt> <name> | install-system <dir>")
+        raise ValueError("usage: status | check <dir> | apply <dir> [--dry-run] | reset [<dir>] | pack <dir> <out.elworld> | inspect <file.elworld> | unpack <file.elworld> <destdir> | install <file.elworld> [--replace] | parts <dir> | kdeparts <dir> <category> | applypart <dir> <fmt> <name> | install-system <dir>")
     except Exception as e:
         print(json.dumps({"ok": False, "error": str(e)}))
         return 1
