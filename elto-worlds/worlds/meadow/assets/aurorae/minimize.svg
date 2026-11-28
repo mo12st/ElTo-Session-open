@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 30 20">
+<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.08"/><stop offset="1" stop-color="#000000" stop-opacity="0.18"/>
+</linearGradient></defs>
+<g id="active"><rect id="active-center" x="1" y="1" width="28" height="18" rx="6" fill="#e0b84a"/><rect x="1" y="1" width="28" height="18" rx="6" fill="url(#g)"/><rect x="1.5" y="1.5" width="27" height="17" rx="5.5" fill="none" stroke="#ffffff" stroke-opacity="0.65"/><path d="M10 13h10" stroke="#f6f1e4" stroke-width="2.6" stroke-linecap="round"/></g>
+<g id="hover"><rect id="hover-center" x="1" y="1" width="28" height="18" rx="6" fill="#9db9ec"/><rect x="1" y="1" width="28" height="18" rx="6" fill="url(#g)"/><rect x="1.5" y="1.5" width="27" height="17" rx="5.5" fill="none" stroke="#ffffff" stroke-opacity="0.8"/><path d="M10 13h10" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/></g>
+<g id="pressed"><rect id="pressed-center" x="1" y="1" width="28" height="18" rx="6" fill="#283a32"/><rect x="1" y="1" width="28" height="18" rx="6" fill="#000000" opacity="0.12"/><path d="M10 13h10" stroke="#f6f1e4" stroke-width="2.6" stroke-linecap="round"/></g>
+<g id="inactive"><rect id="inactive-center" x="1" y="1" width="28" height="18" rx="6" fill="#e0d9c4"/><rect x="1" y="1" width="28" height="18" rx="6" fill="url(#g)"/><path d="M10 13h10" stroke="#8a9a90" stroke-width="2.6" stroke-linecap="round"/></g>
+</svg>

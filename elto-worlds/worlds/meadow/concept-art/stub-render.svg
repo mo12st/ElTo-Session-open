@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600">
+  <!-- STUB RENDER: L0 design concept for the Meadow world. Not final art.
+       Original art and palette; no assets or names from any existing OS. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b6ac3"/>
+      <stop offset="0.55" stop-color="#8ab6ee"/>
+      <stop offset="1" stop-color="#dceafc"/>
+    </linearGradient>
+    <linearGradient id="hill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#57a639"/>
+      <stop offset="1" stop-color="#3d7a26"/>
+    </linearGradient>
+    <linearGradient id="titlebar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8ab6ee"/>
+      <stop offset="0.5" stop-color="#2b6ac3"/>
+      <stop offset="1" stop-color="#205199"/>
+    </linearGradient>
+    <linearGradient id="glossband" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="taskbar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6f9fe0"/>
+      <stop offset="0.5" stop-color="#2b6ac3"/>
+      <stop offset="1" stop-color="#1e4c8f"/>
+    </linearGradient>
+  </defs>
+
+  <!-- wallpaper: sky and hill -->
+  <rect width="960" height="600" fill="url(#sky)"/>
+  <circle cx="810" cy="85" r="46" fill="#ffffff" opacity="0.85"/>
+  <ellipse cx="300" cy="640" rx="700" ry="240" fill="url(#hill)"/>
+  <ellipse cx="850" cy="680" rx="620" ry="220" fill="#3d7a26" opacity="0.55"/>
+
+  <!-- desktop folders (stub folder art) -->
+  <g transform="translate(48,86)">
+    <path d="M0 10 Q0 0 10 0 L34 0 L44 10 L86 10 Q96 10 96 20 L96 66 Q96 76 86 76 L10 76 Q0 76 0 66 Z" fill="#f2c94c"/>
+    <path d="M0 22 L96 22 L96 66 Q96 76 86 76 L10 76 Q0 76 0 66 Z" fill="#e0b23a"/>
+    <rect x="0" y="22" width="96" height="14" fill="#ffffff" opacity="0.35"/>
+    <text x="48" y="96" font-family="sans-serif" font-size="13" fill="#ffffff" text-anchor="middle">Documents</text>
+  </g>
+  <g transform="translate(48,196)">
+    <path d="M0 10 Q0 0 10 0 L34 0 L44 10 L86 10 Q96 10 96 20 L96 66 Q96 76 86 76 L10 76 Q0 76 0 66 Z" fill="#f2c94c"/>
+    <path d="M0 22 L96 22 L96 66 Q96 76 86 76 L10 76 Q0 76 0 66 Z" fill="#e0b23a"/>
+    <rect x="0" y="22" width="96" height="14" fill="#ffffff" opacity="0.35"/>
+    <text x="48" y="96" font-family="sans-serif" font-size="13" fill="#ffffff" text-anchor="middle">Pictures</text>
+  </g>
+
+  <!-- window: glossy rounded titlebar -->
+  <g transform="translate(250,120)">
+    <rect x="6" y="10" width="470" height="300" rx="14" fill="#20293a" opacity="0.24"/>
+    <rect width="470" height="300" rx="14" fill="#f5f7f2" stroke="#c2cddb"/>
+    <path d="M0 14 Q0 0 14 0 L456 0 Q470 0 470 14 L470 40 L0 40 Z" fill="url(#titlebar)"/>
+    <path d="M0 14 Q0 0 14 0 L456 0 Q470 0 470 14 L470 20 L0 20 Z" fill="url(#glossband)"/>
+    <text x="16" y="27" font-family="sans-serif" font-size="15" font-weight="bold" fill="#ffffff">File Manager</text>
+    <circle cx="398" cy="20" r="9" fill="#ffffff" opacity="0.9"/>
+    <circle cx="422" cy="20" r="9" fill="#ffffff" opacity="0.9"/>
+    <circle cx="446" cy="20" r="9" fill="#c94f38"/>
+    <rect x="18" y="58" width="120" height="224" rx="10" fill="#e6ecf4"/>
+    <rect x="152" y="58" width="300" height="60" rx="10" fill="#cfe2f8"/>
+    <rect x="152" y="130" width="300" height="60" rx="10" fill="#e6ecf4"/>
+    <rect x="152" y="202" width="300" height="60" rx="10" fill="#e6ecf4"/>
+    <rect x="18" y="58" width="120" height="18" rx="9" fill="#57a639"/>
+  </g>
+
+  <!-- taskbar -->
+  <rect x="0" y="556" width="960" height="44" fill="url(#taskbar)"/>
+  <rect x="0" y="556" width="960" height="8" fill="#ffffff" opacity="0.25"/>
+  <rect x="10" y="562" width="120" height="32" rx="16" fill="#57a639"/>
+  <rect x="10" y="562" width="120" height="14" rx="7" fill="#ffffff" opacity="0.35"/>
+  <circle cx="30" cy="578" r="9" fill="#f5f7f2"/>
+  <text x="46" y="583" font-family="sans-serif" font-size="14" font-weight="bold" fill="#ffffff">start</text>
+  <rect x="146" y="562" width="180" height="32" rx="10" fill="#8ab6ee"/>
+  <rect x="338" y="562" width="180" height="32" rx="10" fill="#2b6ac3"/>
+  <text x="900" y="584" font-family="sans-serif" font-size="14" fill="#ffffff" text-anchor="end">14:32</text>
+
+  <!-- honesty label -->
+  <text x="950" y="548" font-family="sans-serif" font-size="12" fill="#20293a" opacity="0.7" text-anchor="end">STUB RENDER - L0 concept, not final art</text>
+</svg>
