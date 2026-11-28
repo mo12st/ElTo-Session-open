@@ -32,6 +32,7 @@
     "paper": "#f5f7f2",
     "mist": "#e6ecf4",
     "cloud": "#ffffff",
+    "folder": "#f2c94c",
     "ink": "#20293a",
     "slate": "#5d6b7d",
     "selblue": "#cfe2f8",
@@ -58,10 +59,12 @@
     "paperGrain": 0.0,
     "bevel": "rounded-gloss",
     "glass": 0.4,
-    "folderArt": "assets/folder.svg",
+    "folderArt": "luna",
     "cardArt": "gloss-band",
     "pageLayout": "desktop-icons",
-    "snail": "assets/snail.png"
+    "snail": "solid",
+    "iconArt": "gloss",
+    "folderView": "tiles"
   },
   "fonts": {
     "serif": "IBM Plex Serif",
