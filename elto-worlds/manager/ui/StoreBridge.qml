@@ -64,10 +64,12 @@ QtObject {
 
     property Process proc: Process {
         property var _cb: null
+        property string _err: ""
+        stderr: StdioCollector { onStreamFinished: proc._err = text }
         stdout: StdioCollector {
             onStreamFinished: {
                 let out
-                try { out = JSON.parse(text) } catch (e) { out = { ok: false, error: "bad bridge output" } }
+                try { out = JSON.parse(text) } catch (e) { out = { ok: false, error: "DBG len=" + text.length + " cmd=" + JSON.stringify(proc.command).slice(0,160) + " out=" + text.slice(0,120) + " err=" + proc._err.slice(0,160) } }
                 const cb = proc._cb
                 proc._cb = null
                 if (cb) cb(out)
