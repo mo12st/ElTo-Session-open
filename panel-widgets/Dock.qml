@@ -42,7 +42,14 @@ Scope {
             trayStyle: root.pick(d.trayStyle, ["text", "compact", "none"], "text"),
             activeIndicator: root.pick(d.activeIndicator, ["pill", "dot", "bar", "none"], "pill"),
             taskStyle: root.pick(d.taskStyle, ["pill", "button", "label"], "pill"),
-            edge: root.pick(d.edge, ["bottom", "top"], "bottom")
+            edge: root.pick(d.edge, ["bottom", "top", "left", "right"], "bottom"),
+            // workspace indicator: text | numbers | dots | none. Hidden while KWin reports one desktop.
+            workspaceStyle: root.pick(d.workspaceStyle, ["none", "text", "numbers", "dots"], "text"),
+            // second surface: an extra top strip (launcher, tasks, tray, clock, pager) while the dock
+            // keeps its own edge. "none" is every world today.
+            secondSurface: root.pick(d.secondSurface, ["none", "top"], "none"),
+            railWidth: Math.round(Math.min(96, Math.max(40, root.num(d.railWidth, 56)))),
+            stripHeight: Math.round(Math.min(64, Math.max(24, root.num(d.stripHeight, 34))))
         }
     }
     property string activeApp: ""
@@ -87,6 +94,9 @@ Scope {
 
     WindowList { id: wl; Component.onCompleted: root.wl = wl }
     property var wl: null
+    // virtual desktops for the pager, read from KWin over D-Bus; null until the first read completes
+    DockDesktops { id: ds; Component.onCompleted: root.desktops = ds }
+    property var desktops: null
     function refresh() {
         var o = {}, act = ""
         for (var i = 0; i < wl.model.count; i++) {
@@ -119,6 +129,18 @@ Scope {
             Connections { target: root; function onStyleChanged() { ld.load() } }
             onStatusChanged: if (status === Loader.Error && !root.blurBroken && root.dk.blur) {
                 root.blurBroken = true; console.log("ELTODOCKBLUR unsupported, plain dock"); ld.load() }
+        }
+    }
+
+    // optional second surface: a top strip on every screen, only when a world asks for it. It draws the
+    // same model (launcher, tasks, tray, clock, pager) and the dock below keeps its own edge untouched.
+    Variants {
+        model: root.look.secondSurface === "top" ? Quickshell.screens : []
+        Loader {
+            id: stripLd
+            required property var modelData
+            function load() { stripLd.setSource("DockStrip.qml", { dock: root, screen: stripLd.modelData }) }
+            Component.onCompleted: load()
         }
     }
 }

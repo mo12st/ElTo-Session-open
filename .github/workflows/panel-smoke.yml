@@ -30,11 +30,11 @@ jobs:
 
       # The panel smoke loads shell-spike.qml, which does not contain the dock. The dock variants get their
       # own load run so a QML syntax error in Dock/DockWindow/DockBar fails CI instead of only the VM.
-      - name: Dock variants load in Quickshell (island, bar, unknown value)
+      - name: Dock variants load in Quickshell (island, bar, rail, unknown value, top strip, pager)
         run: |
           docker run --rm -v "$PWD:/src:ro" archlinux:base-devel bash -c '
             pacman -Sy --noconfirm >/dev/null 2>&1
-            pacman -S --noconfirm --needed kwin quickshell qt6-wayland qt6-declarative mesa dbus ttf-dejavu libcap >/tmp/pacman.log 2>&1 || { tail -30 /tmp/pacman.log; exit 1; }
+            pacman -S --noconfirm --needed kwin quickshell qt6-wayland qt6-declarative mesa dbus ttf-dejavu libcap python >/tmp/pacman.log 2>&1 || { tail -30 /tmp/pacman.log; exit 1; }
             getcap $(readlink -f /usr/bin/kwin_wayland); setcap -r $(readlink -f /usr/bin/kwin_wayland) 2>&1
             useradd -m dev
             su dev -c "dbus-run-session -- bash /src/panel-widgets/dock-smoke.sh" 2>&1

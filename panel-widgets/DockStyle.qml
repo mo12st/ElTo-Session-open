@@ -20,7 +20,7 @@ Singleton {
     readonly property var variants: [
         { id: "island",        label: "Island",        window: "DockWindow.qml",    blur: "DockWindowBlur.qml", real: true  },
         { id: "bar",           label: "Bar",           window: "DockBar.qml",       blur: "DockBarBlur.qml",    real: true  },
-        { id: "rail-dock",     label: "Rail dock",     window: "",                  blur: "",                   real: false },
+        { id: "rail-dock",     label: "Rail dock",     window: "DockRail.qml",      blur: "",                   real: true  },
         { id: "console",       label: "Console",       window: "",                  blur: "",                   real: false },
         { id: "hidden-thread", label: "Hidden thread", window: "",                  blur: "",                   real: false },
         { id: "ridge-shelf",   label: "Ridge shelf",   window: "",                  blur: "",                   real: false }

@@ -301,7 +301,12 @@ PanelWindow {
             trayStyle: win.dock.look.trayStyle
             clockStyle: win.dock.look.clockStyle
             clockPosition: win.dock.look.clockPosition
+            workspaceStyle: win.dock.look.workspaceStyle
+            workspaceCount: win.dock.desktops ? win.dock.desktops.count : 0
+            workspaceIndex: win.dock.desktops ? win.dock.desktops.currentIndex : -1
+            workspaceName: win.dock.desktops ? win.dock.desktops.currentName : ""
             anchors { right: parent.right; rightMargin: win.dk.pad; verticalCenter: parent.verticalCenter }
+            onPickWorkspace: i => { if (win.dock.desktops) win.dock.desktops.switchTo(i) }
         }
     }
 

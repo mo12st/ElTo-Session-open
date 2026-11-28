@@ -18,10 +18,10 @@ pgrep -f '^kwin_wayland' >/dev/null || { echo KWIN-DIED; tail -30 /tmp/kwin.log;
 export WAYLAND_DISPLAY=wayland-dk
 
 fail=0
-run() { # label, expected resolved variant, options.dock value ("" = key absent), optional log line
-  local label="$1" want="$2" val="$3" warn="${4:-}"
+run() { # label, expected resolved variant, overlay json, optional log line that must appear
+  local label="$1" want="$2" json="$3" warn="${4:-}"
   local ov=/tmp/elto-dock-overlay.json log=/tmp/qs-dock-$label.log
-  if [ -n "$val" ]; then printf '{"options":{"dock":"%s"}}' "$val" > "$ov"; else printf '{}' > "$ov"; fi
+  printf '%s' "$json" > "$ov"
   ELTO_THEME="$ov" ELTO_WINDOWLIST=/tmp/fake-windowlist quickshell -p /src/panel-widgets/dock-smoke.qml > "$log" 2>&1 &
   local pid=$!
   sleep 12
@@ -39,12 +39,18 @@ run() { # label, expected resolved variant, options.dock value ("" = key absent)
   sleep 2
 }
 
-run island-absent island ""
-run bar bar bar
-run island-fallback island nonsense "unknown or unsupported dock style"
+run island-absent island '{}'
+run bar bar '{"options":{"dock":"bar"}}'
+run island-fallback island '{"options":{"dock":"nonsense"}}' "unknown or unsupported dock style"
+run rail rail-dock '{"options":{"dock":"rail-dock"},"dock":{"edge":"left"}}'
+run strip bar '{"options":{"dock":"bar"},"dock":{"secondSurface":"top","workspaceStyle":"numbers"}}' "ELTODOCK strip"
+run pager island '{"options":{"dock":"island"},"dock":{"workspaceStyle":"text"}}' "ELTODOCKDESK"
 
 echo "== island (absent key)"; cat /tmp/qs-dock-island-absent.log
 echo "== bar"; cat /tmp/qs-dock-bar.log
 echo "== island (unknown value)"; cat /tmp/qs-dock-island-fallback.log
+echo "== rail"; cat /tmp/qs-dock-rail.log
+echo "== bar + top strip"; cat /tmp/qs-dock-strip.log
+echo "== island + pager"; cat /tmp/qs-dock-pager.log
 if [ "$fail" -eq 0 ]; then echo DOCK-VARIANTS-OK; else echo DOCK-VARIANTS-FAILED; fi
 exit "$fail"
