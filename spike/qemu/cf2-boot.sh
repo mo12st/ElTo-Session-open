@@ -128,6 +128,7 @@ EOS
 $SC /tmp/wa.sh /tmp/rule.sh dev@127.0.0.1:/tmp/
 mv_abs() { qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"abs","data":{"axis":"x","value":'$(($1*32767/1280))'}},{"type":"abs","data":{"axis":"y","value":'$(($2*32767/800))'}}]}}' >/dev/null; }
 btn() { qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":'$1',"button":"left"}}]}}' >/dev/null; }
+fdbl() { mv_abs $1 $2; sleep 1; btn true; btn false; sleep 0.1; btn true; btn false; sleep 3; }
 drag() { mv_abs $1 $2; sleep 1; btn true; sleep 0.6; for t in 1 2 3 4 5; do mv_abs $(( $1 + ($3-$1)*t/5 )) $(( $2 + ($4-$2)*t/5 )); sleep 0.5; done; btn false; sleep 2; }
 $S 'bash /tmp/rule.sh; pkill -u dev -f "[e]lto-files/trail.qml"; sleep 2; sudo bash /tmp/t0.sh computer 1; grep -a -i -E "error|TypeError|ReferenceError" /tmp/trail.log | grep -v "Unable to assign" | head -5'
 shot /tmp/c0.ppm c0_own_frame_initial
@@ -138,12 +139,10 @@ echo "== drag titlebar (+100,+60)"
 drag 500 147 600 207
 shot /tmp/c2.ppm c2_after_drag
 echo "== double-click titlebar = maximize"
-click 600 207
-click 600 207
+fdbl 600 207
 sleep 3
 shot /tmp/c3.ppm c3_maximized
-click 600 15
-click 600 15
+fdbl 600 15
 sleep 3
 shot /tmp/c4.ppm c4_restored
 $S 'grep -a -v -E "Unable to assign|locale|UTF-8|more information" /tmp/trail.log | tail -6 | cut -c1-200'
