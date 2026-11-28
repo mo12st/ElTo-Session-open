@@ -2,7 +2,9 @@ Meadow world - asset credits
 
 All assets in assets/ are ORIGINAL STUB ART generated for this world
 (2026-11-28): wallpaper, greeter and boot backgrounds, folder, snail and
-the five sound chimes. They are placeholders so the world is complete and
+the five sound chimes, and the Aurorae window-decoration
+template in assets/aurorae/ (rounded-top glossy blue titlebar, beveled
+caption buttons; same geometry as the shared ElToClassic template). They are placeholders so the world is complete and
 installable end to end; the artist replaces them with final exports.
 No assets or names are copied from any existing OS.
 Sounds: short synthesized chimes, original, generated programmatically.

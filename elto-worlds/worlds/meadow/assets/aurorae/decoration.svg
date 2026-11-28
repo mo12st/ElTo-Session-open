@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="62" viewBox="0 0 40 62">
+<defs>
+<linearGradient id="tb" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#7da8f0"/><stop offset="0.45" stop-color="#2b5ed7"/><stop offset="1" stop-color="#1e46a8"/>
+</linearGradient>
+<linearGradient id="tbi" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#b9c8e4"/><stop offset="0.45" stop-color="#8fa8cf"/><stop offset="1" stop-color="#6e86ad"/>
+</linearGradient>
+</defs>
+<g id="decoration">
+<path id="decoration-topleft" d="M0 12A12 12 0 0 1 12 0V32H0Z" fill="url(#tb)"/>
+<rect id="decoration-top" x="12" y="0" width="16" height="32" fill="url(#tb)"/>
+<path id="decoration-topright" d="M28 0A12 12 0 0 1 40 12V32H28Z" fill="url(#tb)"/>
+<rect id="decoration-left" x="0" y="32" width="10" height="20" fill="#efe9d8"/>
+<rect id="decoration-center" x="10" y="32" width="20" height="20" fill="#efe9d8"/>
+<rect id="decoration-right" x="30" y="32" width="10" height="20" fill="#efe9d8"/>
+<path id="decoration-bottomleft" d="M0 52H10V62H10A10 10 0 0 1 0 52Z" fill="#efe9d8"/>
+<rect id="decoration-bottom" x="10" y="52" width="20" height="10" fill="#efe9d8"/>
+<path id="decoration-bottomright" d="M30 52H40V52A10 10 0 0 1 30 62Z" fill="#efe9d8"/>
+</g>
+<g id="decoration-inactive">
+<path id="decoration-inactive-topleft" d="M0 12A12 12 0 0 1 12 0V32H0Z" fill="url(#tbi)"/>
+<rect id="decoration-inactive-top" x="12" y="0" width="16" height="32" fill="url(#tbi)"/>
+<path id="decoration-inactive-topright" d="M28 0A12 12 0 0 1 40 12V32H28Z" fill="url(#tbi)"/>
+<rect id="decoration-inactive-left" x="0" y="32" width="10" height="20" fill="#e0d9c4"/>
+<rect id="decoration-inactive-center" x="10" y="32" width="20" height="20" fill="#e0d9c4"/>
+<rect id="decoration-inactive-right" x="30" y="32" width="10" height="20" fill="#e0d9c4"/>
+<path id="decoration-inactive-bottomleft" d="M0 52H10V62H10A10 10 0 0 1 0 52Z" fill="#e0d9c4"/>
+<rect id="decoration-inactive-bottom" x="10" y="52" width="20" height="10" fill="#e0d9c4"/>
+<path id="decoration-inactive-bottomright" d="M30 52H40V52A10 10 0 0 1 30 62Z" fill="#e0d9c4"/>
+</g>
+</svg>

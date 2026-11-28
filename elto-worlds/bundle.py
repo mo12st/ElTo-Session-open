@@ -17,7 +17,8 @@ MAX_RATIO = 200          # uncompressed/compressed per file, zip-bomb guard
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 SCRIPT_EXT = re.compile(r"\.(sh|bash|zsh|py|pl|rb|js|exe|dll|so|bin|desktop|qml|service|timer|jar|run|appimage)$", re.I)
-ASSET_EXT = {".png", ".jpg", ".jpeg", ".webp", ".svg", ".wav", ".ogg", ".flac", ".json", ".txt", ".md", ".theme", ".ttf", ".otf"}
+ASSET_EXT = {".png", ".jpg", ".jpeg", ".webp", ".svg", ".wav", ".ogg", ".flac", ".json", ".txt", ".md", ".theme", ".ttf", ".otf", ".desktop", ".rc"}
+EXEC_LINE = re.compile(rb"^\s*(?:Try)?Exec\s*=", re.M)
 TOP_FILES = ("world.json", "manifest.json", "CREDITS")
 PREVIEW = re.compile(r"^preview\.(png|jpe?g|webp)$")
 # SVG that can run code or fetch things
@@ -81,7 +82,12 @@ def verify(path):
                 pass
             elif n.startswith("assets/"):
                 if SCRIPT_EXT.search(n):
-                    errors.append("script or executable in bundle: " + n)
+                    # a .desktop file is allowed only as inert metadata (no Exec=/TryExec=),
+                    # e.g. an Aurorae plugin descriptor; launchers stay blocked
+                    if n.lower().endswith(".desktop") and not EXEC_LINE.search(_read_limited(z, i, MAX_ASSET)):
+                        pass
+                    else:
+                        errors.append("script or executable in bundle: " + n)
                 elif os.path.splitext(n)[1].lower() not in ASSET_EXT:
                     errors.append("file type not allowed: " + n)
             else:

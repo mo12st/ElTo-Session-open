@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">
+<!-- STUB RENDER: L0 concept, not final art. Original art; no assets or names from any existing OS. -->
+<defs>
+<linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b5ed7"/><stop offset="0.55" stop-color="#7da8f0"/><stop offset="1" stop-color="#dceafc"/></linearGradient>
+<linearGradient id="tb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7da8f0"/><stop offset="0.45" stop-color="#2b5ed7"/><stop offset="1" stop-color="#1e46a8"/></linearGradient>
+<linearGradient id="btnface" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.5"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.06"/><stop offset="1" stop-color="#000000" stop-opacity="0.16"/></linearGradient>
+<linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f4ec"/><stop offset="1" stop-color="#e3ddc8"/></linearGradient>
+<linearGradient id="task" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7da8f0"/><stop offset="0.45" stop-color="#2b5ed7"/><stop offset="1" stop-color="#1e46a8"/></linearGradient>
+<linearGradient id="hdr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdfcf8"/><stop offset="1" stop-color="#ddd6bd"/></linearGradient>
+</defs>
+<rect width="960" height="640" fill="url(#wall)"/>
+<circle cx="800" cy="90" r="52" fill="#ffffff" opacity="0.85"/>
+<ellipse cx="260" cy="700" rx="760" ry="300" fill="#4a9e2f"/>
+<ellipse cx="900" cy="740" rx="640" ry="260" fill="#35771f" opacity="0.5"/>
+
+<!-- window: glossy rounded-top blue titlebar, beveled caption buttons -->
+<g transform="translate(130,60)">
+<rect x="8" y="10" width="700" height="480" rx="14" fill="#1c2430" opacity="0.25"/>
+<path d="M0 14 Q0 0 14 0 L686 0 Q700 0 700 14 L700 480 Q700 490 690 490 L10 490 Q0 490 0 480 Z" fill="#ece9d8" stroke="#d0c9b4"/>
+<path d="M0 14 Q0 0 14 0 L686 0 Q700 0 700 14 L700 40 L0 40 Z" fill="url(#tb)"/>
+<path d="M0 14 Q0 0 14 0 L686 0 Q700 0 700 14 L700 20 L0 20 Z" fill="#ffffff" opacity="0.35"/>
+<text x="18" y="27" font-family="sans-serif" font-size="15" font-weight="bold" fill="#ffffff">Documents - Meadow Explorer</text>
+<g transform="translate(588,9)"><rect width="30" height="20" rx="6" fill="#dbe7fa"/><rect width="30" height="20" rx="6" fill="url(#btnface)"/><rect x="1" y="1" width="28" height="18" rx="5" fill="none" stroke="#ffffff" stroke-opacity="0.7"/><path d="M9 13h12" stroke="#1c2430" stroke-width="2.4" stroke-linecap="round"/></g>
+<g transform="translate(624,9)"><rect width="30" height="20" rx="6" fill="#dbe7fa"/><rect width="30" height="20" rx="6" fill="url(#btnface)"/><rect x="1" y="1" width="28" height="18" rx="5" fill="none" stroke="#ffffff" stroke-opacity="0.7"/><rect x="9" y="5" width="12" height="10" fill="none" stroke="#1c2430" stroke-width="2"/></g>
+<g transform="translate(660,9)"><rect width="30" height="20" rx="6" fill="#d65f45"/><rect width="30" height="20" rx="6" fill="url(#btnface)"/><rect x="1" y="1" width="28" height="18" rx="5" fill="none" stroke="#ffffff" stroke-opacity="0.7"/><path d="M10 6l10 9M20 6l-10 9" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/></g>
+
+<!-- toolbar row: back/forward/up with labels -->
+<rect x="0" y="40" width="700" height="46" fill="url(#hdr)" stroke="#d0c9b4"/>
+<g transform="translate(10,46)"><rect width="86" height="34" rx="6" fill="url(#face)" stroke="#c9c2a8"/><circle cx="18" cy="17" r="11" fill="#4a9e2f"/><path d="M22 10l-8 7 8 7" stroke="#ffffff" stroke-width="2.6" fill="none" stroke-linecap="round"/><text x="36" y="22" font-family="sans-serif" font-size="12" fill="#1c2430">Back</text></g>
+<g transform="translate(104,46)"><rect width="34" height="34" rx="6" fill="url(#face)" stroke="#c9c2a8"/><path d="M12 10l8 7-8 7" stroke="#a39d8c" stroke-width="2.6" fill="none" stroke-linecap="round"/></g>
+<g transform="translate(146,46)"><rect width="34" height="34" rx="6" fill="url(#face)" stroke="#c9c2a8"/><path d="M17 24V10M11 15l6-6 6 6" stroke="#2b5ed7" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>
+<text x="196" y="67" font-family="sans-serif" font-size="12" fill="#5a6673">Up</text>
+
+<!-- address bar with Go -->
+<rect x="0" y="86" width="700" height="36" fill="url(#hdr)" stroke="#d0c9b4"/>
+<text x="14" y="109" font-family="sans-serif" font-size="12" fill="#5a6673">Address</text>
+<rect x="70" y="92" width="520" height="24" rx="4" fill="#ffffff" stroke="#c9c2a8"/>
+<text x="80" y="109" font-family="sans-serif" font-size="12" fill="#1c2430">C:\Documents and Settings\Mostafa\Documents</text>
+<g transform="translate(600,92)"><rect width="88" height="24" rx="5" fill="#4a9e2f"/><rect width="88" height="24" rx="5" fill="url(#btnface)"/><text x="26" y="17" font-family="sans-serif" font-size="12" font-weight="bold" fill="#ffffff">Go</text></g>
+
+<!-- details-style list -->
+<rect x="0" y="122" width="700" height="330" fill="#ffffff"/>
+<rect x="0" y="122" width="700" height="24" fill="url(#face)" stroke="#d0c9b4"/>
+<text x="14" y="139" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1c2430">Name</text>
+<text x="260" y="139" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1c2430">Size</text>
+<text x="360" y="139" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1c2430">Type</text>
+<text x="500" y="139" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1c2430">Date Modified</text>
+<g font-family="sans-serif" font-size="12" fill="#1c2430">
+<rect x="0" y="146" width="700" height="26" fill="#a8c6f0"/>
+<text x="34" y="164">Projects</text><text x="260" y="164">12 KB</text><text x="360" y="164">File Folder</text><text x="500" y="164">2026-11-28 09:14</text>
+<text x="34" y="194">Notes.txt</text><text x="260" y="194">2 KB</text><text x="360" y="194">Text Document</text><text x="500" y="194">2026-11-27 18:02</text>
+<text x="34" y="224">Photos</text><text x="260" y="224">4 MB</text><text x="360" y="224">File Folder</text><text x="500" y="224">2026-11-25 12:40</text>
+</g>
+<path d="M8 158 L22 152 L34 158 L34 166 L8 166 Z" fill="#f2c94c"/>
+<path d="M8 188 L22 182 L34 188 L34 196 L8 196 Z" fill="#f2c94c" opacity="0"/>
+<path d="M14 188h18v14h-18z" fill="#f6f4ec" stroke="#c9c2a8"/>
+<path d="M8 218 L22 212 L34 218 L34 226 L8 226 Z" fill="#f2c94c"/>
+
+<!-- status bar -->
+<rect x="0" y="452" width="700" height="38" fill="url(#face)" stroke="#d0c9b4"/>
+<text x="14" y="476" font-family="sans-serif" font-size="12" fill="#5a6673">3 objects</text>
+<text x="620" y="476" font-family="sans-serif" font-size="12" fill="#5a6673">Details view</text>
+</g>
+
+<!-- Luna-blue taskbar -->
+<rect x="0" y="596" width="960" height="44" fill="url(#task)"/>
+<rect x="0" y="596" width="960" height="7" fill="#ffffff" opacity="0.3"/>
+<rect x="10" y="602" width="120" height="32" rx="16" fill="#4a9e2f"/>
+<rect x="10" y="602" width="120" height="14" rx="7" fill="#ffffff" opacity="0.35"/>
+<text x="46" y="623" font-family="sans-serif" font-size="14" font-weight="bold" fill="#ffffff">start</text>
+<rect x="146" y="602" width="200" height="32" rx="8" fill="#7da8f0"/>
+<text x="158" y="623" font-family="sans-serif" font-size="12" fill="#1c2430">Documents - Meadow Expl...</text>
+<rect x="356" y="602" width="180" height="32" rx="8" fill="#2b5ed7"/>
+<text x="900" y="624" font-family="sans-serif" font-size="14" fill="#ffffff" text-anchor="end">14:32</text>
+<text x="950" y="588" font-family="sans-serif" font-size="12" fill="#1c2430" opacity="0.75" text-anchor="end">STUB RENDER - L0 concept, not final art</text>
+</svg>

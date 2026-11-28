@@ -25,23 +25,29 @@
     "sounds": true
   },
   "colors": {
-    "skyDeep": "#2b6ac3",
-    "skyLight": "#8ab6ee",
-    "grass": "#57a639",
-    "grassDeep": "#3d7a26",
-    "paper": "#f5f7f2",
-    "mist": "#e6ecf4",
-    "cloud": "#ffffff",
+    "skyDeep": "#2b5ed7",
+    "skyLight": "#7da8f0",
+    "skyDark": "#1e46a8",
+    "grass": "#4a9e2f",
+    "grassDeep": "#35771f",
+    "sand": "#ece9d8",
+    "sandLight": "#f6f4ec",
+    "ink": "#1c2430",
+    "slate": "#5a6673",
+    "selblue": "#a8c6f0",
+    "line": "#d0c9b4",
+    "fog": "#a39d8c",
     "folder": "#f2c94c",
-    "ink": "#20293a",
-    "slate": "#5d6b7d",
-    "selblue": "#cfe2f8",
-    "line": "#c2cddb",
-    "fog": "#9aa7b4"
+    "cloud": "#ffffff",
+    "windowMinimize": "#dbe7fa",
+    "windowMaximize": "#dbe7fa",
+    "windowClose": "#d65f45",
+    "taskbar": "#2b5ed7",
+    "taskbarText": "#ffffff"
   },
   "roles": {
-    "surface": "paper",
-    "surfaceAlt": "mist",
+    "surface": "sand",
+    "surfaceAlt": "sandLight",
     "text": "ink",
     "textMuted": "slate",
     "accent": "grass",
@@ -64,12 +70,12 @@
     "pageLayout": "desktop-icons",
     "snail": "solid",
     "iconArt": "gloss",
-    "folderView": "tiles"
+    "folderView": "details"
   },
   "fonts": {
     "serif": "IBM Plex Serif",
     "serifItalic": "IBM Plex Serif",
-    "sans": "Inter",
+    "sans": "Noto Sans",
     "mono": "IBM Plex Mono"
   },
   "options": {
@@ -108,7 +114,7 @@
     "size": 24
   },
   "aurorae": {
-    "template": "ElToClassic",
+    "template": "assets/aurorae",
     "frame": "skyDeep",
     "frameInactive": "line",
     "title": "cloud"
@@ -182,7 +188,11 @@
     "backgroundColor": "surface",
     "accentColor": "accent"
   },
-  "lock": {},
+  "lock": {
+    "background": "assets/greeter-background.jpg",
+    "backgroundColor": "surfaceAlt",
+    "accentColor": "accent"
+  },
   "plymouth": {
     "enabled": false,
     "background": "assets/boot-background.jpg",
