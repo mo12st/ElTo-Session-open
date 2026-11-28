@@ -228,6 +228,69 @@ def parse_content_list(xml_bytes):
     return items
 
 
+# -- conservative junk filter --
+# The KDE Store's open upload policy lets spam, test uploads, duplicates and
+# off-topic files into every category. These rules hide only what public
+# store data marks as junk; everything filtered stays one toggle away and
+# carries its reason. No taste judgments: borderline items stay visible.
+MIN_ITEM_TEXT = 24  # chars of summary+description below which an entry tells you nothing
+
+# wallpapers only: items that say they are something else entirely
+WALLPAPER_MISFIT = re.compile(
+    r"\b(avatars?|watchfaces?|splash(?:es)?\b|logos?\d*|banners?|calendars?|"
+    r"info-?graphics?|templates?|3d models?|user pictures?|profile pics?|posters?)",
+    re.I)
+
+
+def _norm_title(t):
+    return re.sub(r"[^a-z0-9]+", " ", (t or "").casefold()).strip()
+
+
+def _download_count(item):
+    try:
+        return int(item.get("downloads") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def kde_junk_reason(item):
+    """One human-readable reason this store entry is junk, or "" when it is
+    fine. Conservative on purpose: a signal fires only when the entry's own
+    public data condemns it."""
+    if not (item.get("files") or []):
+        return "no downloadable file"
+    text = ((item.get("summary") or "") + " " + (item.get("description") or "")).strip()
+    if len(text) < MIN_ITEM_TEXT:
+        return "almost no description"
+    if item.get("category") == "wallpapers":
+        m = WALLPAPER_MISFIT.search((item.get("title") or "") + " " + (item.get("summary") or ""))
+        if m:
+            return "not a wallpaper (it says: %s)" % m.group(0).lower()
+    return ""
+
+
+def _annotate_junk(items):
+    """Tag each entry with filtered/filter_reason; fold same-author
+    duplicates into the best-downloaded copy."""
+    seen = {}
+    for it in items:
+        reason = kde_junk_reason(it)
+        key = (_norm_title(it.get("title")), (it.get("author") or "").casefold())
+        if not reason and key in seen:
+            keep = seen[key]
+            winner, loser = (keep, it) if _download_count(it) <= _download_count(keep) else (it, keep)
+            loser["filtered"] = True
+            loser["filter_reason"] = "duplicate of '%s'" % winner["title"]
+            seen[key] = winner
+            if loser is it:
+                continue
+        elif not reason:
+            seen[key] = it
+        it["filtered"] = bool(reason)
+        it["filter_reason"] = reason
+    return items
+
+
 class Store:
     def __init__(self, root=None, fetcher=fetch_url, worlds_dir=WORLDS_DIR):
         self.root = root or default_root()
@@ -321,7 +384,7 @@ class Store:
                           category=category, stale=stale,
                           kind="data" if hint == "data" else "code")
             out.extend(items)
-        return out
+        return _annotate_junk(out)
 
     # -- KDE import --
     def install_kde(self, entry, file_index=None):
@@ -670,7 +733,8 @@ def cli(argv):
             _jprint({"ok": True, "items": list_worlds()})
         elif len(argv) >= 2 and argv[0] == "kde":
             items = st.kde_listing(argv[1], search=" ".join(argv[2:]))
-            _jprint({"ok": True, "items": items, "stale": any(i.get("stale") for i in items)})
+            _jprint({"ok": True, "items": items, "stale": any(i.get("stale") for i in items),
+                     "filtered_count": sum(1 for i in items if i.get("filtered"))})
         elif argv == ["functions"]:
             _jprint({"ok": True, "items": list_functions()})
         elif argv == ["rices"]:

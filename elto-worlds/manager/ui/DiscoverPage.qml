@@ -15,6 +15,10 @@ Item {
     property string notice: ""
     property string search: ""
 
+    // junk filter: store.py tags each KDE entry; hidden unless toggled on
+    property bool showFiltered: false
+    readonly property int filteredCount: items.filter(function (i) { return i.filtered }).length
+
     // KDE item details overlay (public store data only)
     property var detailItem: null
     property var detailInfo: null
@@ -25,7 +29,7 @@ Item {
         detailItem = it
         detailInfo = null
         detailImg = 0
-        detailNotice = ""
+        detailNotice = it.filtered ? ("Junk filter: " + (it.filter_reason || "flagged") + ". Shown because you asked to see filtered entries.") : ""
         bridge.kdeDetail(it.id, function (o) {
             if (o.ok && page.detailItem === it) page.detailInfo = o.item
         })
@@ -67,7 +71,7 @@ Item {
             })
         }
     }
-    onCategoryChanged: { searchBox.text = ""; page.search = ""; reload() }
+    onCategoryChanged: { searchBox.text = ""; page.search = ""; page.showFiltered = false; reload() }
     Component.onCompleted: reload()
 
     // debounce: one live store query when typing pauses, not one per key
@@ -107,12 +111,30 @@ Item {
             width: parent.width
         }
 
+        Rectangle {
+            visible: page.isKde && page.filteredCount > 0
+            width: parent.width; height: 26; radius: 13; color: "#f3eee4"
+            Text {
+                x: 12; anchors.verticalCenter: parent.verticalCenter
+                text: page.filteredCount + (page.filteredCount === 1 ? " junk entry hidden" : " junk entries hidden")
+                      + " (spam, duplicates, off-topic)"
+                color: page.st.muted; font.pixelSize: 11
+            }
+            Text {
+                x: parent.width - 76; anchors.verticalCenter: parent.verticalCenter
+                text: page.showFiltered ? "hide" : "show"
+                color: page.st.accent; font.pixelSize: 11; font.bold: true
+                MouseArea { anchors.fill: parent; onClicked: page.showFiltered = !page.showFiltered }
+            }
+        }
+
         GridView {
             width: parent.width
             height: parent.height - (page.notice !== "" ? 52 : 0) - (page.category !== "filemanager" ? 46 : 0)
+                    - (page.isKde && page.filteredCount > 0 ? 38 : 0)
             cellWidth: page.category === "rices" ? 320 : 300
             cellHeight: page.category === "rices" ? 190 : 148; clip: true
-            model: page.items.filter(page.matches)
+            model: page.items.filter(function (it) { return page.matches(it) && (page.showFiltered || !it.filtered) })
             delegate: Item {
                 width: GridView.view.cellWidth; height: GridView.view.cellHeight
                 RiceCard {
