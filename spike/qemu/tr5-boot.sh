@@ -108,14 +108,14 @@ EOS
 $SC /tmp/t0.sh dev@127.0.0.1:/tmp/
 $S 'pkill -f welcome.qml; sudo bash /tmp/t0.sh /home/dev/Documents; cat /tmp/trail.log | grep -a -v "Unable to assign" | head -30; pgrep -a quickshell | cut -c1-90'
 shot /tmp/tr1.ppm tr1_trail_documents
-$S 'pkill -u dev -f elto-files/trail.qml; sleep 2'
+$S 'pkill -u dev -f "[e]lto-files/trail.qml"; sleep 2'
 $S 'sudo bash /tmp/t0.sh computer; grep -a -v "Unable to assign" /tmp/trail.log | head -20'
 shot /tmp/tr2.ppm tr2_this_computer
 
 
 $S 'sudo pacman -S --noconfirm --needed kate inter-font ttf-ibm-plex 2>&1 | tail -2; fc-list | grep -i -E "VT323|Exo|Inter|Plex" | cut -d: -f2 | sort -u | head; xdg-mime query default text/markdown; xdg-mime query default text/plain'
 echo "== FILE OPEN (default world)"
-$S 'pkill -u dev -f elto-files/trail.qml; sleep 2; sudo bash /tmp/t0.sh /home/dev/Documents'
+$S 'pkill -u dev -f "[e]lto-files/trail.qml"; sleep 2; sudo bash /tmp/t0.sh /home/dev/Documents'
 dbl() { click $1 $2; click $1 $2; }
 click 586 400
 dbl 586 400
@@ -124,7 +124,7 @@ $S 'pgrep -a kate | cut -c1-100; pgrep -a -f xdg-open | cut -c1-100; grep -a -i 
 shot /tmp/fo.ppm fo_after_open_notes
 $S 'pkill -u dev kate; sleep 1'
 echo "== LIVE WORLD SWITCH on an open Trail (This computer page)"
-$S 'pkill -u dev -f elto-files/trail.qml; sleep 2; sudo bash /tmp/t0.sh computer'
+$S 'pkill -u dev -f "[e]lto-files/trail.qml"; sleep 2; sudo bash /tmp/t0.sh computer'
 cat > /tmp/wa.sh <<'EOS'
 W=$1
 sudo -u dev env HOME=/home/dev XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus python3 /tmp/repo/elto-worlds/elto-world apply /tmp/repo/elto-worlds/worlds/$W 2>&1 | tail -4 | cut -c1-200
@@ -139,6 +139,6 @@ done
 $S 'grep -a -v -E "Unable to assign|locale|UTF-8|more information" /tmp/trail.log | tail -12 | cut -c1-200; pgrep -a quickshell | cut -c1-90'
 echo "== DOCUMENTS page in three worlds (fresh launch)"
 for w in retro95 aero unix; do
-  $S "sudo bash /tmp/wa.sh $w; pkill -u dev -f elto-files/trail.qml; sleep 2; sudo bash /tmp/t0.sh /home/dev/Documents"
+  $S "sudo bash /tmp/wa.sh $w; pkill -u dev -f "[e]lto-files/trail.qml"; sleep 2; sudo bash /tmp/t0.sh /home/dev/Documents"
   shot /tmp/d_$w.ppm d_$w
 done

@@ -108,7 +108,7 @@ EOS
 $SC /tmp/t0.sh dev@127.0.0.1:/tmp/
 $S 'pkill -f welcome.qml; sudo bash /tmp/t0.sh /home/dev/Documents; cat /tmp/trail.log | grep -a -v "Unable to assign" | head -30; pgrep -a quickshell | cut -c1-90'
 shot /tmp/tr1.ppm tr1_trail_documents
-$S 'pkill -u dev -f elto-files/trail.qml; sleep 2'
+$S 'pkill -u dev -f "[e]lto-files/trail.qml"; sleep 2'
 $S 'sudo bash /tmp/t0.sh computer; grep -a -v "Unable to assign" /tmp/trail.log | head -20'
 shot /tmp/tr2.ppm tr2_this_computer
 
@@ -121,7 +121,7 @@ sleep 5
 EOS
 $SC /tmp/wa.sh dev@127.0.0.1:/tmp/
 echo "== A: fresh Trail on This computer, no world change"
-$S 'pkill -u dev -f elto-files/trail.qml; sleep 2; sudo bash /tmp/t0.sh computer'
+$S 'pkill -u dev -f "[e]lto-files/trail.qml"; sleep 2; sudo bash /tmp/t0.sh computer'
 chk
 shot /tmp/a1.ppm a1_computer_default
 echo "== B: apply aero while open"
@@ -133,6 +133,6 @@ $S 'sudo bash /tmp/wa.sh retro95'
 chk
 shot /tmp/a3.ppm a3_after_retro95
 echo "== D: Documents path start"
-$S 'pkill -u dev -f elto-files/trail.qml; sleep 2; sudo bash /tmp/t0.sh /home/dev/Documents'
+$S 'pkill -u dev -f "[e]lto-files/trail.qml"; sleep 2; sudo bash /tmp/t0.sh /home/dev/Documents'
 chk
 shot /tmp/a4.ppm a4_documents_retro95

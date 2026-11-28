@@ -108,7 +108,7 @@ EOS
 $SC /tmp/t0.sh dev@127.0.0.1:/tmp/
 $S 'pkill -f welcome.qml; sudo bash /tmp/t0.sh /home/dev/Documents; cat /tmp/trail.log | grep -a -v "Unable to assign" | head -30; pgrep -a quickshell | cut -c1-90'
 shot /tmp/tr1.ppm tr1_trail_documents
-$S 'pkill -u dev -f elto-files/trail.qml; sleep 2'
+$S 'pkill -u dev -f "[e]lto-files/trail.qml"; sleep 2'
 $S 'sudo bash /tmp/t0.sh computer; grep -a -v "Unable to assign" /tmp/trail.log | head -20'
 shot /tmp/tr2.ppm tr2_this_computer
 
@@ -126,9 +126,9 @@ sudo -u dev env XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:pat
 sleep 3
 EOS
 $SC /tmp/wa.sh /tmp/rule.sh dev@127.0.0.1:/tmp/
-$S 'pkill -u dev -f elto-files/trail.qml; sleep 2; sudo bash /tmp/t0.sh computer 0'
+$S 'pkill -u dev -f "[e]lto-files/trail.qml"; sleep 2; sudo bash /tmp/t0.sh computer 0'
 shot /tmp/cf_before.ppm cf_before_server_frame
-$S 'bash /tmp/rule.sh; pkill -u dev -f elto-files/trail.qml; sleep 2; sudo bash /tmp/t0.sh computer 1; grep -a -i -E "error|TypeError|ReferenceError" /tmp/trail.log | grep -v "Unable to assign" | head -5'
+$S 'bash /tmp/rule.sh; pkill -u dev -f "[e]lto-files/trail.qml"; sleep 2; sudo bash /tmp/t0.sh computer 1; grep -a -i -E "error|TypeError|ReferenceError" /tmp/trail.log | grep -v "Unable to assign" | head -5'
 shot /tmp/cf_after.ppm cf_after_own_frame
 # drag the window by its own titlebar
 qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"abs","data":{"axis":"x","value":'$((400*32767/1280))'}},{"type":"abs","data":{"axis":"y","value":'$((128*32767/800))'}}]}}' >/dev/null; sleep 1
