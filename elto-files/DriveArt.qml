@@ -6,8 +6,8 @@ Item {
     required property var th
     property bool usb: false
     // Drive art follows the folder era in a simplified way: legacy styles as is, era styles mapped to the nearest one.
-    readonly property string style: ({ w95: "flat", vapor: "flat", aero: "glass", pearl: "manila", chrome: "flat", term: "outline", plain: "outline" })[th.cardArt] || th.folderArt
-    readonly property color led: th.cardArt === "chrome" || th.cardArt === "term" || th.cardArt === "vapor" ? th.accent : th.textMuted
+    readonly property string style: ({ w95: "flat", vapor: "flat", aero: "glass", pearl: "manila", band: "manila", chrome: "flat", term: "outline", plain: "outline" })[th.cardArt] || th.folderArt
+    readonly property color led: th.cardArt === "chrome" || th.cardArt === "band" || th.cardArt === "term" || th.cardArt === "vapor" ? th.accent : th.textMuted
     implicitWidth: 64; implicitHeight: usb ? 32 : 40
     width: implicitWidth; height: implicitHeight
     readonly property color body: style === "flat" ? th.surfaceAlt : Qt.tint(th.surfaceAlt, Qt.alpha(th.accent, 0.14))

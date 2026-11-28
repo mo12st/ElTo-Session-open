@@ -51,21 +51,28 @@ ShellRoot {
         function onSel() { return lum(selection) < 0.5 ? Qt.lighter(surface, 1.8) : text }
         // Folder colour for era folder art: the world colour named folder, else the accent.
         readonly property color folderYellow: colors.folder !== undefined ? colors.folder : accent
+        // Glossy band colours for band-style worlds, derived from the selection hue.
+        readonly property color bandTop: Qt.hsla(selection.hslHue, Math.min(1, selection.hslSaturation * 1.3), 0.52, 1)
+        readonly property color bandBottom: Qt.hsla(selection.hslHue, Math.min(1, selection.hslSaturation * 1.3), 0.34, 1)
         readonly property color disabled: role("disabled")
         readonly property int radiusPill: shapeT.radiusPill !== undefined ? shapeT.radiusPill : 999
         readonly property int radiusCard: shapeT.radiusCard !== undefined ? shapeT.radiusCard : 14
         // Optional structural tokens (all in `shape`, so world apply carries them). Defaults keep the soft-paper look.
         readonly property int bevel: typeof shapeT.bevel === "number" ? Math.max(0, Math.min(3, Math.round(shapeT.bevel))) : 0
-        readonly property bool glass: shapeT.glass === true
+        readonly property bool glass: shapeT.glass === true || (typeof shapeT.glass === "number" && shapeT.glass > 0)
+        readonly property bool gloss: shapeT.bevel === "rounded-gloss"
         readonly property real surfaceAlpha: typeof shapeT.surfaceAlpha === "number" ? Math.max(0.3, Math.min(1, shapeT.surfaceAlpha)) : 1
-        readonly property string folderArt: ["manila", "flat", "outline", "glass", "classic95", "aero", "luna", "chrome"].indexOf(shapeT.folderArt) >= 0 ? shapeT.folderArt : "manila"
-        readonly property string cardArt: ["paper", "w95", "vapor", "aero", "pearl", "chrome", "term", "plain"].indexOf(shapeT.cardArt) >= 0 ? shapeT.cardArt
+        readonly property string folderArt: ["manila", "flat", "outline", "glass", "classic95", "aero", "luna", "chrome"].indexOf(shapeT.folderArt) >= 0 ? shapeT.folderArt : (cardKey === "band" ? "luna" : "manila")
+        // Accepts the world file vocabulary "gloss-band" as well as the internal name "band".
+        readonly property string cardKey: shapeT.cardArt === "gloss-band" ? "band" : (shapeT.cardArt || "")
+        readonly property string cardArt: ["paper", "w95", "vapor", "aero", "pearl", "chrome", "term", "plain", "band"].indexOf(cardKey) >= 0 ? cardKey
             : ({ classic95: "w95", aero: "aero", luna: "pearl", chrome: "chrome" })[folderArt] || (folderArt === "outline" ? (iconArt === "ascii" ? "term" : "plain") : "paper")
-        readonly property string pageLayout: ["cards", "grid", "rows", "tiles", "gauge", "table", "columns", "windows"].indexOf(shapeT.pageLayout) >= 0 ? shapeT.pageLayout
-            : ({ w95: "grid", vapor: "windows", aero: "rows", pearl: "tiles", chrome: "gauge", term: "table", plain: "columns" })[cardArt] || "cards"
+        readonly property string pageKey: shapeT.pageLayout === "desktop-icons" ? "desktop" : (shapeT.pageLayout || "")
+        readonly property string pageLayout: ["cards", "grid", "rows", "tiles", "gauge", "table", "columns", "windows", "desktop"].indexOf(pageKey) >= 0 ? pageKey
+            : ({ band: "desktop", w95: "grid", vapor: "windows", aero: "rows", pearl: "tiles", chrome: "gauge", term: "table", plain: "columns" })[cardArt] || "cards"
         readonly property string folderView: ["icons", "list", "details", "content", "tiles", "cards", "ls", "names"].indexOf(shapeT.folderView) >= 0 ? shapeT.folderView
-            : ({ w95: "list", vapor: "details", aero: "content", pearl: "tiles", chrome: "cards", term: "ls", plain: "names" })[cardArt] || "icons"
-        readonly property string iconArt: ["line", "thin", "bold", "pixel", "gloss", "ascii"].indexOf(shapeT.iconArt) >= 0 ? shapeT.iconArt : "line"
+            : ({ band: "tiles", w95: "list", vapor: "details", aero: "content", pearl: "tiles", chrome: "cards", term: "ls", plain: "names" })[cardArt] || "icons"
+        readonly property string iconArt: ["line", "thin", "bold", "pixel", "gloss", "ascii"].indexOf(shapeT.iconArt) >= 0 ? shapeT.iconArt : (cardKey === "band" ? "gloss" : "line")
         readonly property string mono: fonts.mono || "DejaVu Sans Mono"
         readonly property string snailStyle: ["solid", "outline", "pixel", "glass"].indexOf(shapeT.snail) >= 0 ? shapeT.snail : "solid"
         readonly property string serif: fonts.serif || "Noto Serif Display"

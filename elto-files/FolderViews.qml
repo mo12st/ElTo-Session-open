@@ -10,6 +10,9 @@ Item {
     readonly property var th: win.th
     readonly property string mode: th.folderView
     property int current: -1
+    readonly property bool bandSel: th.cardArt === "band"
+    readonly property color selFill: bandSel ? th.selection : th.accent
+    readonly property color selText: bandSel ? th.text : (th.lum(th.accent) < 0.5 ? th.surface : th.text)
     onModeChanged: current = -1
     Connections { target: fv.win; function onPathChanged() { fv.current = -1 } }
 
@@ -55,19 +58,19 @@ Item {
         clip: true; model: visible ? fm : null; flow: GridView.FlowTopToBottom
         cellWidth: 190; cellHeight: 24; boundsBehavior: Flickable.StopAtBounds
         delegate: Item {
-            id: d
+            id: d1
             required property int index
             required property string fileName
             required property bool fileIsDir
             readonly property bool sel: fv.current === index
             width: vList.cellWidth; height: vList.cellHeight
-            Ico { x: 2; y: 2; s: 20; dir: d.fileIsDir; nm: d.fileName; sel: d.sel }
+            Ico { x: 2; y: 2; s: 20; dir: d1.fileIsDir; nm: d1.fileName; sel: d1.sel }
             Rectangle {
                 x: 26; anchors.verticalCenter: parent.verticalCenter; width: lab.width + 6; height: 18
-                color: d.sel ? th.selection : "transparent"; border.width: d.sel ? 1 : 0; border.color: th.text
-                Text { id: lab; anchors.centerIn: parent; text: d.fileName; color: d.sel ? th.onSel() : th.text; font.family: th.sans; font.pixelSize: 11 }
+                color: d1.sel ? th.selection : "transparent"; border.width: d1.sel ? 1 : 0; border.color: th.text
+                Text { id: lab; anchors.centerIn: parent; text: d1.fileName; color: d1.sel ? th.onSel() : th.text; font.family: th.sans; font.pixelSize: 11 }
             }
-            Hit { idx: d.index }
+            Hit { idx: d1.index }
         }
     }
     Rectangle {
@@ -97,7 +100,7 @@ Item {
             anchors { top: dh.bottom; left: parent.left; right: parent.right; bottom: parent.bottom }
             clip: true; model: parent.visible ? fm : null; boundsBehavior: Flickable.StopAtBounds
             delegate: Rectangle {
-                id: d
+                id: d2
                 required property int index
                 required property string fileName
                 required property bool fileIsDir
@@ -106,11 +109,11 @@ Item {
                 readonly property bool sel: fv.current === index
                 width: ListView.view.width; height: 30
                 color: sel ? th.selection : (index % 2 ? Qt.alpha(th.text, 0.05) : "transparent")
-                Ico { x: 8; y: 3; s: 24; dir: d.fileIsDir; nm: d.fileName; sel: d.sel }
-                Text { x: 38; anchors.verticalCenter: parent.verticalCenter; text: d.fileName; color: d.sel ? th.onSel() : th.text; font.family: th.mono; font.pixelSize: 12 }
-                Text { x: parent.width - 260; anchors.verticalCenter: parent.verticalCenter; text: fv.size(d.fileSize, d.fileIsDir); color: d.sel ? th.onSel() : th.textMuted; font.family: th.mono; font.pixelSize: 11 }
-                Text { x: parent.width - 150; anchors.verticalCenter: parent.verticalCenter; text: fv.when(d.fileModified); color: d.sel ? th.onSel() : th.textMuted; font.family: th.mono; font.pixelSize: 11 }
-                Hit { idx: d.index }
+                Ico { x: 8; y: 3; s: 24; dir: d2.fileIsDir; nm: d2.fileName; sel: d2.sel }
+                Text { x: 38; anchors.verticalCenter: parent.verticalCenter; text: d2.fileName; color: d2.sel ? th.onSel() : th.text; font.family: th.mono; font.pixelSize: 12 }
+                Text { x: parent.width - 260; anchors.verticalCenter: parent.verticalCenter; text: fv.size(d2.fileSize, d2.fileIsDir); color: d2.sel ? th.onSel() : th.textMuted; font.family: th.mono; font.pixelSize: 11 }
+                Text { x: parent.width - 150; anchors.verticalCenter: parent.verticalCenter; text: fv.when(d2.fileModified); color: d2.sel ? th.onSel() : th.textMuted; font.family: th.mono; font.pixelSize: 11 }
+                Hit { idx: d2.index }
             }
         }
     }
@@ -121,7 +124,7 @@ Item {
         visible: fv.mode === "content"; anchors.fill: parent
         clip: true; model: visible ? fm : null; boundsBehavior: Flickable.StopAtBounds; spacing: 2
         delegate: Rectangle {
-            id: d
+            id: d3
             required property int index
             required property string fileName
             required property bool fileIsDir
@@ -132,11 +135,11 @@ Item {
             width: vContent.width - 6; height: 52; radius: 4
             color: sel ? Qt.alpha(th.accent, 0.22) : (hit.hov ? Qt.alpha(th.accent, 0.1) : "transparent")
             border.width: sel || hit.hov ? 1 : 0; border.color: Qt.alpha(th.accent, sel ? 0.6 : 0.3)
-            Rectangle { visible: d.sel || hit.hov; anchors { fill: parent; margins: 1 } radius: 3; color: "transparent"; border.width: 1; border.color: Qt.alpha("white", 0.5) }
-            Ico { x: 8; y: 6; s: 40; dir: d.fileIsDir; nm: d.fileName }
-            Text { x: 58; y: 8; text: d.fileName; color: th.text; font.family: th.sans; font.pixelSize: 13 }
-            Text { x: 58; y: 28; text: fv.kind(d.fileIsDir, d.fileSuffix) + (d.fileIsDir ? "" : "   " + fv.size(d.fileSize, false)) + "   " + fv.when(d.fileModified); color: th.textMuted; font.family: th.sans; font.pixelSize: 10 }
-            Hit { id: hit; idx: d.index }
+            Rectangle { visible: d3.sel || hit.hov; anchors { fill: parent; margins: 1 } radius: 3; color: "transparent"; border.width: 1; border.color: Qt.alpha("white", 0.5) }
+            Ico { x: 8; y: 6; s: 40; dir: d3.fileIsDir; nm: d3.fileName }
+            Text { x: 58; y: 8; text: d3.fileName; color: th.text; font.family: th.sans; font.pixelSize: 13 }
+            Text { x: 58; y: 28; text: fv.kind(d3.fileIsDir, d3.fileSuffix) + (d3.fileIsDir ? "" : "   " + fv.size(d3.fileSize, false)) + "   " + fv.when(d3.fileModified); color: th.textMuted; font.family: th.sans; font.pixelSize: 10 }
+            Hit { id: hit; idx: d3.index }
         }
     }
 
@@ -147,7 +150,7 @@ Item {
         clip: true; model: visible ? fm : null; boundsBehavior: Flickable.StopAtBounds
         cellWidth: Math.floor(width / 2); cellHeight: 62
         delegate: Item {
-            id: d
+            id: d4
             required property int index
             required property string fileName
             required property bool fileIsDir
@@ -157,15 +160,15 @@ Item {
             width: vTiles.cellWidth; height: vTiles.cellHeight
             Rectangle {
                 anchors { fill: parent; margins: 3 } radius: 12
-                color: d.sel ? th.accent : (hit.hov ? Qt.alpha(th.accent, 0.15) : "transparent")
-                border.width: d.sel ? 2 : 0; border.color: Qt.alpha("white", 0.9)
-                Ico { x: 8; y: 5; s: 44; dir: d.fileIsDir; nm: d.fileName }
-                Text { x: 62; y: 10; width: parent.width - 70; elide: Text.ElideRight; text: d.fileName; font.bold: true; font.family: th.sans; font.pixelSize: 13
-                    color: d.sel ? (win.th.lum(th.accent) < 0.5 ? th.surface : th.text) : th.text }
-                Text { x: 62; y: 30; text: fv.kind(d.fileIsDir, d.fileSuffix) + (d.fileIsDir ? "" : ", " + fv.size(d.fileSize, false)); font.family: th.sans; font.pixelSize: 10
-                    color: d.sel ? (win.th.lum(th.accent) < 0.5 ? th.surface : th.text) : th.textMuted }
+                color: d4.sel ? fv.selFill : (hit.hov ? Qt.alpha(th.accent, 0.15) : "transparent")
+                border.width: d4.sel ? 2 : 0; border.color: Qt.alpha("white", 0.9)
+                Ico { x: 8; y: 5; s: 44; dir: d4.fileIsDir; nm: d4.fileName }
+                Text { x: 62; y: 10; width: parent.width - 70; elide: Text.ElideRight; text: d4.fileName; font.bold: true; font.family: th.sans; font.pixelSize: 13
+                    color: d4.sel ? fv.selText : th.text }
+                Text { x: 62; y: 30; text: fv.kind(d4.fileIsDir, d4.fileSuffix) + (d4.fileIsDir ? "" : ", " + fv.size(d4.fileSize, false)); font.family: th.sans; font.pixelSize: 10
+                    color: d4.sel ? fv.selText : th.textMuted }
             }
-            Hit { id: hit; idx: d.index }
+            Hit { id: hit; idx: d4.index }
         }
     }
 
@@ -176,7 +179,7 @@ Item {
         clip: true; model: visible ? fm : null; boundsBehavior: Flickable.StopAtBounds
         cellWidth: 132; cellHeight: 104
         delegate: Item {
-            id: d
+            id: d5
             required property int index
             required property string fileName
             required property bool fileIsDir
@@ -186,18 +189,18 @@ Item {
             Rectangle {
                 anchors { fill: parent; margins: 4 } radius: 2
                 gradient: Gradient {
-                    GradientStop { position: 0; color: Qt.lighter(th.surface, d.sel ? 2 : 1.5) }
+                    GradientStop { position: 0; color: Qt.lighter(th.surface, d5.sel ? 2 : 1.5) }
                     GradientStop { position: 1; color: Qt.darker(th.surface, 1.5) } }
-                border.width: 1; border.color: d.sel || hit.hov ? th.accent : Qt.alpha(th.accent, 0.35)
-                Rectangle { width: 4; height: parent.height; color: th.accent; visible: d.sel }
-                Rectangle { width: parent.width; height: 2; y: parent.height - 2; color: th.accent; opacity: d.sel ? 1 : 0.4 }
-                Ico { anchors.horizontalCenter: parent.horizontalCenter; y: 8; s: 44; dir: d.fileIsDir; nm: d.fileName }
+                border.width: 1; border.color: d5.sel || hit.hov ? th.accent : Qt.alpha(th.accent, 0.35)
+                Rectangle { width: 4; height: parent.height; color: th.accent; visible: d5.sel }
+                Rectangle { width: parent.width; height: 2; y: parent.height - 2; color: th.accent; opacity: d5.sel ? 1 : 0.4 }
+                Ico { anchors.horizontalCenter: parent.horizontalCenter; y: 8; s: 44; dir: d5.fileIsDir; nm: d5.fileName }
                 Text { anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: 58 } width: parent.width - 10; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideMiddle
-                    text: d.fileName.toUpperCase(); color: th.text; font.family: th.sans; font.bold: true; font.letterSpacing: 1; font.pixelSize: 10 }
-                Text { anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: 74 } text: d.fileIsDir ? "FOLDER" : fv.size(d.fileSize, false).toUpperCase()
+                    text: d5.fileName.toUpperCase(); color: th.text; font.family: th.sans; font.bold: true; font.letterSpacing: 1; font.pixelSize: 10 }
+                Text { anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: 74 } text: d5.fileIsDir ? "FOLDER" : fv.size(d5.fileSize, false).toUpperCase()
                     color: th.accent; font.family: th.sans; font.pixelSize: 9; font.letterSpacing: 1 }
             }
-            Hit { id: hit; idx: d.index }
+            Hit { id: hit; idx: d5.index }
         }
     }
 
@@ -208,7 +211,7 @@ Item {
         clip: true; model: visible ? fm : null; boundsBehavior: Flickable.StopAtBounds
         header: Text { text: "total " + fm.count; color: th.textMuted; font.family: th.mono; font.pixelSize: 12; height: 20 }
         delegate: Item {
-            id: d
+            id: d6
             required property int index
             required property string fileName
             required property bool fileIsDir
@@ -216,13 +219,13 @@ Item {
             required property date fileModified
             readonly property bool sel: fv.current === index
             width: vLs.width; height: 20
-            Rectangle { anchors.fill: parent; color: d.sel ? th.text : (hit.hov ? Qt.alpha(th.accent, 0.15) : "transparent") }
+            Rectangle { anchors.fill: parent; color: d6.sel ? th.text : (hit.hov ? Qt.alpha(th.accent, 0.15) : "transparent") }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: (d.fileIsDir ? "drwxr-xr-x" : "-rw-r--r--") + "  " + fv.lpad(d.fileIsDir ? "-" : fv.size(d.fileSize, false), 9) + "  " + fv.when(d.fileModified) + "  " + d.fileName + (d.fileIsDir ? "/" : "")
-                color: d.sel ? th.surface : (d.fileIsDir ? th.accent : th.text); font.family: th.mono; font.pixelSize: 12
+                text: (d6.fileIsDir ? "drwxr-xr-x" : "-rw-r--r--") + "  " + fv.lpad(d6.fileIsDir ? "-" : fv.size(d6.fileSize, false), 9) + "  " + fv.when(d6.fileModified) + "  " + d6.fileName + (d6.fileIsDir ? "/" : "")
+                color: d6.sel ? th.surface : (d6.fileIsDir ? th.accent : th.text); font.family: th.mono; font.pixelSize: 12
             }
-            Hit { id: hit; idx: d.index }
+            Hit { id: hit; idx: d6.index }
         }
     }
 
@@ -232,7 +235,7 @@ Item {
         visible: fv.mode === "names"; anchors.fill: parent
         clip: true; model: visible ? fm : null; boundsBehavior: Flickable.StopAtBounds
         delegate: Item {
-            id: d
+            id: d7
             required property int index
             required property string fileName
             required property bool fileIsDir
@@ -240,11 +243,11 @@ Item {
             readonly property bool sel: fv.current === index
             width: vNames.width; height: 40
             Rectangle { width: parent.width; height: 1; y: parent.height - 1; color: th.divider }
-            Rectangle { visible: d.sel; width: 2; height: parent.height - 8; y: 4; color: th.text }
-            Text { x: 14; anchors.verticalCenter: parent.verticalCenter; text: d.fileName + (d.fileIsDir ? "  /" : ""); color: th.text
-                font.family: th.sans; font.pixelSize: 20; font.weight: d.sel || hit.hov ? Font.Normal : Font.Light; font.underline: hit.hov }
-            Text { anchors { right: parent.right; rightMargin: 6; verticalCenter: parent.verticalCenter } text: fv.size(d.fileSize, d.fileIsDir); color: th.textMuted; font.family: th.sans; font.pixelSize: 11 }
-            Hit { id: hit; idx: d.index }
+            Rectangle { visible: d7.sel; width: 2; height: parent.height - 8; y: 4; color: th.text }
+            Text { x: 14; anchors.verticalCenter: parent.verticalCenter; text: d7.fileName + (d7.fileIsDir ? "  /" : ""); color: th.text
+                font.family: th.sans; font.pixelSize: 20; font.weight: d7.sel || hit.hov ? Font.Normal : Font.Light; font.underline: hit.hov }
+            Text { anchors { right: parent.right; rightMargin: 6; verticalCenter: parent.verticalCenter } text: fv.size(d7.fileSize, d7.fileIsDir); color: th.textMuted; font.family: th.sans; font.pixelSize: 11 }
+            Hit { id: hit; idx: d7.index }
         }
     }
 }
