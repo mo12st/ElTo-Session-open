@@ -27,16 +27,19 @@ Scope {
             radius: root.num(d.dockRadius, d.radius),
             height: root.num(d.dockHeight, d.height),
             button: root.pick(d.dockButton, ["circle", "rounded", "square"], "circle"),
-            launcherMark: root.pick(d.launcherMark, ["none", "dot", "label"], "none"),
+            launcherMark: root.pick(d.launcherMark, ["none", "dot", "label", "button"], "none"),
             launcherLabel: typeof d.launcherLabel === "string" ? d.launcherLabel : "ElTo",
             clockStyle: root.pick(d.clockStyle, ["text", "pill", "none"], "text"),
             clockPosition: root.pick(d.clockPosition, ["end", "start"], "end"),
             trayStyle: root.pick(d.trayStyle, ["text", "compact", "none"], "text"),
             activeIndicator: root.pick(d.activeIndicator, ["pill", "dot", "bar", "none"], "pill"),
+            taskStyle: root.pick(d.taskStyle, ["pill", "button", "label"], "pill"),
             edge: root.pick(d.edge, ["bottom", "top"], "bottom")
         }
     }
     property string activeApp: ""
+    // set by elto-shell so the launcher button can open the app drawer, the same way Notch takes one
+    property var drawer: null
     property var openApps: ({})
     property bool blurBroken: false
 

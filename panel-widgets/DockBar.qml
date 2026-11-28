@@ -41,9 +41,15 @@ PanelWindow {
         height: win.dock.look.height
         y: win.dock.look.edge === "bottom" ? parent.height - height : 0
         color: Qt.alpha(Theme.role(win.dk.color), win.barAlpha)
-        border.width: bar.mat === "bevel" ? 2 : (bar.mat === "glass" ? 1 : 0)
-        border.color: bar.mat === "bevel" ? Theme.divider : Qt.rgba(1, 1, 1, 0.45)
+        border.width: bar.mat === "glass" ? 1 : 0
+        border.color: Qt.rgba(1, 1, 1, 0.45)
         Behavior on color { ColorAnimation { duration: Theme.ms(200) } }
+
+        // 95-style bevel: light on the top and left, dark on the bottom and right
+        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; right: parent.right; top: parent.top }; height: 2; color: Qt.rgba(1, 1, 1, 0.7) }
+        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; top: parent.top; bottom: parent.bottom }; width: 2; color: Qt.rgba(1, 1, 1, 0.7) }
+        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; right: parent.right; bottom: parent.bottom }; height: 2; color: Qt.rgba(0, 0, 0, 0.35) }
+        Rectangle { visible: bar.mat === "bevel"; anchors { right: parent.right; top: parent.top; bottom: parent.bottom }; width: 2; color: Qt.rgba(0, 0, 0, 0.35) }
 
         // material: gloss adds a highlight band over the flat fill
         Rectangle {
@@ -93,6 +99,36 @@ PanelWindow {
                 font.family: Theme.serif; font.pixelSize: 14
                 anchors.verticalCenter: parent.verticalCenter
                 renderType: Text.NativeRendering
+            }
+            // launcher button: label plus caret, opens the app drawer (the shape the concepts show)
+            Rectangle {
+                id: launch
+                visible: win.dock.look.launcherMark === "button"
+                width: launchRow.implicitWidth + 22
+                height: 30
+                radius: win.dock.look.button === "circle" ? height / 2 : (win.dock.look.button === "rounded" ? 7 : 0)
+                color: launchHit.containsMouse ? Theme.selection : (win.dock.look.material === "bevel" ? Theme.surfaceAlt : "transparent")
+                border.width: win.dock.look.material === "bevel" ? 1 : 0
+                border.color: Theme.divider
+                anchors.verticalCenter: parent.verticalCenter
+                Row {
+                    id: launchRow
+                    anchors.centerIn: parent
+                    spacing: 6
+                    Text {
+                        text: win.dock.look.launcherLabel
+                        color: Theme.text
+                        font.family: Theme.sans; font.pixelSize: 13
+                        anchors.verticalCenter: parent.verticalCenter
+                        renderType: Text.NativeRendering
+                    }
+                    LIcon { name: "chevron-down"; size: 10; tint: Theme.text; anchors.verticalCenter: parent.verticalCenter }
+                }
+                MouseArea {
+                    id: launchHit
+                    anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                    onClicked: if (win.dock.drawer) win.dock.drawer.toggle()
+                }
             }
             Clock {
                 visible: win.dock.look.clockStyle !== "none" && win.dock.look.clockPosition === "start"
@@ -173,21 +209,33 @@ PanelWindow {
                         required property string title
                         required property string appid
                         required property bool isActive
-                        width: win.dk.pillWidth; height: win.dk.pillHeight; radius: height / 2
+                        readonly property bool flatTask: win.dock.look.taskStyle !== "pill"
+                        readonly property string appIcon: {
+                            var e = win.dock.entryFor(wp.appid)
+                            return Quickshell.iconPath(e && e.icon ? e.icon : wp.appid, "application-x-executable")
+                        }
+                        width: flatTask ? Math.min(win.dk.pillWidth, taskRow.implicitWidth + 22) : win.dk.pillWidth
+                        height: win.dk.pillHeight
+                        radius: win.dock.look.button === "circle" ? height / 2 : (win.dock.look.button === "rounded" ? 8 : 0)
                         anchors.verticalCenter: parent.verticalCenter
-                        color: isActive ? Theme.selection : (pm.containsMouse ? Theme.surfaceAlt : "transparent")
+                        color: (win.dock.look.taskStyle === "pill" && isActive) ? Theme.selection : (pm.containsMouse ? Theme.surfaceAlt : "transparent")
                         Behavior on color { ColorAnimation { duration: Theme.ms(150) } }
                         opacity: 0
                         Component.onCompleted: opacity = 1
                         Behavior on opacity { NumberAnimation { duration: Theme.ms(180) } }
                         Row {
+                            id: taskRow
                             anchors.centerIn: parent; spacing: 8
-                            LIcon { name: "panel-top"; size: 16; tint: Theme.textMuted; anchors.verticalCenter: parent.verticalCenter }
+                            LIcon { visible: win.dock.look.taskStyle === "pill"; name: "panel-top"; size: 16; tint: Theme.textMuted; anchors.verticalCenter: parent.verticalCenter }
+                            IconImage { visible: win.dock.look.taskStyle === "button"; implicitSize: 16; anchors.verticalCenter: parent.verticalCenter; source: wp.appIcon }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: Math.min(implicitWidth, win.dk.pillWidth - 46); elide: Text.ElideRight
                                 text: wp.title !== "" ? wp.title : wp.appid
-                                color: Theme.text; font.family: Theme.serif; font.italic: true; font.pixelSize: 14
+                                color: Theme.text
+                                font.family: win.dock.look.taskStyle === "pill" ? Theme.serif : Theme.sans
+                                font.italic: win.dock.look.taskStyle === "pill"
+                                font.pixelSize: 14
                                 renderType: Text.NativeRendering
                             }
                         }

@@ -192,16 +192,17 @@ unchanged and a typo can never produce a broken dock. `Dock.qml` resolves and va
 
 | key | values | what it changes | default |
 | --- | --- | --- | --- |
-| `dockMaterial` | `paper` `flat` `glass` `gloss` `bevel` | surface of the bar: flat fill, translucent glass with a light border, a gloss highlight band, or a 2 px bevel | `paper` |
+| `dockMaterial` | `paper` `flat` `glass` `gloss` `bevel` | surface of the bar: flat fill, translucent glass with a light border, a gloss highlight band, or a two-tone bevel (light top and left, dark bottom and right, the 95 look) | `paper` |
 | `dockRadius` | number | corner radius of the island (the bar variant is full width and has none) | `dock.radius` |
 | `dockHeight` | number | bar height | `dock.height` |
 | `dockButton` | `circle` `rounded` `square` | shape of the hover halo behind a pinned app | `circle` |
-| `launcherMark` | `none` `dot` `label` | leading mark before the pinned apps; `label` draws `launcherLabel` | `none` |
+| `launcherMark` | `none` `dot` `label` `button` | leading mark before the pinned apps; `label` draws plain `launcherLabel`, `button` draws it as a clickable button with a caret that opens the app drawer | `none` |
 | `launcherLabel` | string | text for `launcherMark: "label"` | `Elto` |
 | `clockStyle` | `text` `pill` `none` | clock in the system area: plain text, a pill, or none | `text` |
 | `clockPosition` | `end` `start` | clock sits in the system area at the end, or at the leading edge | `end` |
 | `trayStyle` | `text` `compact` `none` | status readouts: full with the Settings entry, smaller without it, or hidden | `text` |
 | `activeIndicator` | `pill` `dot` `bar` `none` | how a running app is marked: filled halo, a dot under the tile, a short bar, or nothing | `pill` |
+| `taskStyle` | `pill` `button` `label` | how an open window is drawn: the pill with a generic glyph, a flat button with the app's own icon, or the title alone | `pill` |
 | `edge` | `bottom` `top` | which screen edge the dock sits on; the menu and the shadows follow | `bottom` |
 
 Example, a world that wants a raised gloss bar at the top with a start label and dot markers:
