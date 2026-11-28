@@ -1,0 +1,181 @@
+#!/usr/bin/python3
+"""ElTo worlds system-install helper.
+
+Runs as root via pkexec(1), gated by the org.elto.worlds.install polkit
+action (auth_admin_keep). Copies world data files (wallpapers, fonts,
+sounds, launcher marks) from a user's session store into the system-wide
+world tree so components that run before login (SDDM, lock screen,
+Plymouth) can use them.
+
+Deliberate limits, enforced in code:
+- install only; no remove, no update, no daemon
+- one fixed destination root: /usr/share/elto/worlds
+- sources must live under the CALLING user's home and be owned by that
+  user (confused-deputy guard: root never copies files the caller could
+  not read themselves)
+- the manifest must be owned by the calling user
+- no network, no subprocess, no shell, no eval; regular files only
+
+Usage (as root, via pkexec):
+  elto-worlds-helper install --manifest MANIFEST.json --source-root DIR
+
+Manifest: {"files": [{"src": "relative/under/source-root",
+                       "dest": "relative/under/dest-root"}, ...]}
+Prints a JSON result on stdout. Exit 0 on success, 2 on refusal.
+"""
+import json
+import os
+import pwd
+import shutil
+import sys
+
+DEST_ROOT = "/usr/share/elto/worlds"
+PROG = "elto-worlds-helper"
+
+
+class Refusal(Exception):
+    """A validation failure; the helper refuses and changes nothing."""
+
+
+def fail(msg):
+    print("%s: %s" % (PROG, msg), file=sys.stderr)
+    sys.exit(2)
+
+
+def caller_uid(env=None):
+    """The uid polkit authorized, from pkexec's environment."""
+    env = os.environ if env is None else env
+    raw = env.get("PKEXEC_UID")
+    if raw is None:
+        raise Refusal("not run under pkexec (PKEXEC_UID unset)")
+    try:
+        return int(raw)
+    except ValueError:
+        raise Refusal("PKEXEC_UID is not an integer: %r" % raw)
+
+
+def caller_home(uid):
+    try:
+        return pwd.getpwuid(uid).pw_dir
+    except KeyError:
+        raise Refusal("calling uid %d has no passwd entry" % uid)
+
+
+def _real(path):
+    return os.path.realpath(path)
+
+
+def _under(path, root):
+    return path == root or path.startswith(root.rstrip(os.sep) + os.sep)
+
+
+def load_manifest(path, uid):
+    """Read and authorize the manifest. It must be a regular file owned by
+    the calling user, so one user cannot spend another user's polkit auth."""
+    try:
+        st = os.lstat(path)
+    except OSError as e:
+        raise Refusal("manifest unreadable: %s" % e)
+    if not os.path.isfile(path) or os.path.islink(path):
+        raise Refusal("manifest is not a regular file")
+    if st.st_uid != uid:
+        raise Refusal("manifest owned by uid %d, caller is uid %d" % (st.st_uid, uid))
+    try:
+        with open(path) as f:
+            data = json.load(f)
+    except (ValueError, OSError) as e:
+        raise Refusal("manifest is not valid JSON: %s" % e)
+    files = data.get("files") if isinstance(data, dict) else None
+    if not isinstance(files, list) or not files:
+        raise Refusal("manifest has no 'files' list")
+    entries = []
+    for i, item in enumerate(files):
+        if not isinstance(item, dict) or not isinstance(item.get("src"), str) \
+                or not isinstance(item.get("dest"), str):
+            raise Refusal("files[%d] needs string 'src' and 'dest'" % i)
+        entries.append((item["src"], item["dest"]))
+    return entries
+
+
+def validate_source(src_rel, source_root, uid):
+    """Resolve a source path and prove it is a regular file, under the
+    source root, owned by the caller. Root must never act as a confused
+    deputy for files the caller could not read."""
+    source_root = _real(source_root)
+    src = _real(os.path.join(source_root, src_rel))
+    if not _under(src, source_root):
+        raise Refusal("source escapes source root: %r" % src_rel)
+    try:
+        st = os.stat(src)
+    except OSError as e:
+        raise Refusal("source unreadable: %s: %s" % (src_rel, e))
+    if not os.path.isfile(src):
+        raise Refusal("source is not a regular file: %r" % src_rel)
+    if st.st_uid != uid:
+        raise Refusal("source owned by uid %d, caller is uid %d: %r"
+                      % (st.st_uid, uid, src_rel))
+    return src
+
+
+def validate_dest(dest_rel, dest_root=DEST_ROOT):
+    """Resolve a destination path inside the fixed system root. dest_root
+    is root-owned and not writable by the caller, so there is no symlink
+    race to close beyond confinement."""
+    if os.path.isabs(dest_rel) or dest_rel.split("/").count(".."):
+        raise Refusal("destination must be a clean relative path: %r" % dest_rel)
+    dest_root_real = _real(dest_root)
+    dest = _real(os.path.join(dest_root, dest_rel))
+    if dest == dest_root_real or not _under(dest, dest_root_real):
+        raise Refusal("destination escapes %s: %r" % (dest_root, dest_rel))
+    return dest
+
+
+def validate_source_root(source_root, uid):
+    """The source root must sit under the calling user's own home."""
+    home = _real(caller_home(uid))
+    root = _real(source_root)
+    if not _under(root, home):
+        raise Refusal("source root %r is not under the caller's home %r"
+                      % (source_root, home))
+    return root
+
+
+def install(entries, source_root, uid, dest_root=DEST_ROOT):
+    """Validate everything first; copy only when the whole manifest passes.
+    Each file lands via a same-directory temp + rename, mode 0644,
+    root:root, so no partial or caller-writable files exist in dest_root."""
+    plan = []
+    for src_rel, dest_rel in entries:
+        plan.append((validate_source(src_rel, source_root, uid),
+                     validate_dest(dest_rel, dest_root)))
+    installed = []
+    for src, dest in plan:
+        os.makedirs(os.path.dirname(dest), mode=0o755, exist_ok=True)
+        tmp = dest + ".elto-tmp"
+        shutil.copyfile(src, tmp)
+        os.chmod(tmp, 0o644)
+        if os.geteuid() == 0:
+            os.chown(tmp, 0, 0)
+        os.rename(tmp, dest)
+        installed.append(os.path.relpath(dest, dest_root))
+    return installed
+
+
+def main(argv):
+    if len(argv) != 6 or argv[1] != "install" \
+            or argv[2] != "--manifest" or argv[4] != "--source-root":
+        fail("usage: %s install --manifest M.json --source-root DIR" % PROG)
+    manifest_path, source_root = argv[3], argv[5]
+    try:
+        uid = caller_uid()
+        source_root = validate_source_root(source_root, uid)
+        entries = load_manifest(manifest_path, uid)
+        installed = install(entries, source_root, uid)
+    except Refusal as e:
+        fail("refused: %s" % e)
+    print(json.dumps({"installed": len(installed), "files": installed}))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
