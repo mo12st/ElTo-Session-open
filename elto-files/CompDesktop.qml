@@ -48,26 +48,32 @@ Flickable {
         id: dt
         property var d
         readonly property int pc: d ? page.pct(d) : 0
-        width: Math.floor((r.width - 8) / 2); height: 66
-        Rectangle { anchors { fill: parent; margins: 2 } radius: 4; color: ma.containsMouse ? Qt.alpha(th.selection, 0.8) : "transparent"; border.width: ma.containsMouse ? 1 : 0; border.color: th.bandTop }
-        DriveArt { th: r.th; x: 10; y: 12; width: 52; usb: dt.d && dt.d.removable }
-        Text { x: 74; y: 8; width: parent.width - 150; elide: Text.ElideRight; text: dt.d ? dt.d.name : ""; color: th.text; font.family: th.sans; font.bold: true; font.pixelSize: 12; font.underline: ma.containsMouse }
-        Rectangle {
+        width: Math.floor((r.width - 8) / 2); height: 88
+        Rectangle {   // tile frame, drawn on hover
+            anchors { fill: parent; margins: 2 } radius: 5
+            visible: ma.containsMouse
+            gradient: Gradient { GradientStop { position: 0; color: Qt.lighter(th.selection, 1.25) } GradientStop { position: 1; color: th.selection } }
+            border.width: 1; border.color: th.bandTop
+        }
+        DriveArt { th: r.th; x: 12; y: 14; width: 68; usb: dt.d && dt.d.removable }
+        Text { x: 94; y: 10; width: parent.width - 170; elide: Text.ElideRight; text: dt.d ? dt.d.name : ""; color: th.text; font.family: th.sans; font.bold: true; font.pixelSize: 13 }
+        Rectangle {   // bordered capacity bar
             id: track
-            x: 74; y: 28; width: parent.width - 96; height: 13; color: th.surface; border.width: 1; border.color: th.fog !== undefined ? th.fog : th.divider
+            x: 94; y: 32; width: parent.width - 116; height: 15; color: th.surface; border.width: 1; border.color: th.bandBottom
             Canvas {
                 x: 2; y: 2; width: Math.max(0, (parent.width - 4) * dt.pc / 100); height: parent.height - 4
                 onWidthChanged: requestPaint()
                 onPaint: {
                     var c = getContext("2d"); c.reset(); c.fillStyle = (dt.pc >= 85 ? th.bandBottom : th.accent).toString()
-                    for (var x = 0; x + 6 <= width; x += 8) c.fillRect(x, 0, 6, height)
+                    for (var x = 0; x + 7 <= width; x += 9) c.fillRect(x, 0, 7, height)
                 }
             }
         }
-        Text { x: 74; y: 45; text: dt.d ? page.gb(dt.d.free) + " free of " + page.gb(dt.d.total) : ""; color: th.textMuted; font.family: th.sans; font.pixelSize: 10 }
+        Text { x: 94; y: 52; text: dt.d ? page.gb(dt.d.free) + " free of " + page.gb(dt.d.total) : ""; color: th.text; font.family: th.sans; font.pixelSize: 11 }
+        Text { x: 94; y: 68; width: parent.width - 116; elide: Text.ElideRight; text: dt.d ? dt.d.kind : ""; color: th.textMuted; font.family: th.sans; font.pixelSize: 10 }
         Text {
             visible: dt.d && dt.d.removable && dt.d.dev !== ""
-            anchors { right: parent.right; rightMargin: 12; top: parent.top; topMargin: 8 }
+            anchors { right: parent.right; rightMargin: 14; top: parent.top; topMargin: 10 }
             text: "Eject"; color: th.bandBottom; font.family: th.sans; font.pixelSize: 11; font.underline: true
             MouseArea { anchors.fill: parent; anchors.margins: -4; cursorShape: Qt.PointingHandCursor; onClicked: app.eject(dt.d.dev) }
         }

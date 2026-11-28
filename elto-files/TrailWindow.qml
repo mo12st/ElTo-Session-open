@@ -19,6 +19,7 @@ FloatingWindow {
     readonly property int statusH: th.cardArt === "band" ? 24 : 0
     property bool compOpen: true
     property bool placesOpen: true
+    property bool detailsOpen: true
     readonly property string computerPath: "computer:"
     readonly property bool computerMode: path === computerPath
     property string path: app.start === "computer" ? computerPath : app.home
@@ -115,8 +116,13 @@ FloatingWindow {
                 : ca === "term" ? "transparent" : "transparent"
             width: 176; height: parent.height
             color: "transparent"
-            Rectangle { anchors.fill: parent; radius: win.contentRadius; color: side.sideCol }
-            Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: win.contentRadius; color: side.sideCol }
+            Gradient {
+                id: paneGrad
+                GradientStop { position: 0; color: Qt.hsla(th.selection.hslHue, Math.min(1, th.selection.hslSaturation * 1.2), 0.74, 1) }
+                GradientStop { position: 1; color: Qt.hsla(th.selection.hslHue, Math.min(1, th.selection.hslSaturation * 1.2), 0.56, 1) }
+            }
+            Rectangle { anchors.fill: parent; radius: win.contentRadius; color: side.sideCol; gradient: side.ca === "band" ? paneGrad : null }
+            Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: win.contentRadius; color: side.sideCol; gradient: side.ca === "band" ? paneGrad : null }
             Rectangle {   // right edge line, per era
                 visible: side.ca !== "paper"
                 anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
@@ -129,10 +135,11 @@ FloatingWindow {
             }
             Column {
                 x: side.ca === "w95" || side.ca === "term" ? 6 : 12; y: 16; width: parent.width - (side.ca === "w95" || side.ca === "term" ? 12 : 24)
-                spacing: side.ca === "w95" || side.ca === "term" ? 0 : side.ca === "paper" ? 4 : 3
+                spacing: side.ca === "w95" || side.ca === "term" || side.ca === "band" ? 0 : side.ca === "paper" ? 4 : 3
                 SideHead { label: "Computer"; open: win.compOpen; onToggled: win.compOpen = !win.compOpen }
                 SideRow { visible: th.cardArt !== "band" || win.compOpen; label: "This computer"; icon: "computer"; selected: win.computerMode; onClicked: win.go(win.computerPath) }
-                SideHead { label: "Places"; open: win.placesOpen; onToggled: win.placesOpen = !win.placesOpen }
+                SideFoot { open: win.compOpen }
+                SideHead { label: th.cardArt === "band" ? "Other places" : "Places"; open: win.placesOpen; onToggled: win.placesOpen = !win.placesOpen }
                 Repeater {
                     model: win.places
                     SideRow {
@@ -141,6 +148,21 @@ FloatingWindow {
                         label: modelData.label; icon: modelData.icon
                         selected: win.path === modelData.path
                         onClicked: win.go(modelData.path)
+                    }
+                }
+                SideFoot { open: win.placesOpen }
+                SideHead { label: "Details"; band: true; open: win.detailsOpen; onToggled: win.detailsOpen = !win.detailsOpen }
+                Rectangle {   // details box: what is open right now
+                    visible: th.cardArt === "band" && win.detailsOpen
+                    width: parent.width; height: 62; color: Qt.lighter(th.selection, 1.18)
+                    Rectangle { x: 0; width: 1; height: parent.height; color: th.bandTop }
+                    Rectangle { x: parent.width - 1; width: 1; height: parent.height; color: th.bandTop }
+                    Rectangle { y: parent.height - 1; width: parent.width; height: 1; color: th.bandTop }
+                    Column {
+                        x: 10; y: 8; width: parent.width - 20; spacing: 3
+                        Text { width: parent.width; elide: Text.ElideRight; text: win.computerMode ? "This computer" : win.folderTitle; color: th.bandBottom; font.family: th.sans; font.bold: true; font.pixelSize: 12 }
+                        Text { text: win.computerMode ? "System folder" : "File folder"; color: th.textMuted; font.family: th.sans; font.pixelSize: 11 }
+                        Text { text: win.computerMode ? app.drives.length + " drives" : fm.count + " objects"; color: th.textMuted; font.family: th.sans; font.pixelSize: 11 }
                     }
                 }
             }
@@ -318,21 +340,29 @@ FloatingWindow {
     component SideHead: Item {
         property string label
         property bool open: true
+        property bool band: false
         signal toggled()
         readonly property string ca: th.cardArt
-        visible: ca !== "paper" && ca !== "w95"
-        width: parent.width; height: visible ? (ca === "pearl" ? 26 : 24) : 0
+        visible: label === "Details" ? ca === "band" : (ca !== "paper" && ca !== "w95")
+        width: parent.width; height: visible ? (ca === "pearl" ? 26 : ca === "band" ? 34 : 24) : 0
         Rectangle {   // pearl: gradient bar, vapor: title strip
-            visible: parent.ca === "pearl" || parent.ca === "vapor" || parent.ca === "band"; anchors.fill: parent; anchors.topMargin: 2
+            visible: parent.ca === "pearl" || parent.ca === "vapor" || parent.ca === "band"; anchors.fill: parent; anchors.topMargin: parent.ca === "band" ? 10 : 2
             radius: parent.ca === "pearl" || parent.ca === "band" ? 8 : 0
             gradient: Gradient {
-                orientation: parent.parent.ca === "band" ? Gradient.Vertical : Gradient.Horizontal
+                orientation: Gradient.Horizontal
                 GradientStop { position: 0; color: parent.parent.ca === "band" ? Qt.lighter(th.selection, 1.3) : parent.parent.ca === "pearl" ? Qt.lighter(th.accent, 1.3) : th.accent }
                 GradientStop { position: 1; color: parent.parent.ca === "band" ? Qt.darker(th.selection, 1.08) : parent.parent.ca === "pearl" ? th.accent : th.selection } }
         }
+        Rectangle {   // band: square off the bottom corners, so only the top is rounded
+            visible: parent.ca === "band"; anchors { left: parent.left; right: parent.right; bottom: parent.bottom } height: 10
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0; color: Qt.lighter(th.selection, 1.3) }
+                GradientStop { position: 1; color: Qt.darker(th.selection, 1.08) } }
+        }
         Text {
             id: ht
-            x: parent.ca === "pearl" || parent.ca === "vapor" || parent.ca === "band" ? 8 : 4; anchors.verticalCenter: parent.verticalCenter
+            x: parent.ca === "pearl" || parent.ca === "vapor" || parent.ca === "band" ? 8 : 4; anchors.verticalCenter: parent.verticalCenter; anchors.verticalCenterOffset: parent.ca === "band" ? 5 : 0
             text: parent.ca === "term" ? "# " + parent.label.toLowerCase() : parent.ca === "chrome" ? "// " + parent.label : parent.label
             color: parent.ca === "band" ? th.bandBottom : parent.ca === "pearl" || parent.ca === "vapor" ? page_accentText() : parent.ca === "aero" ? Qt.darker(th.accent, 1.5) : parent.ca === "chrome" ? th.accent : th.textMuted
             font.family: parent.ca === "term" || parent.ca === "vapor" ? th.mono : th.sans
@@ -342,7 +372,7 @@ FloatingWindow {
             font.letterSpacing: parent.ca === "chrome" ? 2 : parent.ca === "plain" ? 1.5 : 0
         }
         Rectangle {   // band: round collapse button with a chevron
-            visible: parent.ca === "band"; width: 16; height: 16; radius: 8; x: parent.width - 22; anchors.verticalCenter: parent.verticalCenter
+            visible: parent.ca === "band"; width: 16; height: 16; radius: 8; x: parent.width - 22; anchors.verticalCenter: parent.verticalCenter; anchors.verticalCenterOffset: 5
             color: Qt.lighter(th.selection, 1.25); border.width: 1; border.color: th.bandTop
             LIcon { th: win.th; anchors.centerIn: parent; size: 9; name: "chev-left"; tint: th.bandBottom; rotation: parent.parent.open ? 90 : -90 }
         }
@@ -355,6 +385,14 @@ FloatingWindow {
         }
     }
     function page_accentText() { return th.lum(th.accent) < 0.5 ? th.surface : th.text }
+    component SideFoot: Rectangle {
+        property bool open: true
+        visible: th.cardArt === "band" && open
+        width: parent.width; height: 10; color: Qt.lighter(th.selection, 1.18)
+        Rectangle { x: 0; width: 1; height: parent.height; color: th.bandTop }
+        Rectangle { x: parent.width - 1; width: 1; height: parent.height; color: th.bandTop }
+        Rectangle { y: parent.height - 1; width: parent.width; height: 1; color: th.bandTop }
+    }
     component SideRow: Rectangle {
         id: row
         property string label
@@ -372,6 +410,8 @@ FloatingWindow {
         border.width: selected ? (ca === "w95" || ca === "aero" ? 1 : ca === "vapor" ? 2 : 0) : (ca === "aero" && ma.containsMouse ? 1 : 0)
         border.color: ca === "band" ? th.bandBottom : ca === "aero" ? Qt.alpha(th.accent, 0.6) : th.text
         Behavior on color { ColorAnimation { duration: th.ms(120) } }
+        Rectangle { visible: row.ca === "band"; x: 0; width: 1; height: parent.height; color: th.bandTop }
+        Rectangle { visible: row.ca === "band"; x: parent.width - 1; width: 1; height: parent.height; color: th.bandTop }
         Rectangle {   // chrome and plain: marker bar on the selected row
             visible: row.selected && (row.ca === "chrome" || row.ca === "plain"); width: row.ca === "chrome" ? 4 : 2; height: parent.height
             color: row.ca === "chrome" ? th.accent : th.text
