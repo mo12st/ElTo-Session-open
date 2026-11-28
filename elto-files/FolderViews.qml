@@ -8,7 +8,7 @@ Item {
     required property var win
     required property var fm
     readonly property var th: win.th
-    readonly property string mode: th.folderView
+    readonly property string mode: win.fview
     property int current: -1
     readonly property bool bandSel: th.cardArt === "band"
     readonly property color selFill: bandSel ? th.selection : th.accent
@@ -87,14 +87,17 @@ Item {
         Rectangle {
             id: dh
             width: parent.width; height: 22
-            gradient: Gradient { orientation: Gradient.Horizontal
-                GradientStop { position: 0; color: th.accent }
-                GradientStop { position: 1; color: th.selection } }
-            Row { anchors { right: parent.right; rightMargin: 6; verticalCenter: parent.verticalCenter } spacing: 3
+            gradient: Gradient {
+                orientation: fv.bandSel ? Gradient.Vertical : Gradient.Horizontal
+                GradientStop { position: 0; color: fv.bandSel ? Qt.lighter(th.surface, 1.2) : th.accent }
+                GradientStop { position: 1; color: fv.bandSel ? th.surfaceAlt : th.selection } }
+            border.width: fv.bandSel ? 1 : 0; border.color: th.divider
+            Row { visible: !fv.bandSel; anchors { right: parent.right; rightMargin: 6; verticalCenter: parent.verticalCenter } spacing: 3
                 Repeater { model: 3; Rectangle { width: 8; height: 8; color: th.surface; border.width: 1; border.color: th.text } } }
-            Text { x: 38; anchors.verticalCenter: parent.verticalCenter; text: "Name"; color: win.th.lum(th.accent) < 0.5 ? th.surface : th.text; font.family: th.mono; font.bold: true; font.pixelSize: 11 }
-            Text { x: parent.width - 260; anchors.verticalCenter: parent.verticalCenter; text: "Size"; color: win.th.lum(th.accent) < 0.5 ? th.surface : th.text; font.family: th.mono; font.bold: true; font.pixelSize: 11 }
-            Text { x: parent.width - 150; anchors.verticalCenter: parent.verticalCenter; text: "Modified"; color: win.th.lum(th.accent) < 0.5 ? th.surface : th.text; font.family: th.mono; font.bold: true; font.pixelSize: 11 }
+            Repeater { model: fv.bandSel ? [parent.width - 262, parent.width - 152, 36] : []; Rectangle { required property real modelData; x: modelData - 8; width: 1; height: parent.height - 6; y: 3; color: th.divider } }
+            Text { x: 38; anchors.verticalCenter: parent.verticalCenter; text: "Name"; color: fv.bandSel ? th.text : (win.th.lum(th.accent) < 0.5 ? th.surface : th.text); font.family: fv.bandSel ? th.sans : th.mono; font.bold: true; font.pixelSize: 11 }
+            Text { x: parent.width - 260; anchors.verticalCenter: parent.verticalCenter; text: "Size"; color: fv.bandSel ? th.text : (win.th.lum(th.accent) < 0.5 ? th.surface : th.text); font.family: fv.bandSel ? th.sans : th.mono; font.bold: true; font.pixelSize: 11 }
+            Text { x: parent.width - 150; anchors.verticalCenter: parent.verticalCenter; text: "Modified"; color: fv.bandSel ? th.text : (win.th.lum(th.accent) < 0.5 ? th.surface : th.text); font.family: fv.bandSel ? th.sans : th.mono; font.bold: true; font.pixelSize: 11 }
         }
         ListView {
             anchors { top: dh.bottom; left: parent.left; right: parent.right; bottom: parent.bottom }
@@ -109,10 +112,10 @@ Item {
                 readonly property bool sel: fv.current === index
                 width: ListView.view.width; height: 30
                 color: sel ? th.selection : (index % 2 ? Qt.alpha(th.text, 0.05) : "transparent")
-                Ico { x: 8; y: 3; s: 24; dir: d2.fileIsDir; nm: d2.fileName; sel: d2.sel }
-                Text { x: 38; anchors.verticalCenter: parent.verticalCenter; text: d2.fileName; color: d2.sel ? th.onSel() : th.text; font.family: th.mono; font.pixelSize: 12 }
-                Text { x: parent.width - 260; anchors.verticalCenter: parent.verticalCenter; text: fv.size(d2.fileSize, d2.fileIsDir); color: d2.sel ? th.onSel() : th.textMuted; font.family: th.mono; font.pixelSize: 11 }
-                Text { x: parent.width - 150; anchors.verticalCenter: parent.verticalCenter; text: fv.when(d2.fileModified); color: d2.sel ? th.onSel() : th.textMuted; font.family: th.mono; font.pixelSize: 11 }
+                Ico { x: 10; y: 6; s: 20; dir: d2.fileIsDir; nm: d2.fileName; sel: d2.sel }
+                Text { x: 38; anchors.verticalCenter: parent.verticalCenter; text: d2.fileName; color: d2.sel ? th.onSel() : th.text; font.family: fv.bandSel ? th.sans : th.mono; font.pixelSize: 12 }
+                Text { x: parent.width - 260; anchors.verticalCenter: parent.verticalCenter; text: fv.size(d2.fileSize, d2.fileIsDir); color: d2.sel ? th.onSel() : th.textMuted; font.family: fv.bandSel ? th.sans : th.mono; font.pixelSize: 11 }
+                Text { x: parent.width - 150; anchors.verticalCenter: parent.verticalCenter; text: fv.when(d2.fileModified); color: d2.sel ? th.onSel() : th.textMuted; font.family: fv.bandSel ? th.sans : th.mono; font.pixelSize: 11 }
                 Hit { idx: d2.index }
             }
         }

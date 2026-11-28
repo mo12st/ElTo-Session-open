@@ -29,6 +29,21 @@ FloatingWindow {
         if (p === path) return
         hist = hist.slice(0, hi + 1).concat([p]); hi = hist.length - 1; path = p
     }
+    function up() {
+        if (computerMode) return
+        if (path === app.home) { go(computerPath); return }
+        var i = path.lastIndexOf("/"); go(i <= 0 ? "/" : path.slice(0, i))
+    }
+    // View override from the band toolbar: cycles tiles, details, icons. Empty means the world's folderView.
+    property string viewMode: ""
+    readonly property string fview: viewMode !== "" ? viewMode : th.folderView
+    function cycleView() { var o = ["tiles", "details", "icons"]; viewMode = o[(o.indexOf(fview) + 1) % o.length] }
+    function goTyped(t) {
+        t = t.trim()
+        if (t === "" || t === "This computer" || t === computerPath) go(computerPath)
+        else if (t.charAt(0) === "~") go(app.home + t.slice(1))
+        else if (t.charAt(0) === "/") go(t)
+    }
     function back() { if (hi > 0) { hi--; path = hist[hi] } }
     function forward() { if (hi < hist.length - 1) { hi++; path = hist[hi] } }
     function openEntry(p, isDir) { if (isDir) go(p); else app.openFile(p) }
@@ -150,10 +165,11 @@ FloatingWindow {
 
             Row {
                 id: bar
-                width: parent.width; height: 32; spacing: 8
-                NavBtn { icon: "chev-left"; enabled: win.hi > 0; onClicked: win.back() }
-                NavBtn { icon: "chev-right"; enabled: win.hi < win.hist.length - 1; onClicked: win.forward() }
+                width: parent.width; height: win.statusH > 0 ? 66 : 32; spacing: 8
+                NavBtn { visible: win.statusH === 0; icon: "chev-left"; enabled: win.hi > 0; onClicked: win.back() }
+                NavBtn { visible: win.statusH === 0; icon: "chev-right"; enabled: win.hi < win.hist.length - 1; onClicked: win.forward() }
                 Rectangle {
+                    visible: win.statusH === 0
                     width: parent.width - 80; height: 32; radius: th.radiusPill; color: th.surfaceAlt
                     clip: true
                     Bevel { th: win.th; raised: false }
@@ -181,6 +197,46 @@ FloatingWindow {
                 }
             }
 
+            // Band worlds: explorer toolbar with labelled buttons, address field with a Go button.
+            Item {
+                id: bandBar
+                visible: win.statusH > 0
+                anchors { top: bar.top; left: parent.left; right: parent.right }
+                height: 66
+                Rectangle {   // toolbar strip
+                    width: parent.width; height: 32; radius: 4
+                    gradient: Gradient { GradientStop { position: 0; color: Qt.lighter(th.surface, 1.1) } GradientStop { position: 1; color: th.surfaceAlt } }
+                    border.width: 1; border.color: th.divider
+                    Row {
+                        x: 4; anchors.verticalCenter: parent.verticalCenter; spacing: 4
+                        ToolBtn { label: "Back"; icon: "chev-left"; enabled: win.hi > 0; onClicked: win.back() }
+                        ToolBtn { label: "Forward"; icon: "chev-right"; enabled: win.hi < win.hist.length - 1; onClicked: win.forward() }
+                        ToolBtn { label: "Up"; icon: "chev-left"; iconRotation: 90; enabled: !win.computerMode; onClicked: win.up() }
+                        Rectangle { width: 1; height: 20; color: th.divider; anchors.verticalCenter: parent.verticalCenter }
+                        ToolBtn { label: "Views"; icon: "docs"; onClicked: win.cycleView() }
+                    }
+                }
+                Text { x: 4; y: 41; text: "Address"; color: th.textMuted; font.family: th.sans; font.pixelSize: 11 }
+                Rectangle {
+                    x: 56; y: 36; width: parent.width - 56 - 64; height: 26; color: th.surface; border.width: 1; border.color: th.bandTop
+                    TextInput {
+                        id: addr
+                        anchors { fill: parent; leftMargin: 8; rightMargin: 8 } verticalAlignment: TextInput.AlignVCenter; clip: true
+                        color: th.text; font.family: th.sans; font.pixelSize: 12; selectByMouse: true
+                        text: win.computerMode ? "This computer" : win.path
+                        onAccepted: win.goTyped(text)
+                    }
+                }
+                Rectangle {   // Go: the primary, green action
+                    x: parent.width - 58; y: 36; width: 58; height: 26; radius: 4
+                    gradient: Gradient { GradientStop { position: 0; color: Qt.lighter(th.accent, 1.3) } GradientStop { position: 1; color: Qt.darker(th.accent, 1.15) } }
+                    border.width: 1; border.color: Qt.darker(th.accent, 1.5)
+                    Rectangle { x: 2; y: 2; width: parent.width - 4; height: parent.height / 2 - 2; radius: 3; color: Qt.alpha("white", 0.28) }
+                    Text { anchors.centerIn: parent; text: "Go"; color: th.surface; font.family: th.sans; font.bold: true; font.pixelSize: 12 }
+                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: win.goTyped(addr.text) }
+                }
+            }
+
             ComputerPage {
                 visible: win.computerMode
                 anchors { top: bar.bottom; topMargin: 6; left: parent.left; right: parent.right; bottom: parent.bottom }
@@ -204,13 +260,13 @@ FloatingWindow {
                 sortField: FolderListModel.Name; caseSensitive: false
             }
             FolderViews {
-                visible: !win.computerMode && th.folderView !== "icons"
+                visible: !win.computerMode && win.fview !== "icons"
                 win: win; fm: fm
                 anchors { top: rule.bottom; topMargin: 12; left: parent.left; right: parent.right; bottom: parent.bottom }
             }
             GridView {
                 id: grid
-                visible: !win.computerMode && th.folderView === "icons"
+                visible: !win.computerMode && win.fview === "icons"
                 anchors { top: rule.bottom; topMargin: 12; left: parent.left; right: parent.right; bottom: parent.bottom }
                 clip: true; model: fm; cellWidth: 120; cellHeight: 112
                 currentIndex: -1; boundsBehavior: Flickable.StopAtBounds
@@ -334,6 +390,24 @@ FloatingWindow {
             font.letterSpacing: row.ca === "chrome" ? 1.5 : 0
         }
         MouseArea { id: ma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: row.clicked() }
+    }
+    component ToolBtn: Rectangle {
+        id: tb
+        property string label
+        property string icon
+        property real iconRotation: 0
+        signal clicked()
+        width: lab.width + 38; height: 26; radius: 4
+        opacity: enabled ? 1 : 0.45
+        gradient: Gradient {
+            GradientStop { position: 0; color: tbm.pressed ? Qt.darker(th.surface, 1.08) : Qt.lighter(th.surface, 1.25) }
+            GradientStop { position: 1; color: tbm.pressed ? Qt.lighter(th.surface, 1.05) : Qt.darker(th.surface, 1.06) }
+        }
+        border.width: 1; border.color: tbm.containsMouse && enabled ? th.bandTop : Qt.darker(th.surface, 1.35)
+        Rectangle { x: 1; y: parent.height - 2; width: parent.width - 2; height: 1; color: Qt.alpha("black", 0.12) }
+        LIcon { th: win.th; x: 8; anchors.verticalCenter: parent.verticalCenter; size: 12; name: tb.icon; tint: th.bandBottom; rotation: tb.iconRotation }
+        Text { id: lab; x: 26; anchors.verticalCenter: parent.verticalCenter; text: tb.label; color: th.text; font.family: th.sans; font.pixelSize: 12 }
+        MouseArea { id: tbm; anchors.fill: parent; hoverEnabled: true; enabled: tb.enabled; cursorShape: Qt.PointingHandCursor; onClicked: tb.clicked() }
     }
     component NavBtn: Rectangle {
         id: nb
