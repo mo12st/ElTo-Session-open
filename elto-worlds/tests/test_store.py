@@ -346,6 +346,13 @@ class RiceTest(unittest.TestCase):
     def test_unknown_rice_refused(self):
         self.assertRaises(store.StoreError, self.store.install_rice, "nope")
 
+    def test_rice_dir_resolves_installed_key(self):
+        dest = self.store.install_rice("test-rice")
+        self.assertEqual(self.store.rice_dir("rice-test-rice"), dest)
+        self.assertRaises(store.StoreError, self.store.rice_dir, "rice-nope")
+        self.assertRaises(store.StoreError, self.store.rice_dir, "world-meadow")
+        self.assertRaises(store.StoreError, self.store.rice_dir, "../etc")
+
     def test_code_in_manifest_refused(self):
         bad = dict(RICE_FILES)
         bad["tools/run.sh"] = "#!/bin/sh\n"

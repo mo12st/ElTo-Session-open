@@ -178,5 +178,138 @@ class ApplyWallpaperTest(unittest.TestCase):
         self.assertTrue(any("launcherMark" in w for w in out["warnings"]), out["warnings"])
 
 
+# ---------------------------------------------------------------- rice parts
+
+SVG = '<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>'
+
+
+def build_rice_dir(root):
+    """A fake installed rice dir covering both aurorae layouts."""
+    rd = os.path.join(root, "rice")
+    def w(rel, content):
+        p = os.path.join(rd, rel)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        mode = "wb" if isinstance(content, bytes) else "w"
+        with open(p, mode) as f:
+            f.write(content)
+    w("color-schemes/TestRice.colors", "[General]\nName=TestRice\n")
+    # split layout (WhiteSur-style): rc + variant svg dir + common assets
+    w("aurorae/main/TestRicerc", "[General]\nActiveTextColor=68,68,68\n")
+    w("aurorae/main/TestRice/decoration.svg", SVG)
+    w("aurorae/main/TestRice-darkrc", "[General]\nActiveTextColor=240,240,240\n")
+    w("aurorae/main/TestRice-dark/decoration.svg", SVG)
+    w("aurorae/common/assets/close.svg", SVG)
+    w("aurorae/common/assets-dark/close.svg", SVG.replace("rect", "circle"))
+    w("aurorae/metadata.desktop", "[Desktop Entry]\nName=TestRice\n")
+    w("aurorae/metadata.json", "{}\n")
+    # self-contained layout (Graphite-style)
+    w("aurorae/Solo/Solorc", "[General]\nActiveTextColor=1,2,3\n")
+    w("aurorae/Solo/decoration.svg", SVG)
+    w("aurorae/Solo/close.svg", SVG)
+    # wallpapers: packaged dir and plain file
+    w("wallpaper/TestWp/contents/images/1920x1080.png", b"small")
+    w("wallpaper/TestWp/contents/images/2560x1440.png", b"largest-image-bytes")
+    w("wallpaper/plain.png", b"plain-image")
+    # plasma desktop theme
+    w("plasma/desktoptheme/TestTheme/metadata.json", "{}\n")
+    w("plasma/desktoptheme/TestTheme/widgets/panel.svg", SVG)
+    return rd
+
+
+class RicePartsTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = self.tmp.name
+        self.env = dict(os.environ)
+        self.env["HOME"] = root
+        self.env["XDG_CONFIG_HOME"] = os.path.join(root, ".config")
+        self.env["XDG_DATA_HOME"] = os.path.join(root, ".local", "share")
+        self.env["XDG_STATE_HOME"] = os.path.join(root, ".local", "state")
+        self.env.pop("ELTO_THEME", None)
+        self.rdir = build_rice_dir(root)
+        self.overlay = os.path.join(self.env["XDG_CONFIG_HOME"], "elto", "theme.json")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def cli(self, *args):
+        proc = subprocess.run([ELTO_WORLD] + list(args),
+                              capture_output=True, text=True, env=self.env)
+        try:
+            return proc.returncode, json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            self.fail("non-JSON output (rc=%d): %s %s" % (proc.returncode, proc.stdout, proc.stderr))
+
+    def test_parts_lists_every_format(self):
+        rc, out = self.cli("parts", self.rdir)
+        self.assertEqual(rc, 0, out)
+        p = out["parts"]
+        self.assertEqual(p["colorschemes"], ["TestRice"])
+        self.assertEqual(p["aurorae"], ["Solo", "TestRice", "TestRice-dark"])
+        self.assertEqual(p["wallpapers"], ["TestWp", "plain.png"])
+        self.assertEqual(p["desktopthemes"], ["TestTheme"])
+
+    def test_apply_colorscheme(self):
+        rc, out = self.cli("applypart", self.rdir, "colorscheme", "TestRice")
+        self.assertEqual(rc, 0, out)
+        dst = os.path.join(self.env["XDG_DATA_HOME"], "color-schemes", "TestRice.colors")
+        self.assertTrue(os.path.isfile(dst))
+        step = [s for s in out["steps"] if s["step"] == "kde-apply"][0]
+        self.assertIn(step["status"], ("done", "failed", "skipped"))  # tool may be absent here
+
+    def test_apply_aurorae_split_layout_light_gets_light_assets(self):
+        rc, out = self.cli("applypart", self.rdir, "aurorae", "TestRice")
+        self.assertEqual(rc, 0, out)
+        theme = os.path.join(self.env["XDG_DATA_HOME"], "aurorae", "themes", "TestRice")
+        self.assertTrue(os.path.isfile(os.path.join(theme, "TestRicerc")))
+        self.assertTrue(os.path.isfile(os.path.join(theme, "decoration.svg")))
+        with open(os.path.join(theme, "close.svg")) as f:
+            self.assertIn("rect", f.read())  # from common/assets, not assets-dark
+        self.assertTrue(os.path.isfile(os.path.join(theme, "metadata.json")))
+
+    def test_apply_aurorae_dark_variant_gets_dark_assets(self):
+        rc, out = self.cli("applypart", self.rdir, "aurorae", "TestRice-dark")
+        self.assertEqual(rc, 0, out)
+        theme = os.path.join(self.env["XDG_DATA_HOME"], "aurorae", "themes", "TestRice-dark")
+        self.assertTrue(os.path.isfile(os.path.join(theme, "TestRice-darkrc")))
+        with open(os.path.join(theme, "close.svg")) as f:
+            self.assertIn("circle", f.read())  # assets-dark won
+
+    def test_apply_aurorae_self_contained(self):
+        rc, out = self.cli("applypart", self.rdir, "aurorae", "Solo")
+        self.assertEqual(rc, 0, out)
+        theme = os.path.join(self.env["XDG_DATA_HOME"], "aurorae", "themes", "Solo")
+        self.assertTrue(os.path.isfile(os.path.join(theme, "Solorc")))
+        self.assertTrue(os.path.isfile(os.path.join(theme, "close.svg")))
+
+    def test_apply_wallpaper_sets_overlay(self):
+        rc, out = self.cli("applypart", self.rdir, "wallpaper", "TestWp")
+        self.assertEqual(rc, 0, out)
+        dst = os.path.join(self.env["XDG_CONFIG_HOME"], "elto", "wallpapers", "2560x1440.png")
+        self.assertTrue(os.path.isfile(dst))  # largest resolution won
+        with open(self.overlay) as f:
+            ov = json.load(f)
+        self.assertEqual(ov["options"]["wallpaper"], "2560x1440.png")
+
+    def test_apply_desktoptheme_copies_with_honest_note(self):
+        rc, out = self.cli("applypart", self.rdir, "desktoptheme", "TestTheme")
+        self.assertEqual(rc, 0, out)
+        dst = os.path.join(self.env["XDG_DATA_HOME"], "plasma", "desktoptheme",
+                           "TestTheme", "widgets", "panel.svg")
+        self.assertTrue(os.path.isfile(dst))
+        self.assertTrue(any(s["step"] == "desktoptheme-note" for s in out["steps"]))
+
+    def test_bad_part_name_rejected(self):
+        rc, out = self.cli("applypart", self.rdir, "wallpaper", "../../etc")
+        self.assertEqual(rc, 1)
+        self.assertFalse(out["ok"])
+
+    def test_unknown_variant_fails_and_writes_nothing(self):
+        rc, out = self.cli("applypart", self.rdir, "aurorae", "Nope")
+        self.assertEqual(rc, 1)
+        self.assertFalse(out["ok"])
+        self.assertFalse(os.path.isdir(os.path.join(self.env["XDG_DATA_HOME"], "aurorae")))
+
+
 if __name__ == "__main__":
     unittest.main()

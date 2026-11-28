@@ -72,6 +72,25 @@ QtObject {
             statusChanged()
         })
     }
+    function riceParts(key, cb) {
+        _store(["ricedir", key], function (o) {
+            if (!o.ok) { cb(o); return }
+            run([eltoWorld, "parts", o.path], cb)
+        })
+    }
+    function applyRicePart(key, fmt, name, cb) {
+        history.append({ title: key + " " + fmt + " " + name, state: "running", detail: "applying data part" })
+        _store(["ricedir", key], function (o) {
+            if (!o.ok) { _applyPartDone(o); cb(o); return }
+            run([eltoWorld, "applypart", o.path, fmt, name], function (ao) { _applyPartDone(ao); cb(ao) })
+        })
+    }
+    function _applyPartDone(o) {
+        const i = history.count - 1
+        if (o.ok) history.setProperty(i, "state", "done")
+        else { history.setProperty(i, "state", "failed"); history.setProperty(i, "detail", o.error || "apply failed") }
+        statusChanged()
+    }
     function installWorld(id, cb) {
         history.append({ title: "World " + id, state: "running", detail: "installing into the user worlds dir" })
         _store(["installworld", id], function (o) {

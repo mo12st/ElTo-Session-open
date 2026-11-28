@@ -470,6 +470,16 @@ class Store:
         self._save_registry(items)
         return dest
 
+    def rice_dir(self, key):
+        """Absolute path of an installed rice (registry key rice-<id>), for
+        elto-world parts/applypart."""
+        if not re.match(r"^rice-[a-z0-9][a-z0-9-]*$", key or ""):
+            raise StoreError("bad rice key %r" % (key,))
+        for it in self._registry_items():
+            if it["key"] == key and os.path.isfile(os.path.join(it["path"], "part.json")):
+                return it["path"]
+        raise StoreError("rice %r is not installed" % key)
+
     # -- world install (copy from the repo worlds dir, register) --
     def install_world(self, world_id):
         """Install one ElTo world into the user worlds dir. Worlds are repo
@@ -588,6 +598,8 @@ def cli(argv):
             _jprint({"ok": True, "path": dest})
         elif len(argv) == 2 and argv[0] == "worlddir":
             _jprint({"ok": True, "path": st.world_dir(argv[1])})
+        elif len(argv) == 2 and argv[0] == "ricedir":
+            _jprint({"ok": True, "path": st.rice_dir(argv[1])})
         elif argv == ["updates"]:
             _jprint({"ok": True, "worlds": st.world_updates()})
         elif argv == ["install"]:
@@ -605,7 +617,7 @@ def cli(argv):
             st.remove(argv[1])
             _jprint({"ok": True})
         else:
-            _jprint({"ok": False, "error": "usage: worlds | kde <category> [search...] | functions | rices | installrice <id> | installed | install | installarg <entry-json> | installworld <id> | worlddir <id> | updates | enable <key> | disable <key> | remove <key>"})
+            _jprint({"ok": False, "error": "usage: worlds | kde <category> [search...] | functions | rices | installrice <id> | ricedir <key> | installed | install | installarg <entry-json> | installworld <id> | worlddir <id> | updates | enable <key> | disable <key> | remove <key>"})
             return 1
         return 0
     except (StoreError, ValueError, OSError) as e:
