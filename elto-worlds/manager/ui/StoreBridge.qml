@@ -45,6 +45,7 @@ QtObject {
         _store(args, cb)
     }
     function functions(cb) { _store(["functions"], cb) }
+    function rices(cb) { _store(["rices"], cb) }
     function installed(cb) { _store(["installed"], cb) }
     function worldUpdates(cb) { _store(["updates"], cb) }
     function setEnabled(key, on, cb) { _store([on ? "enable" : "disable", key], cb) }
@@ -60,6 +61,15 @@ QtObject {
             else { history.setProperty(i, "state", "failed"); history.setProperty(i, "detail", o.error || "failed") }
             statusChanged()
             if (cb) cb(o)
+        })
+    }
+    function installRice(id) {
+        history.append({ title: "Rice " + id, state: "running", detail: "fetching pinned commit, verifying byte-exact subset" })
+        _store(["installrice", id], function (o) {
+            const i = history.count - 1
+            if (o.ok) history.setProperty(i, "state", "done")
+            else { history.setProperty(i, "state", "failed"); history.setProperty(i, "detail", o.error || "failed") }
+            statusChanged()
         })
     }
     function installWorld(id, cb) {
