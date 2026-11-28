@@ -196,8 +196,10 @@ unchanged and a typo can never produce a broken dock. `Dock.qml` resolves and va
 | `dockRadius` | number | corner radius of the island (the bar variant is full width and has none) | `dock.radius` |
 | `dockHeight` | number | bar height | `dock.height` |
 | `dockButton` | `circle` `rounded` `square` | shape of the hover halo behind a pinned app | `circle` |
-| `launcherMark` | `none` `dot` `label` `button` | leading mark before the pinned apps; `label` draws plain `launcherLabel`, `button` draws it as a clickable button with a caret that opens the app drawer | `none` |
-| `launcherLabel` | string | text for `launcherMark: "label"` | `Elto` |
+| `launcherMark` | `none` `dot` `label` `button` `logo` | leading mark before the pinned apps; `label` draws plain `launcherLabel`, `button` draws it as a clickable button with a caret that opens the app drawer, `logo` draws the world's own `launcherLogo` (plus `launcherLabel` when it is not empty) inside that button | `none` |
+| `launcherLabel` | string | text for `launcherMark: "label"` or `"button"`; also drawn next to the logo when set | `Elto` |
+| `launcherLogo` | string | path to the world's launcher art: absolute, or relative to the shell root (`icons/launcher/aero.svg`). Drawn untinted, never recoloured, and a missing file falls back to `launcherLabel` | empty |
+| `launcherLogoSize` | number | height and width of that art in px, clamped to 10-40 | `22` |
 | `clockStyle` | `text` `pill` `none` | clock in the system area: plain text, a pill, or none | `text` |
 | `clockPosition` | `end` `start` | clock sits in the system area at the end, or at the leading edge | `end` |
 | `trayStyle` | `text` `compact` `none` | status readouts: full with the Settings entry, smaller without it, or hidden | `text` |
