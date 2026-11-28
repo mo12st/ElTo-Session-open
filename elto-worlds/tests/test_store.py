@@ -8,6 +8,7 @@ import importlib.util
 import io
 import json
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -287,6 +288,81 @@ class CliTest(unittest.TestCase):
         rc, out = self.run_cli("install", stdin=json.dumps(kde_entry(kind="code")))
         self.assertEqual(rc, 1)
         self.assertIn("code", out["error"])
+
+class StoreWorldTest(unittest.TestCase):
+    """The ElTo world lifecycle: install copies the repo world into the user
+    root and registers it; scanned-but-unregistered worlds still list and
+    remove; updates diff installed versions against the catalog. Hermetic:
+    a fixture worlds dir, a throwaway root, no network."""
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.worlds_dir = os.path.join(self.tmp.name, "repo-worlds")
+        wdir = os.path.join(self.worlds_dir, "testworld", "assets")
+        os.makedirs(wdir)
+        with open(os.path.join(wdir, "wallpaper.jpg"), "wb") as f:
+            f.write(b"\xff\xd8\xff\xd9")
+        with open(os.path.join(self.worlds_dir, "testworld", "world.json"), "w") as f:
+            json.dump({"name": "testworld", "id": "testworld", "label": "Test World",
+                       "version": 1, "schema_version": 3,
+                       "colors": {"a": "#112233"}, "roles": {"surface": "a"}}, f)
+        self.root = os.path.join(self.tmp.name, "user-root")
+        self.store = store.Store(root=self.root,
+                                 fetcher=lambda url, **kw: (_ for _ in ()).throw(OSError("no network")),
+                                 worlds_dir=self.worlds_dir)
+
+    def test_install_world_copies_and_registers(self):
+        dest = self.store.install_world("testworld")
+        self.assertEqual(dest, os.path.join(self.root, "testworld"))
+        self.assertTrue(os.path.isfile(os.path.join(dest, "assets", "wallpaper.jpg")))
+        items = self.store.list_installed()
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]["key"], "world-testworld")
+        self.assertEqual(items[0]["version"], "1")
+        self.assertEqual(items[0]["source"], "elto")
+
+    def test_install_world_unknown_and_bad_id_refused(self):
+        with self.assertRaises(store.StoreError):
+            self.store.install_world("nosuch")
+        with self.assertRaises(store.StoreError):
+            self.store.install_world("../escape")
+
+    def test_world_dir_requires_install(self):
+        with self.assertRaises(store.StoreError):
+            self.store.world_dir("testworld")
+        self.store.install_world("testworld")
+        self.assertEqual(self.store.world_dir("testworld"),
+                         os.path.join(self.root, "testworld"))
+
+    def test_scanned_world_lists_without_registry(self):
+        # a world dropped into the root by elto-world directly: no registry
+        # entry, still listed as a real installed item
+        shutil.copytree(os.path.join(self.worlds_dir, "testworld"),
+                        os.path.join(self.root, "testworld"))
+        items = self.store.list_installed()
+        self.assertEqual([i["key"] for i in items], ["world-testworld"])
+
+    def test_remove_registered_and_scanned_world(self):
+        self.store.install_world("testworld")
+        self.store.remove("world-testworld")
+        self.assertEqual(self.store.list_installed(), [])
+        self.assertFalse(os.path.exists(os.path.join(self.root, "testworld")))
+        shutil.copytree(os.path.join(self.worlds_dir, "testworld"),
+                        os.path.join(self.root, "testworld"))
+        self.store.remove("world-testworld")  # scanned, unregistered
+        self.assertFalse(os.path.exists(os.path.join(self.root, "testworld")))
+        with self.assertRaises(store.StoreError):
+            self.store.remove("world-gone")
+
+    def test_world_updates_diff_against_catalog(self):
+        self.store.install_world("testworld")
+        catalog = {"worlds": [{"id": "testworld", "label": "Test World", "version": 2}]}
+        rows = self.store.world_updates(catalog=catalog)
+        self.assertEqual(rows, [{"id": "testworld", "title": "Test World",
+                                 "oldV": "1", "newV": "2"}])
+        same = {"worlds": [{"id": "testworld", "label": "Test World", "version": 1}]}
+        self.assertEqual(self.store.world_updates(catalog=same), [])
+
 
 if __name__ == "__main__":
     unittest.main()

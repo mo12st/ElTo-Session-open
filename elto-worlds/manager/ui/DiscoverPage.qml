@@ -53,7 +53,7 @@ Item {
                 source: page.category === "worlds" ? "elto" : "kde"
                 onInstallRequested: function (it) {
                     if (it.kind === "code") { Qt.openUrlExternally(it.detailPage || it.url || ""); return }
-                    if (page.category === "worlds") page.bridge.applyWorld(it.id)
+                    if (page.category === "worlds") page.bridge.installWorld(it.id)
                     else page.bridge.installKde(it)
                 }
             }

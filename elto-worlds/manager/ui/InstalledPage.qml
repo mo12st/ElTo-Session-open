@@ -35,9 +35,26 @@ Item {
                     color: page.st.ink; font.pixelSize: 15; font.bold: page.appliedWorld !== ""
                 }
             }
+            Text { text: "WORLDS"; color: page.st.gold; font.pixelSize: 10; font.letterSpacing: 2; topPadding: 12 }
+            Repeater {
+                model: page.registry.filter(i => i.category === "worlds")
+                PartRow {
+                    st: page.st
+                    item: modelData
+                    canApply: true
+                    onApplyRequested: page.bridge.applyWorld(modelData.key.replace("world-", ""))
+                    onToggled: function (on) { page.bridge.setEnabled(modelData.key, on, function () { page.reload() }) }
+                    onRemoveRequested: page.bridge.remove(modelData.key, function () { page.reload() })
+                }
+            }
+            Text {
+                visible: page.registry.filter(i => i.category === "worlds").length === 0
+                text: "No worlds installed yet. Install one from Discover."
+                color: page.st.muted; font.pixelSize: 12
+            }
             Text { text: "IMPORTED PARTS"; color: page.st.gold; font.pixelSize: 10; font.letterSpacing: 2; topPadding: 12 }
             Repeater {
-                model: page.registry
+                model: page.registry.filter(i => i.category !== "worlds")
                 PartRow {
                     st: page.st
                     item: modelData
@@ -46,7 +63,7 @@ Item {
                 }
             }
             Text {
-                visible: page.registry.length === 0
+                visible: page.registry.filter(i => i.category !== "worlds").length === 0
                 text: "No imported parts yet. KDE data items install from Discover."
                 color: page.st.muted; font.pixelSize: 12
             }

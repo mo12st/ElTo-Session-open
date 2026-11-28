@@ -42,8 +42,9 @@ QtObject {
     function kde(category, cb) { _store(["kde", category], cb) }
     function functions(cb) { _store(["functions"], cb) }
     function installed(cb) { _store(["installed"], cb) }
+    function worldUpdates(cb) { _store(["updates"], cb) }
     function setEnabled(key, on, cb) { _store([on ? "enable" : "disable", key], cb) }
-    function remove(key, cb) { _store(["remove", key], cb) }
+    function remove(key, cb) { _store(["remove", key], function (o) { cb(o); statusChanged() }) }
     function status(cb) { run([eltoWorld, "status"], cb) }
     function reset(cb) { run([eltoWorld, "reset"], function (o) { cb(o); statusChanged() }) }
 
@@ -56,13 +57,34 @@ QtObject {
             statusChanged()
         })
     }
-    function applyWorld(id) {
-        history.append({ title: "World " + id, state: "running", detail: "applying overlay" })
-        run([eltoWorld, "apply", worldsDir + "/" + id], function (o) {
+    function installWorld(id, cb) {
+        history.append({ title: "World " + id, state: "running", detail: "installing into the user worlds dir" })
+        _store(["installworld", id], function (o) {
             const i = history.count - 1
             if (o.ok) history.setProperty(i, "state", "done")
             else { history.setProperty(i, "state", "failed"); history.setProperty(i, "detail", o.error || "failed") }
             statusChanged()
+            if (cb) cb(o)
+        })
+    }
+    function applyWorld(id) {
+        // apply from the INSTALLED copy; the repo worlds dir is not the
+        // user's world library
+        history.append({ title: "World " + id, state: "running", detail: "applying overlay" })
+        _store(["worlddir", id], function (o) {
+            if (!o.ok) {
+                const i = history.count - 1
+                history.setProperty(i, "state", "failed")
+                history.setProperty(i, "detail", o.error || "not installed")
+                statusChanged()
+                return
+            }
+            run([eltoWorld, "apply", o.path], function (ao) {
+                const i = history.count - 1
+                if (ao.ok) history.setProperty(i, "state", "done")
+                else { history.setProperty(i, "state", "failed"); history.setProperty(i, "detail", ao.error || "apply failed") }
+                statusChanged()
+            })
         })
     }
 

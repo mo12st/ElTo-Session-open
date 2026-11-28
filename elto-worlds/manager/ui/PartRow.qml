@@ -5,8 +5,10 @@ Rectangle {
     id: row
     property var st: ManagerStyle {}
     property var item: ({})
+    property bool canApply: false
     signal toggled(bool on)
     signal removeRequested()
+    signal applyRequested()
 
     width: parent ? parent.width : 600; height: 64; radius: st.radiusSmall
     color: "#ffffff"; border.width: 1; border.color: st.line
@@ -18,6 +20,13 @@ Rectangle {
             text: (row.item.category || "") + "  -  v" + (row.item.version || "?") + "  -  " + (row.item.source === "kde" ? "KDE Store, converted data-only" : "ElTo")
             color: st.muted; font.pixelSize: 10; elide: Text.ElideRight; width: parent.width
         }
+    }
+
+    Text {
+        visible: row.canApply
+        x: parent.width - 262; anchors.verticalCenter: parent.verticalCenter
+        text: "Apply"; color: row.st.accent; font.pixelSize: 12; font.bold: true
+        MouseArea { anchors.fill: parent; onClicked: row.applyRequested() }
     }
 
     Rectangle {

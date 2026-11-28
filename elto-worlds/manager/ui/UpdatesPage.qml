@@ -14,26 +14,38 @@ Item {
     function reload() {
         rows = []; notice = ""
         if (!bridge) return
+        let worldRows = []
+        let kdeRows = []
+        let pending = 1
+        let kdePending = 0
+        function finish() {
+            page.rows = worldRows.concat(kdeRows)
+            page.notice = page.rows.length === 0 ? "Everything is up to date." : ""
+        }
+        bridge.worldUpdates(function (o) {
+            if (o.ok) worldRows = (o.worlds || []).map(r => ({ title: r.title, oldV: r.oldV, newV: r.newV, worldId: r.id }))
+            pending--
+            if (pending === 0 && kdePending === 0) finish()
+        })
         bridge.installed(function (o) {
             if (!o.ok) { page.notice = o.error || "registry unavailable"; return }
             const kdeItems = o.items.filter(i => i.source === "kde")
-            if (kdeItems.length === 0) { page.notice = "Nothing to check: no KDE imports installed." ; return }
+            if (kdeItems.length === 0) return
             const cats = [...new Set(kdeItems.map(i => i.category))]
             let listings = []
-            let left = cats.length
+            kdePending = cats.length
+            pending += 0  // world fetch already counted
             cats.forEach(function (c) {
                 page.bridge.kde(c, function (lo) {
-                    left--
+                    kdePending--
                     if (lo.ok) listings = listings.concat(lo.items)
-                    if (left === 0) {
-                        const out = []
+                    if (kdePending === 0) {
                         kdeItems.forEach(function (inst) {
                             const fresh = listings.find(l => String(l.ocsId) === String(inst.key.split("-")[1]))
                             if (fresh && fresh.version && fresh.version !== inst.version)
-                                out.push({ title: inst.title, oldV: inst.version, newV: fresh.version, entry: fresh })
+                                kdeRows.push({ title: inst.title, oldV: inst.version, newV: fresh.version, entry: fresh })
                         })
-                        page.rows = out
-                        page.notice = out.length === 0 ? "Everything is up to date." : ""
+                        if (pending === 0) finish()
                     }
                 })
             })
@@ -59,7 +71,10 @@ Item {
                     x: parent.width - 106; anchors.verticalCenter: parent.verticalCenter
                     width: 92; height: 28; radius: 14; color: page.st.paper2
                     Text { anchors.centerIn: parent; text: "Update"; color: page.st.ink; font.pixelSize: 12 }
-                    MouseArea { anchors.fill: parent; onClicked: { page.bridge.installKde(modelData.entry); page.reload() } }
+                    MouseArea { anchors.fill: parent; onClicked: {
+                    if (modelData.worldId) page.bridge.installWorld(modelData.worldId, function () { page.reload() })
+                    else { page.bridge.installKde(modelData.entry); page.reload() }
+                } }
                 }
             }
         }
