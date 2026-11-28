@@ -56,10 +56,30 @@ PanelWindow {
         border.color: Qt.rgba(1, 1, 1, 0.45)
 
         // 95-style bevel: light on the top and left, dark on the bottom and right
-        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; right: parent.right; top: parent.top }; height: 2; color: Qt.rgba(1, 1, 1, 0.7) }
-        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; top: parent.top; bottom: parent.bottom }; width: 2; color: Qt.rgba(1, 1, 1, 0.7) }
-        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; right: parent.right; bottom: parent.bottom }; height: 2; color: Qt.rgba(0, 0, 0, 0.35) }
-        Rectangle { visible: bar.mat === "bevel"; anchors { right: parent.right; top: parent.top; bottom: parent.bottom }; width: 2; color: Qt.rgba(0, 0, 0, 0.35) }
+        Rectangle {
+            visible: bar.mat === "bevel"
+            anchors { left: parent.left; right: parent.right; top: parent.top }
+            height: 2
+            color: Qt.rgba(1, 1, 1, 0.7)
+        }
+        Rectangle {
+            visible: bar.mat === "bevel"
+            anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
+            width: 2
+            color: Qt.rgba(1, 1, 1, 0.7)
+        }
+        Rectangle {
+            visible: bar.mat === "bevel"
+            anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+            height: 2
+            color: Qt.rgba(0, 0, 0, 0.35)
+        }
+        Rectangle {
+            visible: bar.mat === "bevel"
+            anchors { right: parent.right; top: parent.top; bottom: parent.bottom }
+            width: 2
+            color: Qt.rgba(0, 0, 0, 0.35)
+        }
 
         // material: gloss adds a highlight band, the default paper keeps the flat fill above
         Rectangle {
@@ -123,8 +143,7 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Text {
-                        visible: win.dock.look.launcherMark === "button"
-                                 || (win.dock.look.launcherMark === "logo" && win.dock.look.launcherLabel !== "")
+                        visible: win.dock.look.launcherMark === "button" || (win.dock.look.launcherMark === "logo" && win.dock.look.launcherLabel !== "")
                         text: win.dock.look.launcherLabel
                         color: Theme.text
                         font.family: Theme.sans; font.pixelSize: 13

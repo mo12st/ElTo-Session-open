@@ -14,5 +14,5 @@ QS=$!
 sleep 12
 echo "== quickshell log"; cat /tmp/qs.log
 if ! kill -0 $QS 2>/dev/null; then echo "QUICKSHELL-EXITED"; exit 1; fi
-if grep -aE 'is not a type|is not installed|unavailable|ReferenceError|TypeError|Cannot assign|Unable to assign|module .* not found' /tmp/qs.log; then echo "QML-LOAD-ERRORS"; exit 1; fi
+if grep -aE 'is not a type|is not installed|unavailable|ReferenceError|TypeError|Cannot assign|Unable to assign|module .* not found|Unexpected token|Expected token|SyntaxError' /tmp/qs.log; then echo "QML-LOAD-ERRORS"; exit 1; fi
 echo "QML-LOADED-OK"
