@@ -10,6 +10,7 @@ import json
 import os
 import shutil
 import sys
+import tarfile
 import tempfile
 import unittest
 import zipfile
@@ -221,6 +222,175 @@ class InstallTest(unittest.TestCase):
 
     def test_remove_unknown_raises(self):
         self.assertRaises(store.StoreError, self.store.remove, "nope")
+
+
+def make_tar(members, links=None, mode="w:gz"):
+    """members: name -> bytes/str regular files. links: name -> (target, is_hard)."""
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode=mode) as tf:
+        for name, data in members.items():
+            b = data.encode() if isinstance(data, str) else data
+            ti = tarfile.TarInfo(name)
+            ti.size = len(b)
+            tf.addfile(ti, io.BytesIO(b))
+        for name, (target, is_hard) in (links or {}).items():
+            ti = tarfile.TarInfo(name)
+            ti.type = tarfile.LNKTYPE if is_hard else tarfile.SYMTYPE
+            ti.linkname = target
+            tf.addfile(ti)
+    return buf.getvalue()
+
+
+PNG_BYTES = b"\x89PNG\r\n\x1a\n" + b"\x00" * 32
+DETAIL_XML = b"""<?xml version="1.0"?>
+<ocs><meta><status>ok</status></meta><data>
+ <content><id>1001</id><name>Paper Frame</name>
+  <downloadlink1>http://x/fresh.zip</downloadlink1><downloadname1>fresh.zip</downloadname1></content>
+</data></ocs>"""
+
+
+class InstallFormatsTest(unittest.TestCase):
+    """The real shapes the KDE Store serves: tar.xz/bz2, link-heavy cursor
+    and icon packs, raw .colors and wallpaper files, and precise refusals."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.payload = {}
+
+        def fetcher(url, **kw):
+            if url in self.payload:
+                return self.payload[url]
+            raise OSError("no network in tests")
+
+        self.store = store.Store(root=self.tmp.name, fetcher=fetcher)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def install(self, payload, **kw):
+        self.payload["http://x/paper.zip"] = payload
+        return self.store.install_kde(kde_entry(**kw))
+
+    def test_tar_xz_installs(self):
+        dest = self.install(make_tar({"t/theme.rc": "x"}, mode="w:xz"))
+        self.assertTrue(os.path.isfile(os.path.join(dest, "t", "theme.rc")))
+
+    def test_tar_bz2_installs(self):
+        dest = self.install(make_tar({"t/theme.rc": "x"}, mode="w:bz2"))
+        self.assertTrue(os.path.isfile(os.path.join(dest, "t", "theme.rc")))
+
+    def test_symlink_materialized_as_copy(self):
+        dest = self.install(make_tar({"c/arrow": b"cur"}, links={"c/pointer": ("arrow", False)}))
+        p = os.path.join(dest, "c", "pointer")
+        self.assertFalse(os.path.islink(p))
+        self.assertEqual(open(p, "rb").read(), b"cur")
+
+    def test_chained_symlink_materialized(self):
+        dest = self.install(make_tar({"c/arrow": b"cur"}, links={
+            "c/alias1": ("arrow", False), "c/alias2": ("alias1", False)}))
+        self.assertEqual(open(os.path.join(dest, "c", "alias2"), "rb").read(), b"cur")
+
+    def test_hardlink_materialized(self):
+        dest = self.install(make_tar({"s/click.ogg": b"ogg"}, links={"s/double.ogg": ("s/click.ogg", True)}))
+        self.assertEqual(open(os.path.join(dest, "s", "double.ogg"), "rb").read(), b"ogg")
+
+    def test_broken_link_skipped_and_recorded(self):
+        dest = self.install(make_tar({"s/click.ogg": b"ogg"}, links={
+            "s/gone.ogg": ("/var/home/author/machine.ogg", False)}))
+        self.assertFalse(os.path.exists(os.path.join(dest, "s", "gone.ogg")))
+        part = json.load(open(os.path.join(dest, "part.json")))
+        self.assertEqual(part["skippedLinks"], ["s/gone.ogg"])
+
+    def test_script_members_skipped_not_written(self):
+        dest = self.install(make_zip({"t/theme.rc": "x", "t/tools/build.sh": "#!/bin/sh\n"}))
+        self.assertFalse(os.path.exists(os.path.join(dest, "t", "tools", "build.sh")))
+        part = json.load(open(os.path.join(dest, "part.json")))
+        self.assertEqual(part["skippedCode"], ["t/tools/build.sh"])
+
+    def test_only_code_archive_refused(self):
+        try:
+            self.install(SCRIPT_ZIP)
+            self.fail("should refuse")
+        except store.StoreError as e:
+            self.assertIn("only code", str(e))
+
+    def test_raw_colors_installs(self):
+        e = kde_entry(category="color-scheme",
+                      files=[{"url": "http://x/paper.zip", "name": "paper.colors", "filetype": "", "size_kb": "3"}])
+        self.payload["http://x/paper.zip"] = b"[General]\nName=Paper\n"
+        dest = self.store.install_kde(e)
+        self.assertTrue(os.path.isfile(os.path.join(dest, "paper.colors")))
+
+    def test_raw_wallpaper_installs(self):
+        e = kde_entry(category="wallpapers",
+                      files=[{"url": "http://x/paper.zip", "name": "calm.png", "filetype": "", "size_kb": "9"}])
+        self.payload["http://x/paper.zip"] = PNG_BYTES
+        dest = self.store.install_kde(e)
+        self.assertTrue(os.path.isfile(os.path.join(dest, "calm.png")))
+
+    def test_bare_desktop_wallpaper_refused(self):
+        e = kde_entry(category="wallpapers",
+                      files=[{"url": "http://x/paper.zip", "name": "stub.desktop", "filetype": "", "size_kb": "1"}])
+        self.payload["http://x/paper.zip"] = b"[KGameTheme]\nName=x\n"
+        with self.assertRaises(store.StoreError) as cm:
+            self.store.install_kde(e)
+        self.assertIn(".desktop wallpaper stub", str(cm.exception))
+
+    def test_store_note_refused(self):
+        self.payload["http://x/paper.zip"] = b"NAME: theme\nget it on github\n"
+        e = kde_entry(files=[{"url": "http://x/paper.zip", "name": "STORE-LISTING.txt", "filetype": "", "size_kb": "2"}])
+        with self.assertRaises(store.StoreError) as cm:
+            self.store.install_kde(e)
+        self.assertIn("store note", str(cm.exception))
+
+    def test_audio_preview_refused(self):
+        self.payload["http://x/paper.zip"] = b"ID3\x04\x00" + b"\x00" * 64
+        e = kde_entry(category="sounds",
+                      files=[{"url": "http://x/paper.zip", "name": "preview.mp3", "filetype": "", "size_kb": "2"}])
+        with self.assertRaises(store.StoreError) as cm:
+            self.store.install_kde(e)
+        self.assertIn("preview", str(cm.exception))
+
+    def test_7z_named_precisely(self):
+        self.payload["http://x/paper.zip"] = b"7z\xbc\xaf\x27\x1c" + b"\x00" * 64
+        with self.assertRaises(store.StoreError) as cm:
+            self.store.install_kde(kde_entry())
+        self.assertIn("7z", str(cm.exception))
+
+    def test_html_page_named_precisely(self):
+        self.payload["http://x/paper.zip"] = b"<!DOCTYPE html><html>error</html>"
+        with self.assertRaises(store.StoreError) as cm:
+            self.store.install_kde(kde_entry())
+        self.assertIn("web page", str(cm.exception))
+
+    def test_fresh_link_reresolved(self):
+        detail = store.OCS_BASE + "/content/data/1001?format=xml"
+        self.payload[detail] = DETAIL_XML
+        self.payload["http://x/fresh.zip"] = GOOD_ZIP
+        # the listed link http://x/paper.zip is deliberately not served:
+        # installing must use the re-resolved fresh link
+        dest = self.store.install_kde(kde_entry())
+        part = json.load(open(os.path.join(dest, "part.json")))
+        self.assertEqual(part["sourceUrl"], "http://x/fresh.zip")
+
+    def test_pick_prefers_archive_over_preview(self):
+        e = kde_entry(category="sounds", files=[
+            {"url": "http://x/preview.mp3", "name": "preview.mp3", "filetype": "", "size_kb": "9"},
+            {"url": "http://x/theme.zip", "name": "theme.zip", "filetype": "", "size_kb": "9"}])
+        self.payload["http://x/theme.zip"] = make_zip({"s/stereo/click.ogg": b"ogg"})
+        self.payload["http://x/preview.mp3"] = b"ID3" + b"\x00" * 32
+        dest = self.store.install_kde(e)
+        self.assertTrue(os.path.isfile(os.path.join(dest, "s", "stereo", "click.ogg")))
+
+    def test_file_cap_names_count(self):
+        old = store.KDE_MAX_FILES
+        store.KDE_MAX_FILES = 3
+        try:
+            with self.assertRaises(store.StoreError) as cm:
+                self.install(make_zip({"a/1.txt": "1", "a/2.txt": "2", "a/3.txt": "3", "a/4.txt": "4"}))
+            self.assertIn("cap 3", str(cm.exception))
+        finally:
+            store.KDE_MAX_FILES = old
 
 
 class FunctionsTest(unittest.TestCase):
