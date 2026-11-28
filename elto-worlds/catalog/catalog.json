@@ -67,6 +67,7 @@
       "category": "worlds",
       "colors": {
         "fade": "#8aa5ae",
+        "folder": "#f1d27a",
         "ink": "#052f59",
         "inkSoft": "#22668f",
         "line": "#c4d8dc",
@@ -179,6 +180,7 @@
       "category": "worlds",
       "colors": {
         "fade": "#6e6e6e",
+        "folder": "#e8c24f",
         "ink": "#0a0a0a",
         "inkSoft": "#4a4a4a",
         "line": "#808080",
@@ -415,6 +417,7 @@
       "category": "worlds",
       "colors": {
         "fade": "#7d76a0",
+        "folder": "#fdc94e",
         "grape": "#552394",
         "ink": "#1c1440",
         "inkSoft": "#5b4e9a",
@@ -475,6 +478,7 @@
         "aqua": "#9ee5f9",
         "blush": "#ee9fb8",
         "fade": "#8fb0bc",
+        "folder": "#f4c24d",
         "ink": "#103250",
         "inkSoft": "#2c4c66",
         "line": "#b8dde8",
