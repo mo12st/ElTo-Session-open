@@ -96,10 +96,10 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 renderType: Text.NativeRendering
             }
-            // launcher button: label plus caret, opens the app drawer (the shape the concepts show)
+            // launcher button: label, or a per-world logo, plus a caret; opens the app drawer
             Rectangle {
                 id: launch
-                visible: win.dock.look.launcherMark === "button"
+                visible: win.dock.look.launcherMark === "button" || win.dock.look.launcherMark === "logo"
                 width: launchRow.implicitWidth + 22
                 height: 30
                 radius: win.dock.look.button === "circle" ? height / 2 : (win.dock.look.button === "rounded" ? 7 : 0)
@@ -111,7 +111,20 @@ PanelWindow {
                     id: launchRow
                     anchors.centerIn: parent
                     spacing: 6
+                    // the world's own logo, drawn as art and never tinted; a missing file falls back to the label
+                    Image {
+                        visible: win.dock.look.launcherMark === "logo" && status === Image.Ready
+                        source: win.dock.logoSource()
+                        sourceSize.width: win.dock.look.launcherLogoSize * 2
+                        sourceSize.height: win.dock.look.launcherLogoSize * 2
+                        width: win.dock.look.launcherLogoSize; height: win.dock.look.launcherLogoSize
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                     Text {
+                        visible: win.dock.look.launcherMark === "button"
+                                 || (win.dock.look.launcherMark === "logo" && win.dock.look.launcherLabel !== "")
                         text: win.dock.look.launcherLabel
                         color: Theme.text
                         font.family: Theme.sans; font.pixelSize: 13

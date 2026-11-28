@@ -19,6 +19,12 @@ Scope {
     // exactly what the shell drew before they existed. An unknown value falls back to the default, never to a
     // broken dock, the same way an unknown options.dock falls back to island.
     function pick(v, list, def) { return list.indexOf(v) >= 0 ? v : def }
+    // launcher logo: an absolute path, or a path relative to the shell root (icons/launcher/aero.svg)
+    function logoSource() {
+        var p = root.look.launcherLogo
+        if (!p) return ""
+        return p.charAt(0) === "/" ? "file://" + p : "file://" + Quickshell.shellPath("../" + p)
+    }
     function num(v, def) { return (typeof v === "number" && v > 0) ? Math.round(v) : def }
     readonly property var look: {
         var d = root.dk
@@ -27,8 +33,10 @@ Scope {
             radius: root.num(d.dockRadius, d.radius),
             height: root.num(d.dockHeight, d.height),
             button: root.pick(d.dockButton, ["circle", "rounded", "square"], "circle"),
-            launcherMark: root.pick(d.launcherMark, ["none", "dot", "label", "button"], "none"),
+            launcherMark: root.pick(d.launcherMark, ["none", "dot", "label", "button", "logo"], "none"),
             launcherLabel: typeof d.launcherLabel === "string" ? d.launcherLabel : "ElTo",
+            launcherLogo: typeof d.launcherLogo === "string" ? d.launcherLogo : "",
+            launcherLogoSize: Math.min(40, root.num(d.launcherLogoSize, 22)),
             clockStyle: root.pick(d.clockStyle, ["text", "pill", "none"], "text"),
             clockPosition: root.pick(d.clockPosition, ["end", "start"], "end"),
             trayStyle: root.pick(d.trayStyle, ["text", "compact", "none"], "text"),
