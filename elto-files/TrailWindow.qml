@@ -20,6 +20,10 @@ FloatingWindow {
     property bool compOpen: true
     property bool placesOpen: true
     property bool detailsOpen: true
+    // PROTOTYPE (corner bug): with TRAIL_CSD=1 Trail draws its own titlebar and resize edges, and a KWin rule removes the server frame,
+    // so the window outline is exactly this window's own contentRadius token. Off by default (server frame stays).
+    readonly property bool csd: Quickshell.env("TRAIL_CSD") === "1"
+    readonly property int tbH: csd ? 34 : 0
     readonly property string computerPath: "computer:"
     readonly property bool computerMode: path === computerPath
     property string path: app.start === "computer" ? computerPath : app.home
@@ -102,6 +106,47 @@ FloatingWindow {
             else if (ev.modifiers & Qt.AltModifier && ev.key === Qt.Key_Right) { win.forward(); ev.accepted = true }
         }
 
+
+        // ---- own titlebar (CSD prototype): drag moves, double-click maximises, buttons from theme tokens ----
+        Item {
+            visible: win.csd; z: 30; x: 0; y: 0; width: parent.width; height: win.tbH
+            Text { x: 16; anchors.verticalCenter: parent.verticalCenter; text: win.title; font.family: th.sans; font.pixelSize: 13; color: th.text }
+            MouseArea {
+                anchors.fill: parent
+                onPressed: win.startSystemMove()
+                onDoubleClicked: win.maximized = !win.maximized
+            }
+            Row {
+                anchors { right: parent.right; rightMargin: 14; verticalCenter: parent.verticalCenter }
+                spacing: 8
+                Repeater {
+                    model: [ { c: th.colors.windowMinimize !== undefined ? th.colors.windowMinimize : th.accent, a: "min" }, { c: th.colors.windowMaximize !== undefined ? th.colors.windowMaximize : th.accent, a: "max" }, { c: th.colors.windowClose !== undefined ? th.colors.windowClose : th.accent, a: "close" } ]
+                    Rectangle {
+                        required property var modelData
+                        width: 16; height: 16; radius: 8; color: modelData.c
+                        MouseArea { anchors.fill: parent; onClicked: { if (modelData.a === "min") win.minimized = true; else if (modelData.a === "max") win.maximized = !win.maximized; else win.visible = false } }
+                    }
+                }
+            }
+        }
+        // ---- resize edges (CSD prototype) ----
+        Repeater {
+            model: win.csd ? [ { e: Qt.LeftEdge, x: 0, y: 8, w: 5, h: -16, cur: Qt.SizeHorCursor }, { e: Qt.RightEdge, x: -5, y: 8, w: 5, h: -16, cur: Qt.SizeHorCursor },
+                { e: Qt.TopEdge, x: 8, y: 0, w: -16, h: 4, cur: Qt.SizeVerCursor }, { e: Qt.BottomEdge, x: 8, y: -5, w: -16, h: 5, cur: Qt.SizeVerCursor },
+                { e: Qt.RightEdge | Qt.BottomEdge, x: -12, y: -12, w: 12, h: 12, cur: Qt.SizeFDiagCursor }, { e: Qt.LeftEdge | Qt.BottomEdge, x: 0, y: -12, w: 12, h: 12, cur: Qt.SizeBDiagCursor },
+                { e: Qt.RightEdge | Qt.TopEdge, x: -12, y: 0, w: 12, h: 12, cur: Qt.SizeBDiagCursor }, { e: Qt.LeftEdge | Qt.TopEdge, x: 0, y: 0, w: 12, h: 12, cur: Qt.SizeFDiagCursor } ] : []
+            MouseArea {
+                required property var modelData
+                z: 40
+                x: modelData.x < 0 ? parent.width + modelData.x : modelData.x
+                y: modelData.y < 0 ? parent.height + modelData.y : modelData.y
+                width: modelData.w < 0 ? parent.width + modelData.w - modelData.x : modelData.w
+                height: modelData.h < 0 ? parent.height + modelData.h - modelData.y : modelData.h
+                cursorShape: modelData.cur
+                onPressed: win.startSystemResize(modelData.e)
+            }
+        }
+
         // ---- sidebar: look and arrangement follow the world's card art (shape.cardArt) ----
         Rectangle {
             id: side
@@ -134,7 +179,7 @@ FloatingWindow {
                 gradient: Gradient { GradientStop { position: 0; color: Qt.alpha("white", 0.35) } GradientStop { position: 1; color: "transparent" } }
             }
             Column {
-                x: side.ca === "w95" || side.ca === "term" ? 6 : 12; y: 16; width: parent.width - (side.ca === "w95" || side.ca === "term" ? 12 : 24)
+                x: side.ca === "w95" || side.ca === "term" ? 6 : 12; y: 16 + win.tbH; width: parent.width - (side.ca === "w95" || side.ca === "term" ? 12 : 24)
                 spacing: side.ca === "w95" || side.ca === "term" || side.ca === "band" ? 0 : side.ca === "paper" ? 4 : 3
                 SideHead { label: "Computer"; open: win.compOpen; onToggled: win.compOpen = !win.compOpen }
                 SideRow { visible: th.cardArt !== "band" || win.compOpen; label: "This computer"; icon: "computer"; selected: win.computerMode; onClicked: win.go(win.computerPath) }
@@ -183,7 +228,7 @@ FloatingWindow {
 
         // ---- main ----
         Item {
-            anchors { left: side.right; right: parent.right; top: parent.top; bottom: parent.bottom; margins: 20; leftMargin: 20; topMargin: 16; bottomMargin: 20 + win.statusH }
+            anchors { left: side.right; right: parent.right; top: parent.top; bottom: parent.bottom; margins: 20; leftMargin: 20; topMargin: 16 + win.tbH; bottomMargin: 20 + win.statusH }
 
             Row {
                 id: bar
