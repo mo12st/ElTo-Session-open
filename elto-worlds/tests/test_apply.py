@@ -311,5 +311,160 @@ class RicePartsTest(unittest.TestCase):
         self.assertFalse(os.path.isdir(os.path.join(self.env["XDG_DATA_HOME"], "aurorae")))
 
 
+def build_kde_import(root, category):
+    """One imported KDE item dir per category, in the layouts the store
+    actually serves (raw files at the root, theme dirs, nested packages)."""
+    d = os.path.join(root, "kde-" + category)
+    def w(rel, content="x"):
+        p = os.path.join(d, rel)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, "w") as f:
+            f.write(content)
+    if category == "color-scheme":
+        w("calm-paper.colors", "[General]\nName=Calm Paper\n")
+    elif category == "window-frame":
+        w("PaperDeco/PaperDecorc", "[General]\ntitlebar")
+        w("PaperDeco/close.svg", "<svg/>")
+        w("PaperDeco/metadata.desktop", "[Desktop Entry]\nName=Paper\n")
+    elif category == "wallpapers":
+        w("calm.png", "png")
+        w("PaperMountains/contents/images/1920x1080.png", "small")
+        w("PaperMountains/contents/images/2560x1440.png", "largest-one")
+    elif category == "cursor":
+        w("Pink/cursors/left_ptr", "cur")
+        w("Pink/cursors/hand2", "cur2")
+        w("Pink/index.theme", "[Icon Theme]\nName=Pink\n")
+    elif category == "icons":
+        w("Tiberius/index.theme", "[Icon Theme]\nName=Tiberius\n")
+        w("Tiberius/16/apps/term.png", "png")
+        w("Tiberius/scalable/apps/edit.svg", "<svg/>")
+    elif category == "sounds":
+        w("freedawn/index.theme", "[Sound Theme]\nName=freedawn\n")
+        w("freedawn/stereo/click.oga", "oga")
+        w("freedawn/stereo/bell.oga", "oga2")
+    elif category == "widgets":
+        w("Redacted/Redacted.kvconfig", "[General]\nauthor=x\n")
+        w("Redacted/Redacted.svg", "<svg/>")
+    return d
+
+
+class KdePartsTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = self.tmp.name
+        self.env = dict(os.environ)
+        self.env["HOME"] = root
+        self.env["XDG_CONFIG_HOME"] = os.path.join(root, ".config")
+        self.env["XDG_DATA_HOME"] = os.path.join(root, ".local", "share")
+        self.env["XDG_STATE_HOME"] = os.path.join(root, ".local", "state")
+        self.env.pop("ELTO_THEME", None)
+        self.overlay = os.path.join(self.env["XDG_CONFIG_HOME"], "elto", "theme.json")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def cli(self, *args):
+        proc = subprocess.run([ELTO_WORLD] + list(args),
+                              capture_output=True, text=True, env=self.env)
+        try:
+            return proc.returncode, json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            self.fail("non-JSON output (rc=%d): %s %s" % (proc.returncode, proc.stdout, proc.stderr))
+
+    def imp(self, category):
+        return build_kde_import(self.tmp.name, category)
+
+    def test_kdeparts_lists_each_category(self):
+        expect = {
+            "color-scheme": {"colorscheme": ["calm-paper"]},
+            "window-frame": {"aurorae": ["PaperDeco"]},
+            "wallpapers": {"wallpaper": ["PaperMountains", "calm.png"]},
+            "cursor": {"cursor": ["Pink"]},
+            "icons": {"icons": ["Tiberius"]},
+            "sounds": {"sounds": ["freedawn"]},
+            "widgets": {"kvantum": ["Redacted"]},
+        }
+        for cat, want in expect.items():
+            rc, out = self.cli("kdeparts", self.imp(cat), cat)
+            self.assertEqual(rc, 0, (cat, out))
+            self.assertEqual(out["parts"], want, cat)
+
+    def test_kdeparts_boot_menu_is_empty(self):
+        d = os.path.join(self.tmp.name, "kde-boot-menu")
+        os.makedirs(os.path.join(d, "dnd"))
+        open(os.path.join(d, "dnd", "theme.txt"), "w").write("x")
+        rc, out = self.cli("kdeparts", d, "boot-menu")
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(out["parts"], {})
+
+    def test_apply_colorscheme_raw_at_root(self):
+        rc, out = self.cli("applypart", self.imp("color-scheme"), "colorscheme", "calm-paper")
+        self.assertEqual(rc, 0, out)
+        dst = os.path.join(self.env["XDG_DATA_HOME"], "color-schemes", "calm-paper.colors")
+        self.assertTrue(os.path.isfile(dst))
+
+    def test_apply_aurorae_root_layout(self):
+        rc, out = self.cli("applypart", self.imp("window-frame"), "aurorae", "PaperDeco")
+        self.assertEqual(rc, 0, out)
+        dst = os.path.join(self.env["XDG_DATA_HOME"], "aurorae", "themes", "PaperDeco")
+        self.assertTrue(os.path.isfile(os.path.join(dst, "PaperDecorc")))
+        self.assertTrue(os.path.isfile(os.path.join(dst, "close.svg")))
+
+    def test_apply_wallpaper_raw_file(self):
+        rc, out = self.cli("applypart", self.imp("wallpapers"), "wallpaper", "calm.png")
+        self.assertEqual(rc, 0, out)
+        dst = os.path.join(self.env["XDG_CONFIG_HOME"], "elto", "wallpapers", "calm.png")
+        self.assertTrue(os.path.isfile(dst))
+        with open(self.overlay) as f:
+            self.assertEqual(json.load(f)["options"]["wallpaper"], "calm.png")
+
+    def test_apply_wallpaper_nested_package(self):
+        rc, out = self.cli("applypart", self.imp("wallpapers"), "wallpaper", "PaperMountains")
+        self.assertEqual(rc, 0, out)
+        dst = os.path.join(self.env["XDG_CONFIG_HOME"], "elto", "wallpapers", "2560x1440.png")
+        self.assertTrue(os.path.isfile(dst))  # largest resolution won
+
+    def test_apply_cursor_copies_theme_dir(self):
+        rc, out = self.cli("applypart", self.imp("cursor"), "cursor", "Pink")
+        self.assertEqual(rc, 0, out)
+        dst = os.path.join(self.env["XDG_DATA_HOME"], "icons", "Pink")
+        self.assertTrue(os.path.isfile(os.path.join(dst, "cursors", "left_ptr")))
+        self.assertTrue(os.path.isfile(os.path.join(dst, "index.theme")))
+        self.assertTrue(any(s["step"] == "cursor-note" for s in out["steps"]))
+
+    def test_apply_icons_copies_theme_dir(self):
+        rc, out = self.cli("applypart", self.imp("icons"), "icons", "Tiberius")
+        self.assertEqual(rc, 0, out)
+        dst = os.path.join(self.env["XDG_DATA_HOME"], "icons", "Tiberius")
+        self.assertTrue(os.path.isfile(os.path.join(dst, "index.theme")))
+        self.assertTrue(os.path.isfile(os.path.join(dst, "16", "apps", "term.png")))
+        self.assertTrue(any(s["step"] == "icons-note" for s in out["steps"]))
+
+    def test_apply_sounds_copies_theme_dir(self):
+        rc, out = self.cli("applypart", self.imp("sounds"), "sounds", "freedawn")
+        self.assertEqual(rc, 0, out)
+        dst = os.path.join(self.env["XDG_DATA_HOME"], "sounds", "freedawn")
+        self.assertTrue(os.path.isfile(os.path.join(dst, "stereo", "click.oga")))
+        self.assertTrue(any(s["step"] == "sounds-note" for s in out["steps"]))
+
+    def test_apply_kvantum_copies_and_selects(self):
+        rc, out = self.cli("applypart", self.imp("widgets"), "kvantum", "Redacted")
+        self.assertEqual(rc, 0, out)
+        dst = os.path.join(self.env["XDG_CONFIG_HOME"], "Kvantum", "Redacted")
+        self.assertTrue(os.path.isfile(os.path.join(dst, "Redacted.kvconfig")))
+        with open(os.path.join(self.env["XDG_CONFIG_HOME"], "Kvantum", "kvantum.kvconfig")) as f:
+            self.assertIn("theme=Redacted", f.read())
+
+    def test_apply_missing_cursor_variant_fails(self):
+        rc, out = self.cli("applypart", self.imp("cursor"), "cursor", "Nope")
+        self.assertEqual(rc, 1)
+        self.assertFalse(out["ok"])
+
+    def test_unknown_format_message_lists_new_formats(self):
+        rc, out = self.cli("applypart", self.imp("cursor"), "bogus", "Pink")
+        self.assertEqual(rc, 1)
+        self.assertIn("kvantum", out["error"])
+
+
 if __name__ == "__main__":
     unittest.main()

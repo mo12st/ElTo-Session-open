@@ -7,6 +7,8 @@ Stdlib only. Serves the Theme Manager (PR 3):
 - lists KDE Store categories read-only over the public OCS API (with live
   search), with a stale cache fallback so the catalog degrades gracefully
   when the store is down
+- serves item details (kdedetail) and installed-import paths (kdedir) so
+  the manager can show store info and apply imported data parts
 - imports KDE DATA items: the store's signed download links are
   re-resolved at install time (they expire, cached listings go stale), then
   download -> checksum (pinned per version) -> content scan under the
@@ -201,8 +203,15 @@ def parse_content_list(xml_bytes):
             "license": _text(c, "license"),
             "score": _text(c, "score"),
             "downloads": _text(c, "downloads"),
-            "preview": _text(c, "preview1"),
+            # smallpreviewpic1 is the card-sized image on images.pling.com;
+            # preview1 is only the item's page URL, never an image
+            "preview": _text(c, "smallpreviewpic1") or _text(c, "previewpic1"),
+            "previews": [u for u in (_text(c, "previewpic%d" % i) for i in range(1, 5)) if u],
             "detailPage": _text(c, "detailpage"),
+            "description": _text(c, "description"),
+            "created": _text(c, "created"),
+            "changed": _text(c, "changed"),
+            "typename": _text(c, "typename"),
             "files": [],
         }
         for i in range(1, 5):
@@ -534,6 +543,30 @@ class Store:
             return files[file_index].get("url") or None
         return None
 
+    def kde_detail(self, content_id):
+        """Full public store info for one item, for the details view. The
+        content detail endpoint carries the description and dates that the
+        listing truncates. Read-only; the returned dict is display data,
+        install still goes through the card's own entry."""
+        cid = str(content_id or "")
+        if not cid.isdigit():
+            raise StoreError("bad store item id %r" % (content_id,))
+        xml = self.fetcher("%s/content/data/%s?format=xml" % (OCS_BASE, cid), limit=MAX_LIST_XML)
+        items = parse_content_list(xml)
+        if not items:
+            raise StoreError("no such store item %s" % cid)
+        return items[0]
+
+    def kde_dir(self, key):
+        """Absolute path of an installed KDE import (registry key kde-...),
+        for elto-world kdeparts/applypart."""
+        if not re.match(r"^kde-[a-z0-9][a-z0-9-]*$", key or ""):
+            raise StoreError("bad KDE key %r" % (key,))
+        for it in self._registry_items():
+            if it["key"] == key and os.path.isfile(os.path.join(it["path"], "part.json")):
+                return it["path"]
+        raise StoreError("KDE item %r is not installed" % key)
+
     # -- world install (copy from the repo worlds dir, register) --
     def install_world(self, world_id):
         """Install one ElTo world into the user worlds dir. Worlds are repo
@@ -642,6 +675,10 @@ def cli(argv):
             _jprint({"ok": True, "items": list_functions()})
         elif argv == ["rices"]:
             _jprint({"ok": True, "items": list_rices()})
+        elif len(argv) == 2 and argv[0] == "kdedetail":
+            _jprint({"ok": True, "item": st.kde_detail(argv[1])})
+        elif len(argv) == 2 and argv[0] == "kdedir":
+            _jprint({"ok": True, "path": st.kde_dir(argv[1])})
         elif len(argv) == 2 and argv[0] == "installrice":
             dest = st.install_rice(argv[1])
             _jprint({"ok": True, "path": dest})
@@ -671,7 +708,7 @@ def cli(argv):
             st.remove(argv[1])
             _jprint({"ok": True})
         else:
-            _jprint({"ok": False, "error": "usage: worlds | kde <category> [search...] | functions | rices | installrice <id> | ricedir <key> | installed | install | installarg <entry-json> | installworld <id> | worlddir <id> | updates | enable <key> | disable <key> | remove <key>"})
+            _jprint({"ok": False, "error": "usage: worlds | kde <category> [search...] | kdedetail <id> | kdedir <key> | functions | rices | installrice <id> | ricedir <key> | installed | install | installarg <entry-json> | installworld <id> | worlddir <id> | updates | enable <key> | disable <key> | remove <key>"})
             return 1
         return 0
     except (StoreError, ValueError, OSError) as e:

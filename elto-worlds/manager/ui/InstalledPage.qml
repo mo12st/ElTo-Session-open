@@ -67,11 +67,25 @@ Item {
             Text { text: "IMPORTED PARTS"; color: page.st.gold; font.pixelSize: 10; font.letterSpacing: 2; topPadding: 12 }
             Repeater {
                 model: page.registry.filter(i => i.category !== "worlds" && i.category !== "rices")
-                PartRow {
-                    st: page.st
-                    item: modelData
-                    onToggled: function (on) { page.bridge.setEnabled(modelData.key, on, function () { page.reload() }) }
-                    onRemoveRequested: page.bridge.remove(modelData.key, function () { page.reload() })
+                Item {
+                    width: col.width
+                    height: modelData.source === "kde" ? kdeRow.height : 50
+                    KdeRow {
+                        id: kdeRow
+                        visible: modelData.source === "kde"
+                        st: page.st
+                        bridge: page.bridge
+                        item: modelData
+                        onToggled: function (on) { page.bridge.setEnabled(modelData.key, on, function () { page.reload() }) }
+                        onRemoveRequested: page.bridge.remove(modelData.key, function () { page.reload() })
+                    }
+                    PartRow {
+                        visible: modelData.source !== "kde"
+                        st: page.st
+                        item: modelData
+                        onToggled: function (on) { page.bridge.setEnabled(modelData.key, on, function () { page.reload() }) }
+                        onRemoveRequested: page.bridge.remove(modelData.key, function () { page.reload() })
+                    }
                 }
             }
             Text {
