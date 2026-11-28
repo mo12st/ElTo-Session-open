@@ -17,7 +17,7 @@ Rectangle {
         x: 14; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 230
         Text { text: row.item.title || ""; color: st.ink; font.pixelSize: 14; font.bold: true; elide: Text.ElideRight; width: parent.width }
         Text {
-            text: (row.item.category || "") + "  -  v" + (row.item.version || "?") + "  -  " + (row.item.source === "kde" ? "KDE Store, converted data-only" : "ElTo")
+            text: (row.item.category || "") + "  -  v" + (row.item.version || "?") + "  -  " + (row.item.source === "kde" ? "KDE Store, converted data-only" : (row.item.source === "github-rice" ? "GitHub rice, pinned data subset" : "ElTo"))
             color: st.muted; font.pixelSize: 10; elide: Text.ElideRight; width: parent.width
         }
     }

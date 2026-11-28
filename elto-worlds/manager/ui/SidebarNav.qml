@@ -24,7 +24,8 @@ Column {
             { id: "widgets", t: "Kvantum" },
             { id: "boot-menu", t: "GRUB menu" },
             { id: "filemanager", t: "File manager (soon)" },
-            { id: "functions", t: "Functions - GitHub" }
+            { id: "functions", t: "Functions - GitHub" },
+            { id: "rices", t: "Rices - GitHub" }
         ]
         Rectangle {
             required property var modelData
