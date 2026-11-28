@@ -56,7 +56,8 @@
     "snail": "outline",
     "iconArt": "thin",
     "cardArt": "plain",
-    "pageLayout": "columns"
+    "pageLayout": "columns",
+    "folderView": "names"
   },
   "fonts": {
     "serif": "Inter",

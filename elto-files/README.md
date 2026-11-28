@@ -29,7 +29,8 @@ Limits: the schema has no spacing or icon-stroke tokens yet, so layout sizes and
 | `shape.surfaceAlpha` | 0.3 to 1 | 1 | Window, sidebar and card opacity |
 | `shape.folderArt` | manila, flat, outline, glass, classic95, aero, luna, chrome | manila | Era style of folder and drive art |
 | `shape.cardArt` | paper, w95, vapor, aero, pearl, chrome, term, plain | from folderArt | Drive card look on This computer |
-| `shape.pageLayout` | cards, grid, rows, tiles, gauge, table, columns | from cardArt | Arrangement of the This computer page |
+| `shape.pageLayout` | cards, grid, rows, tiles, gauge, table, columns, windows | from cardArt | Arrangement of the This computer page |
+| `shape.folderView` | icons, list, details, content, tiles, cards, ls, names | from cardArt | Arrangement of folder contents |
 | `shape.iconArt` | line, thin, bold, gloss, pixel, ascii | line | Era style of sidebar and file icons |
 | `colors.folder` | colour | accent | Folder body colour for era folders |
 | `shape.snail` | solid, outline, pixel, glass | solid | Style of the snail only |

@@ -56,7 +56,8 @@
     "snail": "outline",
     "iconArt": "ascii",
     "cardArt": "term",
-    "pageLayout": "table"
+    "pageLayout": "table",
+    "folderView": "ls"
   },
   "fonts": {
     "serif": "IBM Plex Mono",

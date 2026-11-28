@@ -60,7 +60,8 @@
     "snail": "glass",
     "iconArt": "gloss",
     "cardArt": "aero",
-    "pageLayout": "rows"
+    "pageLayout": "rows",
+    "folderView": "content"
   },
   "fonts": {
     "serif": "Noto Serif Display",

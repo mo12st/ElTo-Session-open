@@ -61,8 +61,10 @@ ShellRoot {
         readonly property string folderArt: ["manila", "flat", "outline", "glass", "classic95", "aero", "luna", "chrome"].indexOf(shapeT.folderArt) >= 0 ? shapeT.folderArt : "manila"
         readonly property string cardArt: ["paper", "w95", "vapor", "aero", "pearl", "chrome", "term", "plain"].indexOf(shapeT.cardArt) >= 0 ? shapeT.cardArt
             : ({ classic95: "w95", aero: "aero", luna: "pearl", chrome: "chrome" })[folderArt] || (folderArt === "outline" ? (iconArt === "ascii" ? "term" : "plain") : "paper")
-        readonly property string pageLayout: ["cards", "grid", "rows", "tiles", "gauge", "table", "columns"].indexOf(shapeT.pageLayout) >= 0 ? shapeT.pageLayout
-            : ({ w95: "grid", aero: "rows", pearl: "tiles", chrome: "gauge", term: "table", plain: "columns" })[cardArt] || "cards"
+        readonly property string pageLayout: ["cards", "grid", "rows", "tiles", "gauge", "table", "columns", "windows"].indexOf(shapeT.pageLayout) >= 0 ? shapeT.pageLayout
+            : ({ w95: "grid", vapor: "windows", aero: "rows", pearl: "tiles", chrome: "gauge", term: "table", plain: "columns" })[cardArt] || "cards"
+        readonly property string folderView: ["icons", "list", "details", "content", "tiles", "cards", "ls", "names"].indexOf(shapeT.folderView) >= 0 ? shapeT.folderView
+            : ({ w95: "list", vapor: "details", aero: "content", pearl: "tiles", chrome: "cards", term: "ls", plain: "names" })[cardArt] || "icons"
         readonly property string iconArt: ["line", "thin", "bold", "pixel", "gloss", "ascii"].indexOf(shapeT.iconArt) >= 0 ? shapeT.iconArt : "line"
         readonly property string mono: fonts.mono || "DejaVu Sans Mono"
         readonly property string snailStyle: ["solid", "outline", "pixel", "glass"].indexOf(shapeT.snail) >= 0 ? shapeT.snail : "solid"

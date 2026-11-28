@@ -57,7 +57,8 @@
     "folderArt": "luna",
     "iconArt": "gloss",
     "cardArt": "pearl",
-    "pageLayout": "tiles"
+    "pageLayout": "tiles",
+    "folderView": "tiles"
   },
   "fonts": {
     "serif": "Quicksand",

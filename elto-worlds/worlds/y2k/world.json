@@ -57,7 +57,8 @@
     "snail": "solid",
     "iconArt": "thin",
     "cardArt": "chrome",
-    "pageLayout": "gauge"
+    "pageLayout": "gauge",
+    "folderView": "cards"
   },
   "fonts": {
     "serif": "Exo 2",

@@ -323,7 +323,7 @@ Item {
             Loader {
                 id: body
                 x: 0; y: 74; width: parent.width; height: parent.height - 74 - 8
-                readonly property string file: ({ grid: "CompGrid", rows: "CompRows", tiles: "CompTiles", gauge: "CompGauge", table: "CompTable", columns: "CompColumns" })[page.layout] || ""
+                readonly property string file: ({ grid: "CompGrid", rows: "CompRows", tiles: "CompTiles", gauge: "CompGauge", table: "CompTable", columns: "CompColumns", windows: "CompWindows" })[page.layout] || ""
                 function load() { if (file !== "") setSource(file + ".qml", { page: page }); else source = "" }
                 Component.onCompleted: load()
                 onFileChanged: load()

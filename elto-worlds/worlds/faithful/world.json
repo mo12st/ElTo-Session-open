@@ -58,7 +58,8 @@
     "snail": "solid",
     "iconArt": "pixel",
     "cardArt": "w95",
-    "pageLayout": "grid"
+    "pageLayout": "grid",
+    "folderView": "list"
   },
   "fonts": {
     "serif": "VT323",

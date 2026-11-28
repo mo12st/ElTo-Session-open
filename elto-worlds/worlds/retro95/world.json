@@ -60,7 +60,8 @@
     "snail": "solid",
     "iconArt": "pixel",
     "cardArt": "vapor",
-    "pageLayout": "cards"
+    "pageLayout": "windows",
+    "folderView": "details"
   },
   "fonts": {
     "serif": "VT323",

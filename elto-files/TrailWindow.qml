@@ -173,7 +173,9 @@ FloatingWindow {
                 visible: !win.computerMode
                 anchors { top: bar.bottom; topMargin: 14; left: parent.left }
                 text: win.folderTitle; color: th.text
-                font.family: th.serif; font.pixelSize: 28; renderType: Text.NativeRendering
+                font.family: th.cardArt === "paper" ? th.serif : th.cardArt === "term" || th.cardArt === "vapor" ? th.mono : th.sans
+                font.bold: th.cardArt === "w95" || th.cardArt === "pearl" || th.cardArt === "chrome"; font.weight: th.cardArt === "plain" || th.cardArt === "aero" ? Font.Light : font.weight
+                font.capitalization: th.cardArt === "chrome" ? Font.AllUppercase : Font.MixedCase; font.pixelSize: 28; renderType: Text.NativeRendering
             }
             Rectangle { id: rule; visible: !win.computerMode; anchors { top: heading.bottom; topMargin: 4; left: parent.left; right: parent.right } height: 1; color: th.divider }
 
@@ -183,9 +185,14 @@ FloatingWindow {
                 showDirsFirst: true; showDotAndDotDot: false; showHidden: false
                 sortField: FolderListModel.Name; caseSensitive: false
             }
+            FolderViews {
+                visible: !win.computerMode && th.folderView !== "icons"
+                win: win; fm: fm
+                anchors { top: rule.bottom; topMargin: 12; left: parent.left; right: parent.right; bottom: parent.bottom }
+            }
             GridView {
                 id: grid
-                visible: !win.computerMode
+                visible: !win.computerMode && th.folderView === "icons"
                 anchors { top: rule.bottom; topMargin: 12; left: parent.left; right: parent.right; bottom: parent.bottom }
                 clip: true; model: fm; cellWidth: 120; cellHeight: 112
                 currentIndex: -1; boundsBehavior: Flickable.StopAtBounds
