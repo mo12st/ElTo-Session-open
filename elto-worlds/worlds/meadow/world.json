@@ -117,6 +117,16 @@
       "license": "Proprietary (all rights reserved, mo12st)"
     },
     {
+      "path": "assets/greeter-background.jpg",
+      "kind": "greeter",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/boot-background.jpg",
+      "kind": "boot",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
       "path": "assets/folder.svg",
       "kind": "folder",
       "license": "Proprietary (all rights reserved, mo12st)"
@@ -151,5 +161,37 @@
       "kind": "sound",
       "license": "Proprietary (all rights reserved, mo12st)"
     }
-  ]
+  ],
+  "icons": {
+    "set": "lucide",
+    "strokeWidth": 2,
+    "size": 24,
+    "systemTheme": "breeze"
+  },
+  "kvantum": {
+    "enabled": false,
+    "template": "elto-default"
+  },
+  "sddm": {
+    "theme": "elto-classic",
+    "layout": "card-center",
+    "background": "assets/greeter-background.jpg",
+    "backgroundColor": "surface",
+    "accentColor": "accent"
+  },
+  "lock": {},
+  "plymouth": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "backgroundColor": "surfaceAlt",
+    "snail": "assets/snail.png"
+  },
+  "grub": {
+    "enabled": false,
+    "background": "assets/boot-background.jpg",
+    "font": "Inter",
+    "itemColor": "text",
+    "selectedColor": "selection",
+    "selectedBackground": "surfaceAlt"
+  }
 }
