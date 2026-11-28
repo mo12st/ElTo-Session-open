@@ -84,7 +84,11 @@
         "path": "assets/wallpapers/main.jpg",
         "label": "Hill and sky"
       }
-    ]
+    ],
+    "dock": {
+      "launcherMark": "logo",
+      "launcherLogo": "assets/launcher.png"
+    }
   },
   "sounds": {
     "enabled": true,
