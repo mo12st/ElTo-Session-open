@@ -1,7 +1,7 @@
 // Trail: ElTo file browser (v1) and the "This computer" page, as standalone Quickshell windows.
 // Run: quickshell -p elto-files/trail.qml
 // Start page: TRAIL_START=computer (This computer page) | an absolute folder path | (unset: home folder).
-// v1 scope: browse, open (xdg-open), sidebar, breadcrumb, back/forward, drive cards with Eject.
+// v1 scope: browse, open (gio open), sidebar, breadcrumb, back/forward, drive cards with Eject.
 // File operations (copy, move, delete, network) come later through KDE KIO, not copied Dolphin code.
 // Theme: every colour, radius and font comes from the ElTo theme tokens (themes/soft-paper/theme.json + the user overlay
 // ~/.config/elto/theme.json, watched, so a theme or world switch restyles Trail live). No hex in the QML.
@@ -99,7 +99,7 @@ ShellRoot {
     function openPath(p) {            // folder: show in Trail. file: hand to the desktop.
         trailGoto = p; gotoSerial++; trailVisible = true
     }
-    function openFile(p) { Quickshell.execDetached(["xdg-open", p]) }
+    function openFile(p) { Quickshell.execDetached(["gio", "open", p]) }
     function refreshDrives() { drivesProc.running = true; refreshCounts() }
     function refreshCounts() {
         var names = ["Documents", "Downloads", "Pictures", "Music", "Videos"]
