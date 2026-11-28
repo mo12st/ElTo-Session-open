@@ -23,7 +23,11 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: agent.isActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    PolkitAgent { id: agent }
+    PolkitAgent {
+        id: agent
+        onIsRegisteredChanged: isRegistered
+        onAuthenticationRequestStarted: isActive
+    }
 
     Rectangle {
         id: dim
@@ -140,6 +144,9 @@ PanelWindow {
 
     Connections {
         target: win.flow
+        function onIsCompletedChanged() { win.flow.isCompleted }
+        function onIsResponseRequiredChanged() { win.flow.isResponseRequired }
+        function onSupplementaryMessageChanged() { win.flow.supplementaryMessage }
         function onAuthenticationFailed() {
             failedHint.visible = true
             pw.text = ""
