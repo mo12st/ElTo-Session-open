@@ -36,7 +36,7 @@ Item {
             kdePending = cats.length
             pending += 0  // world fetch already counted
             cats.forEach(function (c) {
-                page.bridge.kde(c, function (lo) {
+                page.bridge.kde(c, "", function (lo) {
                     kdePending--
                     if (lo.ok) listings = listings.concat(lo.items)
                     if (kdePending === 0) {

@@ -39,7 +39,11 @@ QtObject {
     function _store(args, cb) { run(["python3", storePath, "--cli"].concat(args), cb) }
 
     function worlds(cb) { _store(["worlds"], cb) }
-    function kde(category, cb) { _store(["kde", category], cb) }
+    function kde(category, search, cb) {
+        const args = ["kde", category]
+        if (search && search !== "") args.push(search)
+        _store(args, cb)
+    }
     function functions(cb) { _store(["functions"], cb) }
     function installed(cb) { _store(["installed"], cb) }
     function worldUpdates(cb) { _store(["updates"], cb) }
@@ -48,13 +52,14 @@ QtObject {
     function status(cb) { run([eltoWorld, "status"], cb) }
     function reset(cb) { run([eltoWorld, "reset"], function (o) { cb(o); statusChanged() }) }
 
-    function installKde(entry) {
+    function installKde(entry, cb) {
         history.append({ title: entry.title || "KDE item", state: "running", detail: "downloading and verifying" })
         _store(["installarg", JSON.stringify(entry)], function (o) {
             const i = history.count - 1
             if (o.ok) history.setProperty(i, "state", "done")
             else { history.setProperty(i, "state", "failed"); history.setProperty(i, "detail", o.error || "failed") }
             statusChanged()
+            if (cb) cb(o)
         })
     }
     function installWorld(id, cb) {

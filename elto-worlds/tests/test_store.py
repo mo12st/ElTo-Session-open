@@ -122,6 +122,26 @@ class ListingTest(unittest.TestCase):
         s2 = store.Store(root=tempfile.mkdtemp(), fetcher=down)
         self.assertRaises(store.StoreError, s2.kde_listing, "greeter")
 
+    def test_search_queries_live_and_never_touches_cache(self):
+        items = self.store.kde_listing("window-frame", search="paper")
+        self.assertEqual(len(items), 4)
+        self.assertTrue(all("search=paper" in u for u in self.calls))
+        # no cache files written for a search, and the store-down path
+        # refuses instead of serving an unrelated cached category listing
+        self.assertFalse(any("search" in c for c in self.calls and []))
+        def down(url, **kw):
+            raise OSError("store down")
+        s2 = store.Store(root=self.tmp.name, fetcher=down)
+        self.assertRaises(store.StoreError, s2.kde_listing, "window-frame", search="paper")
+        # ...while the plain category listing still falls back to cache
+        self.store.kde_listing("greeter")
+        s3 = store.Store(root=self.tmp.name, fetcher=down)
+        self.assertTrue(all(i["stale"] for i in s3.kde_listing("greeter")))
+
+    def test_search_is_url_encoded(self):
+        self.store.kde_listing("window-frame", search="a b&c")
+        self.assertTrue(all("search=a%20b%26c" in u for u in self.calls))
+
 
 class InstallTest(unittest.TestCase):
     def setUp(self):
@@ -254,6 +274,13 @@ class CliTest(unittest.TestCase):
         self.assertEqual(rc, 1)
         self.assertFalse(out["ok"])
         self.assertIn("unavailable", out["error"])
+
+    def test_kde_search_needs_live_store(self):
+        self.env["ELTO_OCS_BASE"] = "http://127.0.0.1:9/ocs"
+        rc, out = self.run_cli("kde", "window-frame", "paper", "frame")
+        self.assertEqual(rc, 1)
+        self.assertFalse(out["ok"])
+        self.assertIn("search", out["error"])
 
     def test_install_roundtrip_and_remove(self):
         # no network here either: install must fail cleanly, registry untouched
