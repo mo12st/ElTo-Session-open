@@ -25,9 +25,9 @@ PanelWindow {
 
     PolkitAgent {
         id: agent
-        Component.onCompleted: console.warn("POLKITREG completed isRegistered=" + isRegistered)
-        onIsRegisteredChanged: console.warn("POLKITREG isRegistered=" + isRegistered)
-        onAuthenticationRequestStarted: console.warn("POLKITREG request started")
+        Component.onCompleted: console.warn(new Date().toISOString() + " POLKITREG completed isRegistered=" + isRegistered)
+        onIsRegisteredChanged: console.warn(new Date().toISOString() + " POLKITREG isRegistered=" + isRegistered)
+        onAuthenticationRequestStarted: console.warn(new Date().toISOString() + " POLKITREG request started")
     }
 
     Rectangle {
@@ -107,7 +107,9 @@ PanelWindow {
                 font.family: Theme.sans; font.pixelSize: 15; font.bold: true
                 color: Theme.text
                 focus: true
-                onAccepted: { if (win.flow && text.length > 0) { console.warn('POLKITFLOW submit len=' + text.length + ' respReq=' + win.flow.isResponseRequired); win.flow.submit(text) } }
+                onTextChanged: console.warn(new Date().toISOString() + ' POLKITFLOW text len=' + text.length)
+                onActiveFocusChanged: console.warn(new Date().toISOString() + ' POLKITFLOW pw activeFocus=' + activeFocus)
+                onAccepted: { if (win.flow && text.length > 0) { console.warn(new Date().toISOString() + ' POLKITFLOW submit len=' + text.length + ' respReq=' + win.flow.isResponseRequired); win.flow.submit(text) } }
             }
 
             SequentialAnimation {
@@ -145,11 +147,11 @@ PanelWindow {
 
     Connections {
         target: win.flow
-        function onIsCompletedChanged() { console.warn("POLKITFLOW completed=" + win.flow.isCompleted + " ok=" + win.flow.isSuccessful + " cancelled=" + win.flow.isCancelled) }
-        function onIsResponseRequiredChanged() { console.warn("POLKITFLOW responseRequired=" + win.flow.isResponseRequired + " prompt=" + win.flow.inputPrompt) }
-        function onSupplementaryMessageChanged() { console.warn("POLKITFLOW supp=" + win.flow.supplementaryMessage + " err=" + win.flow.supplementaryIsError) }
+        function onIsCompletedChanged() { console.warn(new Date().toISOString() + " POLKITFLOW completed=" + win.flow.isCompleted + " ok=" + win.flow.isSuccessful + " cancelled=" + win.flow.isCancelled) }
+        function onIsResponseRequiredChanged() { console.warn(new Date().toISOString() + " POLKITFLOW responseRequired=" + win.flow.isResponseRequired + " prompt=" + win.flow.inputPrompt) }
+        function onSupplementaryMessageChanged() { console.warn(new Date().toISOString() + " POLKITFLOW supp=" + win.flow.supplementaryMessage + " err=" + win.flow.supplementaryIsError) }
         function onAuthenticationFailed() {
-            console.warn("POLKITFLOW authenticationFailed")
+            console.warn(new Date().toISOString() + " POLKITFLOW authenticationFailed")
             failedHint.visible = true
             pw.text = ""
             pw.forceActiveFocus()
@@ -158,7 +160,7 @@ PanelWindow {
     }
     Connections {
         target: agent
-        function onIsActiveChanged() { console.warn("POLKITREG isActive=" + agent.isActive + " flow=" + (agent.flow ? agent.flow.message + " | ident=" + agent.flow.selectedIdentity : "null") + " dim=" + dim.width + "x" + dim.height + " card.visible=" + card.visible); if (agent.isActive) { failedHint.visible = false; pw.text = ""; pw.forceActiveFocus() } }
+        function onIsActiveChanged() { console.warn(new Date().toISOString() + " POLKITREG isActive=" + agent.isActive + " flow=" + (agent.flow ? agent.flow.message + " | ident=" + agent.flow.selectedIdentity : "null") + " dim=" + dim.width + "x" + dim.height + " card.visible=" + card.visible); if (agent.isActive) { failedHint.visible = false; pw.text = ""; pw.forceActiveFocus() } }
     }
     onVisibleChanged: if (false) { failedHint.visible = false; pw.text = ""; pw.forceActiveFocus() }
 }
