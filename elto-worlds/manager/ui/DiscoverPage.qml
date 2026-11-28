@@ -25,6 +25,8 @@ Item {
             page.notice = "File manager looks arrive with the per-world filemanager block (schema decision pending)."
         } else if (category === "functions") {
             bridge.functions(function (o) { if (o.ok) page.items = o.items })
+        } else if (category === "rices") {
+            bridge.rices(function (o) { if (o.ok) page.items = o.items })
         } else {
             notice = "loading KDE Store (read-only)..."
             bridge.kde(category, function (o) {
@@ -45,16 +47,30 @@ Item {
         }
         GridView {
             width: parent.width; height: parent.height - (page.notice !== "" ? 40 : 0)
-            cellWidth: 300; cellHeight: 148; clip: true
+            cellWidth: page.category === "rices" ? 320 : 300
+            cellHeight: page.category === "rices" ? 190 : 148; clip: true
             model: page.items
-            delegate: WorldCard {
-                st: page.st
-                item: modelData
-                source: page.category === "worlds" ? "elto" : "kde"
-                onInstallRequested: function (it) {
-                    if (it.kind === "code") { Qt.openUrlExternally(it.detailPage || it.url || ""); return }
-                    if (page.category === "worlds") page.bridge.installWorld(it.id)
-                    else page.bridge.installKde(it)
+            delegate: Item {
+                width: GridView.view.cellWidth; height: GridView.view.cellHeight
+                RiceCard {
+                    visible: page.category === "rices"
+                    st: page.st
+                    item: modelData
+                    onInstallRequested: function (it) {
+                        if (!it.curated) { Qt.openUrlExternally(it.upstream || ""); return }
+                        page.bridge.installRice(it.id)
+                    }
+                }
+                WorldCard {
+                    visible: page.category !== "rices"
+                    st: page.st
+                    item: modelData
+                    source: page.category === "worlds" ? "elto" : "kde"
+                    onInstallRequested: function (it) {
+                        if (it.kind === "code") { Qt.openUrlExternally(it.detailPage || it.url || ""); return }
+                        if (page.category === "worlds") page.bridge.installWorld(it.id)
+                        else page.bridge.installKde(it)
+                    }
                 }
             }
         }
