@@ -46,10 +46,10 @@ PanelWindow {
         Behavior on color { ColorAnimation { duration: Theme.ms(200) } }
 
         // 95-style bevel: light on the top and left, dark on the bottom and right
-        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; right: parent.right; top: parent.top }; height: 2; color: Qt.rgba(1, 1, 1, 0.7) }
-        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; top: parent.top; bottom: parent.bottom }; width: 2; color: Qt.rgba(1, 1, 1, 0.7) }
-        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; right: parent.right; bottom: parent.bottom }; height: 2; color: Qt.rgba(0, 0, 0, 0.35) }
-        Rectangle { visible: bar.mat === "bevel"; anchors { right: parent.right; top: parent.top; bottom: parent.bottom }; width: 2; color: Qt.rgba(0, 0, 0, 0.35) }
+        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; right: parent.right; top: parent.top } height: 2; color: Qt.rgba(1, 1, 1, 0.7) }
+        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; top: parent.top; bottom: parent.bottom } width: 2; color: Qt.rgba(1, 1, 1, 0.7) }
+        Rectangle { visible: bar.mat === "bevel"; anchors { left: parent.left; right: parent.right; bottom: parent.bottom } height: 2; color: Qt.rgba(0, 0, 0, 0.35) }
+        Rectangle { visible: bar.mat === "bevel"; anchors { right: parent.right; top: parent.top; bottom: parent.bottom } width: 2; color: Qt.rgba(0, 0, 0, 0.35) }
 
         // material: gloss adds a highlight band over the flat fill
         Rectangle {
