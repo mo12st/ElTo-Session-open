@@ -16,11 +16,11 @@ users:
 UD
 echo "instance-id: spike1" > meta-data
 cloud-localds seed.img user-data meta-data
-ACCEL=tcg; [ -w /dev/kvm ] && ACCEL=kvm
+truncate -s 256M /tmp/usb.img; mkfs.ext4 -q -L Backup /tmp/usb.img; ACCEL=tcg; [ -w /dev/kvm ] && ACCEL=kvm
 echo "ACCEL=$ACCEL"
 qemu-system-x86_64 -accel $ACCEL -m 4096 -smp 2 -cpu max \
   -drive file=arch.qcow2,if=virtio -drive file=seed.img,if=virtio,format=raw \
-  -device virtio-vga -device qemu-xhci -device usb-tablet -display none -serial file:/tmp/serial.log \
+  -device qemu-xhci -drive file=/tmp/usb.img,if=none,id=usb0,format=raw -device usb-storage,drive=usb0 -device virtio-vga -display none -serial file:/tmp/serial.log \
   -netdev user,id=n0,hostfwd=tcp:127.0.0.1:2222-:22 -device virtio-net-pci,netdev=n0 \
   -qmp unix:/tmp/qmp.sock,server,nowait -daemonize
 START=$(date +%s)
@@ -40,70 +40,6 @@ f.write(json.dumps({"execute":"screendump","arguments":{"filename":sys.argv[1]}}
 PY
 convert "$1" /tmp/$2.png 2>&1; ls -la /tmp/$2.png; echo "===== BEGIN-SHOT $2 ====="; base64 -w0 /tmp/$2.png; echo; }
 shot /tmp/vm1.ppm vm1
-shot() { rm -f "$1"; python3 - "$1" <<'PY'
-import socket,json,sys,time
-s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
-f.readline();f.write(json.dumps({"execute":"qmp_capabilities"})+"\n");f.flush();f.readline()
-f.write(json.dumps({"execute":"screendump","arguments":{"filename":sys.argv[1]}})+"\n");f.flush();print(f.readline().strip())
-PY
-convert "$1" /tmp/$2.png 2>&1; ls -la /tmp/$2.png; echo "===== BEGIN-SHOT $2 ====="; base64 -w0 /tmp/$2.png; echo; }
-shot() { rm -f "$1"; python3 - "$1" <<'PY'
-import socket,json,sys,time
-s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
-f.readline();f.write(json.dumps({"execute":"qmp_capabilities"})+"\n");f.flush();f.readline()
-f.write(json.dumps({"execute":"screendump","arguments":{"filename":sys.argv[1]}})+"\n");f.flush();print(f.readline().strip())
-PY
-convert "$1" /tmp/$2.png 2>&1; ls -la /tmp/$2.png; echo "===== BEGIN-SHOT $2 ====="; base64 -w0 /tmp/$2.png; echo; }
-shot() { rm -f "$1"; python3 - "$1" <<'PY'
-import socket,json,sys,time
-s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
-f.readline();f.write(json.dumps({"execute":"qmp_capabilities"})+"\n");f.flush();f.readline()
-f.write(json.dumps({"execute":"screendump","arguments":{"filename":sys.argv[1]}})+"\n");f.flush();print(f.readline().strip())
-PY
-convert "$1" /tmp/$2.png 2>&1; ls -la /tmp/$2.png; echo "===== BEGIN-SHOT $2 ====="; base64 -w0 /tmp/$2.png; echo; }
-shot() { rm -f "$1"; python3 - "$1" <<'PY'
-import socket,json,sys,time
-s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
-f.readline();f.write(json.dumps({"execute":"qmp_capabilities"})+"\n");f.flush();f.readline()
-f.write(json.dumps({"execute":"screendump","arguments":{"filename":sys.argv[1]}})+"\n");f.flush();print(f.readline().strip())
-PY
-convert "$1" /tmp/$2.png 2>&1; ls -la /tmp/$2.png; echo "===== BEGIN-SHOT $2 ====="; base64 -w0 /tmp/$2.png; echo; }
-shot() { rm -f "$1"; python3 - "$1" <<'PY'
-import socket,json,sys,time
-s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
-f.readline();f.write(json.dumps({"execute":"qmp_capabilities"})+"\n");f.flush();f.readline()
-f.write(json.dumps({"execute":"screendump","arguments":{"filename":sys.argv[1]}})+"\n");f.flush();print(f.readline().strip())
-PY
-convert "$1" /tmp/$2.png 2>&1; ls -la /tmp/$2.png; echo "===== BEGIN-SHOT $2 ====="; base64 -w0 /tmp/$2.png; echo; }
-shot /tmp/vm1.ppm vm1
-shot() { rm -f "$1"; python3 - "$1" <<'PY'
-import socket,json,sys,time
-s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
-f.readline();f.write(json.dumps({"execute":"qmp_capabilities"})+"\n");f.flush();f.readline()
-f.write(json.dumps({"execute":"screendump","arguments":{"filename":sys.argv[1]}})+"\n");f.flush();print(f.readline().strip())
-PY
-convert "$1" /tmp/$2.png 2>&1; ls -la /tmp/$2.png; echo "===== BEGIN-SHOT $2 ====="; base64 -w0 /tmp/$2.png; echo; }
-shot() { rm -f "$1"; python3 - "$1" <<'PY'
-import socket,json,sys,time
-s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
-f.readline();f.write(json.dumps({"execute":"qmp_capabilities"})+"\n");f.flush();f.readline()
-f.write(json.dumps({"execute":"screendump","arguments":{"filename":sys.argv[1]}})+"\n");f.flush();print(f.readline().strip())
-PY
-convert "$1" /tmp/$2.png 2>&1; ls -la /tmp/$2.png; echo "===== BEGIN-SHOT $2 ====="; base64 -w0 /tmp/$2.png; echo; }
-shot() { rm -f "$1"; python3 - "$1" <<'PY'
-import socket,json,sys,time
-s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
-f.readline();f.write(json.dumps({"execute":"qmp_capabilities"})+"\n");f.flush();f.readline()
-f.write(json.dumps({"execute":"screendump","arguments":{"filename":sys.argv[1]}})+"\n");f.flush();print(f.readline().strip())
-PY
-convert "$1" /tmp/$2.png 2>&1; ls -la /tmp/$2.png; echo "===== BEGIN-SHOT $2 ====="; base64 -w0 /tmp/$2.png; echo; }
-shot() { rm -f "$1"; python3 - "$1" <<'PY'
-import socket,json,sys,time
-s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
-f.readline();f.write(json.dumps({"execute":"qmp_capabilities"})+"\n");f.flush();f.readline()
-f.write(json.dumps({"execute":"screendump","arguments":{"filename":sys.argv[1]}})+"\n");f.flush();print(f.readline().strip())
-PY
-convert "$1" /tmp/$2.png 2>&1; ls -la /tmp/$2.png; echo "===== BEGIN-SHOT $2 ====="; base64 -w0 /tmp/$2.png; echo; }
 qmp() { python3 - "$@" <<'PY'
 import socket,json,sys
 s=socket.socket(socket.AF_UNIX);s.connect('/tmp/qmp.sock');f=s.makefile('rw')
@@ -112,51 +48,118 @@ for a in sys.argv[1:]:
     f.write(a+"\n");f.flush();print(f.readline().strip())
 PY
 }
-echo "== provision ui"
+echo "== provision full session"
 SC="sshpass -p devpass scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P 2222"
-$SC -r $REPO/spike/wallpaper $REPO/pr/panel-widgets $REPO/pr/plugin/windowlist $REPO/pr/wallpaper $REPO/pr/theme dev@127.0.0.1:/tmp/ 2>&1 | tail -2
-$S 'sudo pacman -Syu --noconfirm --needed kwin quickshell foot qt6-wayland qt6-svg mesa libglvnd ttf-dejavu base-devel libnotify wayland plasma-wayland-protocols wayland-protocols kcalc plasma-integration breeze dolphin >/tmp/pacman.log 2>&1; tail -2 /tmp/pacman.log
-mkdir -p ~/.config; cp /tmp/theme/ElTo.colors ~/.config/kdeglobals; cd /tmp/windowlist && make 2>&1 | tail -1 && cp elto-windowlist /tmp/elto-windowlist
-cat > /tmp/ssession.sh <<EOS
-#!/bin/bash
-exec > /tmp/session.log 2>&1
-export XDG_RUNTIME_DIR=/run/user/\$(id -u) XDG_SESSION_TYPE=wayland DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/\$(id -u)/bus
-kwin_wayland --socket wayland-0 &
-sleep 8
-export WAYLAND_DISPLAY=wayland-0 QT_QPA_PLATFORM=wayland
-WALLPAPER=/tmp/wallpaper/elto-default.svg quickshell -p /tmp/wallpaper/wallpaper.qml > /tmp/qsw.log 2>&1 &
-sleep 3
-quickshell -p /tmp/panel-widgets/shell-spike.qml > /tmp/qs.log 2>&1 &
-quickshell -p /tmp/panel-widgets/launcher-spike.qml > /tmp/qsl.log 2>&1 &
-quickshell -p /tmp/panel-widgets/notifications-spike.qml > /tmp/qsn.log 2>&1 &
-sleep 4
-foot -T Terminal -e sh -c "echo ElTo session spike; sleep 3000" &
-wait
-EOS
-chmod +x /tmp/ssession.sh
-echo "[ \"\$(tty)\" = /dev/tty1 ] && exec bash /tmp/ssession.sh" > /home/dev/.bash_profile
-sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
-printf "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin dev --noclear %%I linux\n" | sudo tee /etc/systemd/system/getty@tty1.service.d/autologin.conf >/dev/null
-sudo systemctl daemon-reload; sudo systemctl restart getty@tty1; sleep 40
-pgrep -a "quickshell|foot" | cut -c1-90; for f in qsw qs qsl qsn; do echo "--- $f"; tail -6 /tmp/$f.log; done'
-shot /tmp/vm1.ppm ui1_session
-U='sudo -u dev WAYLAND_DISPLAY=wayland-0 XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus'
+(cd $REPO/pr && tar --exclude=.git -czf /tmp/repo.tgz .) && $SC /tmp/repo.tgz dev@127.0.0.1:/tmp/ 2>&1 | tail -2
+$S 'sudo pacman -Syu --noconfirm --needed sddm kwin quickshell foot qt6-wayland qt6-svg qt6-declarative mesa libglvnd ttf-dejavu noto-fonts noto-fonts-extra ttf-nunito base-devel wayland plasma-wayland-protocols wayland-protocols libnotify kcalc dolphin kate gwenview okular konsole plasma-integration breeze kscreenlocker playerctl python >/tmp/pacman.log 2>&1; tail -2 /tmp/pacman.log
+sudo pacman -S --noconfirm --needed plasma5support 2>&1 | tail -4; pacman -Q plasma5support
+mkdir -p /tmp/repo && tar -xzf /tmp/repo.tgz -C /tmp/repo && sudo bash /tmp/repo/session/install.sh 2>&1 | tail -5
+ls -la /usr/local/bin/elto-session /usr/local/bin/elto-windowlist /usr/share/wayland-sessions/elto.desktop /etc/xdg/kdeglobals /etc/xdg/kwinrc
+sudo systemctl disable --now getty@tty1 2>&1 | tail -1
+sudo systemctl enable sddm 2>&1 | tail -1
+sudo systemctl start sddm; sleep 30
+systemctl is-active sddm; cat /etc/sddm.conf.d/elto.conf'
+shot /tmp/vm1.ppm full1_greeter
 key() { qmp "{\"execute\":\"send-key\",\"arguments\":{\"keys\":[{\"type\":\"qcode\",\"data\":\"$1\"}]}}" >/dev/null; sleep 0.4; }
-echo "== launcher toggle"
-$S "$U quickshell -p /tmp/panel-widgets/launcher-spike.qml ipc call launcher toggle 2>&1; sleep 2"
-shot /tmp/vm2.ppm ui2_launcher_open
-key k; key c; sleep 1
-shot /tmp/vm3.ppm ui3_launcher_kc
-key ret; sleep 5
-shot /tmp/vm4.ppm ui4_after_enter
-$S 'pgrep -a kcalc | cut -c1-60; tail -5 /tmp/qsl.log'
-echo "== notifications"
-$S "$U busctl --user list 2>&1 | grep -i notif; $U busctl --user status org.freedesktop.Notifications 2>&1 | head -5; pgrep -a quickshell | cut -c1-80"
-$S "$U notify-send ElTo 'hello from notify-send'; echo notify-send-exit=\$?; $U notify-send -u critical 'ElTo critical' 'stays until clicked' 2>&1; sleep 1.5"
-shot /tmp/vm5.ppm ui5_notif
-$S "$U busctl --user list 2>&1 | grep -i notif; ls /run/user/1000/quickshell/by-id/*/ | head; tail -5 /run/user/1000/quickshell/by-id/*/log.qslog | cut -c1-200; sleep 9"
-shot /tmp/vm6.ppm ui6_notif_after9s
-$S 'tail -8 /tmp/qsn.log; tail -5 /tmp/qsl.log'
-echo "== dolphin with ElTo.colors (merged into kdeglobals)"
-$S "$U env WAYLAND_DISPLAY=wayland-0 XDG_CURRENT_DESKTOP=KDE QT_QPA_PLATFORMTHEME=kde setsid dolphin /usr/share >/tmp/dolphin.log 2>&1 & sleep 10; pgrep -a dolphin | cut -c1-60; tail -3 /tmp/dolphin.log"
-shot /tmp/vm7.ppm ui7_dolphin
+$S "mkdir -p ~/.config/elto; echo {} > ~/.config/elto/theme.json"
+echo "== wrong password"
+for k in x x x ret; do key $k; done; sleep 3
+shot /tmp/vm2.ppm full2_wrong
+echo "== right password"
+sleep 20
+$S 'for s in $(loginctl list-sessions --no-legend | cut -d" " -f1); do loginctl show-session $s -p Name -p Type -p Class -p State -p Desktop; done; pgrep -a "kwin|quickshell|elto|foot" | cut -c1-110; echo --- log; tail -15 ~/.local/state/elto-session.log 2>&1; sudo cat /home/dev/.local/state/elto-session.log 2>&1 | tail -12'
+shot /tmp/vm3.ppm full3_session
+U='sudo -u dev WAYLAND_DISPLAY=wayland-0 XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus'
+click() { # x y in 1280x800
+qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"abs","data":{"axis":"x","value":'$(($1*32767/1280))'}},{"type":"abs","data":{"axis":"y","value":'$(($2*32767/800))'}}]}}' >/dev/null
+sleep 1
+qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":true,"button":"left"}}]}}' >/dev/null
+sleep 0.3
+qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":false,"button":"left"}}]}}' >/dev/null
+sleep 3; }
+lockit() { $S "$U busctl --user call org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver Lock 2>&1; sleep 8"; }
+
+move() { qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"abs","data":{"axis":"x","value":'$(($1*32767/1280))'}},{"type":"abs","data":{"axis":"y","value":'$(($2*32767/800))'}}]}}' >/dev/null; sleep 1.5; }
+rclick() { move $1 $2
+qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":true,"button":"right"}}]}}' >/dev/null; sleep 0.3
+qmp '{"execute":"input-send-event","arguments":{"events":[{"type":"btn","data":{"down":false,"button":"right"}}]}}' >/dev/null; sleep 2; }
+echo "== default dock"
+$S 'qmlfile=/opt/elto-session/panel-widgets/DockWindow.qml; ls /opt/elto-session/panel-widgets | grep -i dock; find / -name "*.qmltypes" 2>/dev/null | xargs grep -l BackgroundEffect 2>/dev/null | head -3; pacman -Q quickshell kwin'
+shot /tmp/k1.ppm dk1_default
+
+echo "== relogin"
+$S 'sudo loginctl terminate-user dev; sleep 3; sudo systemctl restart sddm; sleep 25; systemctl is-active sddm'
+shot /tmp/pk0.ppm pk0_greeter
+for k in d e v p a s s ret; do key $k; done; for i in $(seq 1 40); do $S 'pgrep -u dev quickshell >/dev/null' && break; sleep 5; done; sleep 5
+$S 'pkill -f welcome.qml; sleep 2; pgrep -a quickshell | cut -c1-80'
+echo "== MANAGER #67"
+SC="sshpass -p devpass scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P 2222"
+cat > /tmp/m.sh <<'EOS'
+for s in $(loginctl list-sessions --no-legend | awk '$3=="dev"{print $1}'); do [ "$(loginctl show-session $s -p Type --value)" = wayland ] && S=$s; done
+SCOPE=$(loginctl show-session $S -p Scope --value); echo $$ > /sys/fs/cgroup/user.slice/user-1000.slice/$SCOPE/cgroup.procs
+sudo -u dev env XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-0 QT_QPA_PLATFORM=wayland QT_QPA_PLATFORMTHEME=kde XDG_SESSION_TYPE=wayland XDG_CURRENT_DESKTOP=KDE DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus HOME=/home/dev setsid quickshell -p /tmp/repo/elto-worlds/manager/ui/ManagerWindow.qml >/tmp/mgr.log 2>&1 </dev/null &
+sleep 25
+EOS
+cat > /tmp/pick.py <<'EOS'
+import json
+try:
+    d = json.load(open('/tmp/kde.json'))
+except Exception as e:
+    print("PARSE", e)
+    raise SystemExit
+items = d.get("items") or []
+print("ok", d.get("ok"), "n", len(items), "stale", d.get("stale"))
+for it in items[:6]:
+    print({k: str(v)[:50] for k, v in it.items() if k in ("title", "kind", "id", "ocsId", "license")})
+data = [i for i in items if i.get("kind") != "code"]
+json.dump(data[0] if data else {}, open('/tmp/entry.json', 'w'))
+print("picked", data[0].get("title") if data else None)
+EOS
+cat > /tmp/key.py <<'EOS'
+import json, sys
+d = json.load(sys.stdin)
+it = d.get("items") or []
+print((it[0].get("key") or it[0].get("id")) if it else "")
+EOS
+cat > /tmp/cli.sh <<'EOS'
+cd /tmp/repo/elto-worlds/manager
+R() { sudo -u dev env HOME=/home/dev python3 store.py --cli "$@"; }
+echo "--- worlds as the UI runs it (cwd /)"; cd /; sudo -u dev env HOME=/home/dev python3 /tmp/repo/elto-worlds/manager/store.py --cli worlds 2>&1 | head -c 400; echo; python3 --version; cd /tmp/repo/elto-worlds/manager; echo "--- kde worlds"; R kde wallpapers > /tmp/kde.json 2>/tmp/kde.err; head -c 300 /tmp/kde.json; echo; head -3 /tmp/kde.err
+cat > /tmp/try.py <<'EOT'
+import json, subprocess
+for cat in ("color-scheme", "icons", "cursor", "window-frame", "wallpapers"):
+    r = subprocess.run(["python3", "store.py", "--cli", "kde", cat], capture_output=True, text=True)
+    try:
+        items = json.loads(r.stdout).get("items") or []
+    except Exception as e:
+        print(cat, "PARSE", e); continue
+    data = [i for i in items if i.get("kind") != "code"]
+    print(cat, "n", len(items), "data", len(data))
+    for it in data[:6]:
+        r = subprocess.run(["python3", "store.py", "--cli", "installarg", json.dumps(it)], capture_output=True, text=True)
+        print(" try", it.get("title"), "->", r.stdout.strip()[:200])
+        try:
+            if json.loads(r.stdout).get("ok"):
+                raise SystemExit
+        except json.JSONDecodeError:
+            pass
+EOT
+sudo -u dev env HOME=/home/dev python3 /tmp/try.py 2>&1 | head -c 2500
+echo "--- installed"; R installed 2>&1 | head -c 600; echo
+KEY=$(R installed 2>/dev/null | python3 /tmp/key.py)
+echo "key=$KEY"; echo "--- remove"; R remove "$KEY" 2>&1 | head -c 400; echo; echo "--- installed after"; R installed 2>&1 | head -c 400; echo
+EOS
+$SC /tmp/m.sh /tmp/pick.py /tmp/key.py /tmp/cli.sh dev@127.0.0.1:/tmp/
+$S 'pkill -f "[w]elcome.qml"; sleep 1'
+echo "== open manager"
+$S 'sudo bash /tmp/m.sh; pgrep -a quickshell | cut -c1-120'
+shot /tmp/w1.ppm w1_discover_worlds
+$S 'cd /; sudo -u dev env HOME=/home/dev python3 /tmp/repo/elto-worlds/manager/store.py --cli kde color-scheme breeze 2>&1 | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get(\"ok\"), len(d.get(\"items\",[])), [i.get(\"title\") for i in d.get(\"items\",[])][:6], d.get(\"error\"))"'
+echo "== Color schemes + search breeze"
+click 110 225; sleep 15
+click 700 163; sleep 1; for k in b r e e z e; do key $k; done; sleep 12; shot /tmp/t0.ppm t0_breeze
+i=0
+for xy in "780 446" "1081 446" "501 446" "780 594" "1081 594" "501 594"; do i=$((i+1)); echo "== click $xy"; click ${xy% *} ${xy#* }; sleep 20; shot /tmp/t$i.ppm t${i}_click
+  $S 'ls /home/dev/.local/share/elto/worlds/imports 2>&1 | head -8' ; done
+$S 'sudo -u dev env HOME=/home/dev python3 /tmp/repo/elto-worlds/manager/store.py --cli installed 2>&1 | head -c 900'
+click 188 104; sleep 5; shot /tmp/t7.ppm t7_installed_tab
