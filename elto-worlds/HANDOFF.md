@@ -116,3 +116,33 @@ Until the row exists, the tool's default pick applies and nothing breaks.
 `elto-world reset` re-applies the world's defaults over these keys, so the
 shell must treat them as user-editable at any time (it already live-watches
 the overlay).
+
+## 5. Built-in renderers for greeter, lock and boot (world.json: sddm, lock, plymouth, grub)
+
+Architecture (user decision, option 1): ElTo ships the SDDM greeter, the lock
+screen and the Plymouth boot splash as FIXED components built into the OS.
+Worlds and .elworld bundles NEVER ship QML (or any code) for them; they ship
+only the data those renderers read. The pack/unpack tooling rejects QML and
+script/executable files in bundles outright; an inert .desktop (no
+Exec=/TryExec=, e.g. an Aurorae plugin descriptor) is the only exception.
+
+Data each renderer reads from the world (all keys optional, fallbacks keep
+current behavior):
+
+- `sddm`: `layout` (card-center, card-left, split, dialog-center, terminal,
+  pill-center, minimal), `background` (asset), `backgroundColor`, `accentColor`
+  (color refs), `theme` (built-in theme name, e.g. elto-classic).
+- `lock`: `background` (asset), `backgroundColor`, `accentColor`. Same renderer
+  family as the greeter.
+- `plymouth`: `enabled` (gate, Phase 3), `background`, `backgroundColor`,
+  `snail` (asset), `spinnerFrames` (name of a built-in spinner set, if the
+  component grows several).
+- `grub`: `enabled` (gate, Phase 3), `background`, `font`, `itemColor`,
+  `selectedColor`, `selectedBackground`.
+
+Color refs resolve like everywhere else: palette token, role name, or #hex.
+Missing assets or keys degrade gracefully to the built-in defaults.
+
+Activation of these layers stays Phase 2/3 (`install-system` refuses with
+exit 2 today) and needs the privileged install path; this spec only fixes
+the data contract so worlds and bundles are already carrying it.
