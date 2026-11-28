@@ -33,7 +33,8 @@
     "teal": "#2aa5b8",
     "mist": "#a5d2e0",
     "line": "#c4d8dc",
-    "fade": "#8aa5ae"
+    "fade": "#8aa5ae",
+    "folder": "#f1d27a"
   },
   "roles": {
     "surface": "surface",
@@ -52,7 +53,15 @@
     "shadowAlpha": 0.28,
     "shadowBlur": 24,
     "shadowOffsetY": 12,
-    "paperGrain": 0.0
+    "paperGrain": 0.0,
+    "glass": true,
+    "surfaceAlpha": 0.86,
+    "folderArt": "aero",
+    "snail": "glass",
+    "iconArt": "gloss",
+    "cardArt": "aero",
+    "pageLayout": "rows",
+    "folderView": "content"
   },
   "fonts": {
     "serif": "Noto Serif Display",

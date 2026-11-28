@@ -52,7 +52,13 @@
     "shadowAlpha": 0.28,
     "shadowBlur": 24,
     "shadowOffsetY": 12,
-    "paperGrain": 0.0
+    "paperGrain": 0.0,
+    "folderArt": "chrome",
+    "snail": "solid",
+    "iconArt": "thin",
+    "cardArt": "chrome",
+    "pageLayout": "gauge",
+    "folderView": "cards"
   },
   "fonts": {
     "serif": "Exo 2",

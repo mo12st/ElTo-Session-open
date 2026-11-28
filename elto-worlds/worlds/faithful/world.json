@@ -32,7 +32,8 @@
     "navy": "#000080",
     "teal": "#008284",
     "line": "#808080",
-    "fade": "#6e6e6e"
+    "fade": "#6e6e6e",
+    "folder": "#e8c24f"
   },
   "roles": {
     "surface": "surface",
@@ -51,7 +52,14 @@
     "shadowAlpha": 0.28,
     "shadowBlur": 24,
     "shadowOffsetY": 12,
-    "paperGrain": 0.0
+    "paperGrain": 0.0,
+    "bevel": 1,
+    "folderArt": "classic95",
+    "snail": "solid",
+    "iconArt": "pixel",
+    "cardArt": "w95",
+    "pageLayout": "grid",
+    "folderView": "list"
   },
   "fonts": {
     "serif": "VT323",
