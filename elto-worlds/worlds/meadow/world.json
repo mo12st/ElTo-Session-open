@@ -1,0 +1,155 @@
+{
+  "name": "meadow",
+  "label": "Meadow",
+  "version": 2,
+  "schema_version": 3,
+  "id": "meadow",
+  "description": "Early-2000s consumer-desktop spirit: glossy rounded sky-blue titlebars, grass-green accents, bright friendly surfaces over a sunny hill. Original palette and art, no assets or names from any existing OS. Stub render only; the artist refines.",
+  "author": "mo12st",
+  "license": "Proprietary (all rights reserved, mo12st)",
+  "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+  "identity": {
+    "story": "A wide blue sky over a green hill; the desk sits out on the grass in the sun.",
+    "signature": "Glossy sky-blue titlebars and the green hill"
+  },
+  "compatible": {
+    "shell": "1",
+    "tool": "3"
+  },
+  "defaults": {
+    "wallpaper": "assets/wallpapers/main.jpg",
+    "dock": "bar",
+    "notch": "clock",
+    "notchMode": "hidden",
+    "notchRespectFullscreen": true,
+    "sounds": true
+  },
+  "colors": {
+    "skyDeep": "#2b6ac3",
+    "skyLight": "#8ab6ee",
+    "grass": "#57a639",
+    "grassDeep": "#3d7a26",
+    "paper": "#f5f7f2",
+    "mist": "#e6ecf4",
+    "cloud": "#ffffff",
+    "ink": "#20293a",
+    "slate": "#5d6b7d",
+    "selblue": "#cfe2f8",
+    "line": "#c2cddb",
+    "fog": "#9aa7b4"
+  },
+  "roles": {
+    "surface": "paper",
+    "surfaceAlt": "mist",
+    "text": "ink",
+    "textMuted": "slate",
+    "accent": "grass",
+    "selection": "selblue",
+    "divider": "line",
+    "disabled": "fog"
+  },
+  "shape": {
+    "radiusWindow": 14,
+    "radiusCard": 10,
+    "radiusPill": 999,
+    "shadowAlpha": 0.24,
+    "shadowBlur": 18,
+    "shadowOffsetY": 8,
+    "paperGrain": 0.0,
+    "bevel": "rounded-gloss",
+    "glass": 0.4,
+    "folderArt": "assets/folder.svg",
+    "cardArt": "gloss-band",
+    "pageLayout": "desktop-icons",
+    "snail": "assets/snail.png"
+  },
+  "fonts": {
+    "serif": "IBM Plex Serif",
+    "serifItalic": "IBM Plex Serif",
+    "sans": "Inter",
+    "mono": "IBM Plex Mono"
+  },
+  "options": {
+    "wallpapers": [
+      {
+        "path": "assets/wallpapers/main.jpg",
+        "label": "Hill and sky"
+      }
+    ]
+  },
+  "sounds": {
+    "enabled": true,
+    "events": {
+      "session-start": "assets/sounds/session-start.wav",
+      "notification": "assets/sounds/notification.wav",
+      "drawer-open": "assets/sounds/drawer-open.wav",
+      "lock": "assets/sounds/lock.wav",
+      "unlock": "assets/sounds/unlock.wav"
+    }
+  },
+  "layout": {
+    "bar": "bottom-taskbar",
+    "rail": "none",
+    "launcher": "cascading-menu",
+    "windowControls": "right",
+    "motionProfile": "glossy-pulse"
+  },
+  "kde": {
+    "colorscheme": {
+      "generate": true,
+      "schemeName": "ElTo Meadow"
+    }
+  },
+  "cursor": {
+    "theme": "breeze_cursors",
+    "size": 24
+  },
+  "aurorae": {
+    "template": "ElToClassic",
+    "frame": "skyDeep",
+    "frameInactive": "line",
+    "title": "cloud"
+  },
+  "assets": [
+    {
+      "path": "assets/wallpapers/main.jpg",
+      "kind": "wallpaper",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/folder.svg",
+      "kind": "folder",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/snail.png",
+      "kind": "snail",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/session-start.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/notification.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/drawer-open.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/lock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    },
+    {
+      "path": "assets/sounds/unlock.wav",
+      "kind": "sound",
+      "license": "Proprietary (all rights reserved, mo12st)"
+    }
+  ]
+}
