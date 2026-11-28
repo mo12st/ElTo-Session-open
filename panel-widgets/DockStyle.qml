@@ -37,15 +37,17 @@ Singleton {
         return e !== null && e.real === true
     }
 
-    // last id already warned about, so a bad world file does not spam the log on every re-evaluation
-    property string _warned: ""
+    // ids already warned about, so a bad world file does not spam the log on every re-evaluation.
+    // A plain object, not a string property: resolve() runs inside a binding (Dock.style), and reading and
+    // writing an observable property from there is a binding loop. Mutating this object changes no property.
+    readonly property var _warned: ({})
 
     // the id the shell actually draws; an unknown or not-yet-implemented id warns once and falls back
     function resolve(id) {
         var raw = String(id === undefined || id === null ? "" : id).trim().toLowerCase()
         if (root.isReal(raw)) return raw
-        if (raw !== "" && raw !== root._warned) {
-            root._warned = raw
+        if (raw !== "" && !root._warned[raw]) {
+            root._warned[raw] = true
             console.log("ELTODOCK unknown or unsupported dock style '" + raw + "', falling back to " + root.fallback)
         }
         return root.fallback
