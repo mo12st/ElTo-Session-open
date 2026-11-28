@@ -46,6 +46,8 @@ CACHE_TTL = 3600                         # seconds a live listing is fresh
 
 CATALOG_JSON = os.path.join(HERE, "..", "catalog", "catalog.json")
 FUNCTIONS_JSON = os.path.join(HERE, "functions.json")
+WORLDS_DIR = os.path.join(HERE, "..", "worlds")
+WORLD_SLUG = re.compile(r"^[a-z0-9-]+$")
 
 # ElTo category -> (ocs id, store label, kind). kind "data" still gets the
 # full archive scan after download; kind "code" is listing-only, greyed.
@@ -174,9 +176,10 @@ def parse_content_list(xml_bytes):
 
 
 class Store:
-    def __init__(self, root=None, fetcher=fetch_url):
+    def __init__(self, root=None, fetcher=fetch_url, worlds_dir=WORLDS_DIR):
         self.root = root or default_root()
         self.fetcher = fetcher
+        self.worlds_dir = worlds_dir
         for sub in ("cache", "cache/ocs", "imports", "tmp"):
             os.makedirs(os.path.join(self.root, sub), exist_ok=True)
 
@@ -185,11 +188,41 @@ class Store:
         return os.path.join(self.root, "installed.json")
 
     def list_installed(self):
+        items = self._registry_items()
+        known = {i["path"] for i in items}
+        items.extend(self._scanned_worlds(known))
+        return items
+
+    def _registry_items(self):
         try:
             with open(self._registry_path()) as f:
                 return json.load(f)["items"]
         except (OSError, ValueError, KeyError):
             return []
+
+    def _scanned_worlds(self, skip_paths=()):
+        """World directories already sitting in the user worlds root (e.g.
+        installed by elto-world directly) that the registry does not know.
+        Listed so Installed shows real items; removal works the same."""
+        out = []
+        try:
+            names = sorted(os.listdir(self.root))
+        except OSError:
+            return out
+        for name in names:
+            d = os.path.join(self.root, name)
+            wj = os.path.join(d, "world.json")
+            if not os.path.isfile(wj) or d in skip_paths:
+                continue
+            try:
+                with open(wj) as f:
+                    w = json.load(f)
+            except (OSError, ValueError):
+                continue
+            out.append({"key": "world-" + name, "kind": "data", "category": "worlds",
+                        "title": w.get("label", name), "version": str(w.get("version", "?")),
+                        "path": d, "source": "elto", "enabled": True})
+        return out
 
     def _save_registry(self, items):
         tmp = self._registry_path() + ".tmp"
@@ -288,6 +321,54 @@ class Store:
         self._save_registry(items)
         return dest
 
+    # -- world install (copy from the repo worlds dir, register) --
+    def install_world(self, world_id):
+        """Install one ElTo world into the user worlds dir. Worlds are repo
+        data, already vetted by elto-world check; this is a copy + registry
+        entry, no download and no code path."""
+        if not WORLD_SLUG.match(world_id or ""):
+            raise StoreError("bad world id %r" % (world_id,))
+        src = os.path.join(self.worlds_dir, world_id)
+        wj = os.path.join(src, "world.json")
+        if not os.path.isfile(wj):
+            raise StoreError("no such world in the catalog: %r" % world_id)
+        with open(wj) as f:
+            w = json.load(f)
+        dest = os.path.join(self.root, world_id)
+        if os.path.lexists(dest):
+            shutil.rmtree(dest)
+        shutil.copytree(src, dest)
+        items = [i for i in self._registry_items() if i["key"] != "world-" + world_id]
+        items.append({"key": "world-" + world_id, "kind": "data", "category": "worlds",
+                      "title": w.get("label", world_id), "version": str(w.get("version", "?")),
+                      "path": dest, "source": "elto", "enabled": True})
+        self._save_registry(items)
+        return dest
+
+    def world_dir(self, world_id):
+        """Absolute path of an installed world, for elto-world apply."""
+        if not WORLD_SLUG.match(world_id or ""):
+            raise StoreError("bad world id %r" % (world_id,))
+        d = os.path.join(self.root, world_id)
+        if not os.path.isfile(os.path.join(d, "world.json")):
+            raise StoreError("world %r is not installed" % world_id)
+        return d
+
+    def world_updates(self, catalog=None):
+        """Installed ElTo worlds whose version differs from the repo catalog."""
+        catalog = catalog or load_repo_catalog()
+        fresh = {w["id"]: w for w in catalog["worlds"]}
+        rows = []
+        for it in self.list_installed():
+            if it.get("source") != "elto" or not it["key"].startswith("world-"):
+                continue
+            wid = it["key"][len("world-"):]
+            cur = fresh.get(wid)
+            if cur and str(cur.get("version")) != str(it.get("version")):
+                rows.append({"id": wid, "title": it.get("title") or cur.get("label"),
+                             "oldV": str(it.get("version")), "newV": str(cur.get("version"))})
+        return rows
+
     def set_enabled(self, key, enabled):
         items = self.list_installed()
         for it in items:
@@ -298,9 +379,15 @@ class Store:
         raise StoreError("no installed item %r" % key)
 
     def remove(self, key):
-        items = self.list_installed()
+        items = self._registry_items()
         kept = [i for i in items if i["key"] != key]
         if len(kept) == len(items):
+            # not registered: still removable if it is a scanned world dir
+            if key.startswith("world-") and WORLD_SLUG.match(key[len("world-"):]):
+                d = os.path.join(self.root, key[len("world-"):])
+                if os.path.isfile(os.path.join(d, "world.json")):
+                    shutil.rmtree(d, ignore_errors=True)
+                    return
             raise StoreError("no installed item %r" % key)
         gone = next(i for i in items if i["key"] == key)
         shutil.rmtree(gone["path"], ignore_errors=True)
@@ -324,6 +411,9 @@ def cli(argv):
     store.py --cli functions
     store.py --cli installed
     store.py --cli install            (entry JSON on stdin)
+    store.py --cli installworld <id>  (copy an ElTo world into the user dir)
+    store.py --cli worlddir <id>      (installed world path, for apply)
+    store.py --cli updates            (installed worlds behind the catalog)
     store.py --cli enable <key> | --cli disable <key> | --cli remove <key>
     """
     st = Store()
@@ -337,6 +427,13 @@ def cli(argv):
             _jprint({"ok": True, "items": list_functions()})
         elif argv == ["installed"]:
             _jprint({"ok": True, "items": st.list_installed()})
+        elif len(argv) == 2 and argv[0] == "installworld":
+            dest = st.install_world(argv[1])
+            _jprint({"ok": True, "path": dest})
+        elif len(argv) == 2 and argv[0] == "worlddir":
+            _jprint({"ok": True, "path": st.world_dir(argv[1])})
+        elif argv == ["updates"]:
+            _jprint({"ok": True, "worlds": st.world_updates()})
         elif argv == ["install"]:
             entry = json.load(sys.stdin)
             dest = st.install_kde(entry)
@@ -352,7 +449,7 @@ def cli(argv):
             st.remove(argv[1])
             _jprint({"ok": True})
         else:
-            _jprint({"ok": False, "error": "usage: worlds | kde <category> | functions | installed | install | installarg <entry-json> | enable <key> | disable <key> | remove <key>"})
+            _jprint({"ok": False, "error": "usage: worlds | kde <category> | functions | installed | install | installarg <entry-json> | installworld <id> | worlddir <id> | updates | enable <key> | disable <key> | remove <key>"})
             return 1
         return 0
     except (StoreError, ValueError, OSError) as e:
