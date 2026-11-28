@@ -3,6 +3,7 @@
 Never executes theme code; .elworld bundles are data-only.
 
 Commands:
+  status                          current overlay: applied world, sections, options
   check <worlddir>                validate world.json (schema 2 and 3; world.schema.json is the contract)
   apply <worlddir> [--dry-run]    user-level apply, staged + rollback on mid-failure
   reset [<worlddir>]              restore world defaults over user overrides (with no argument:
@@ -838,9 +839,22 @@ def cmd_install(path, replace):
     print(json.dumps(rep, indent=2))
     return 0
 
+def cmd_status():
+    cur = read_overlay()
+    w = cur.get("_world") or {}
+    print(json.dumps({"ok": True,
+                      "world": w.get("id"),
+                      "applied_at": w.get("applied_at"),
+                      "schema_version": w.get("schema_version"),
+                      "sections": [k for k in MANAGED_SECTIONS if k in cur],
+                      "options": cur.get("options") or {}}))
+    return 0
+
 def main():
     a = sys.argv[1:]
     try:
+        if a == ["status"]:
+            return cmd_status()
         if len(a) == 2 and a[0] == "check":
             return cmd_check(os.path.abspath(a[1]))
         if len(a) in (2, 3) and a[0] == "apply":
@@ -858,7 +872,7 @@ def main():
         if len(a) == 2 and a[0] == "install-system":
             print(json.dumps({"ok": False, "error": "install-system is Phase 2/3 (SDDM, lock, Plymouth, GRUB): not implemented"}))
             return 2
-        raise ValueError("usage: check <dir> | apply <dir> [--dry-run] | reset [<dir>] | pack <dir> <out.elworld> | inspect <file.elworld> | unpack <file.elworld> <destdir> | install <file.elworld> [--replace] | install-system <dir>")
+        raise ValueError("usage: status | check <dir> | apply <dir> [--dry-run] | reset [<dir>] | pack <dir> <out.elworld> | inspect <file.elworld> | unpack <file.elworld> <destdir> | install <file.elworld> [--replace] | install-system <dir>")
     except Exception as e:
         print(json.dumps({"ok": False, "error": str(e)}))
         return 1
