@@ -1,0 +1,535 @@
+{
+  "categories": [
+    {
+      "id": "worlds",
+      "label": "Worlds",
+      "source": "elto"
+    },
+    {
+      "id": "window-frame",
+      "label": "Window frames",
+      "source": "kde-import"
+    },
+    {
+      "id": "color-scheme",
+      "label": "Color schemes",
+      "source": "kde-import"
+    },
+    {
+      "id": "icons",
+      "label": "Icons",
+      "source": "kde-import"
+    },
+    {
+      "id": "cursor",
+      "label": "Cursors",
+      "source": "kde-import"
+    },
+    {
+      "id": "wallpapers",
+      "label": "Wallpapers",
+      "source": "kde-import"
+    },
+    {
+      "id": "sounds",
+      "label": "Sounds",
+      "source": "kde-import"
+    },
+    {
+      "id": "greeter",
+      "label": "Greeter",
+      "source": "kde-import"
+    },
+    {
+      "id": "boot",
+      "label": "Boot and splash",
+      "source": "kde-import"
+    },
+    {
+      "id": "animations",
+      "label": "Animations",
+      "source": "kde-import"
+    },
+    {
+      "id": "filemanager",
+      "label": "File manager",
+      "source": "elto",
+      "status": "pending-schema"
+    }
+  ],
+  "format": "eltocatalog/1",
+  "generatedBy": "build-catalog.py (deterministic; no timestamps)",
+  "source": "elto-worlds/worlds/*/world.json",
+  "worlds": [
+    {
+      "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+      "author": "mo12st",
+      "category": "worlds",
+      "colors": {
+        "fade": "#8aa5ae",
+        "ink": "#052f59",
+        "inkSoft": "#22668f",
+        "line": "#c4d8dc",
+        "mist": "#a5d2e0",
+        "surface": "#eaf4f6",
+        "surfaceAlt": "#d5e4df",
+        "teal": "#2aa5b8"
+      },
+      "defaults": {
+        "dock": "island",
+        "sounds": true,
+        "wallpaper": "assets/wallpapers/main.jpg"
+      },
+      "description": "Glass panels over a bright ocean-habitat wallpaper; calm, airy, translucent. Palette estimated from the user concept art; artist refines.",
+      "id": "aero",
+      "kind": "data",
+      "label": "Aero Habitat",
+      "license": "Proprietary (all rights reserved, mo12st)",
+      "parts": [
+        "boot",
+        "boot-menu",
+        "color-scheme",
+        "cursor",
+        "greeter",
+        "icons",
+        "sounds",
+        "wallpapers",
+        "widgets",
+        "window-frame"
+      ],
+      "roles": {
+        "accent": "teal",
+        "disabled": "fade",
+        "divider": "line",
+        "selection": "mist",
+        "surface": "surface",
+        "surfaceAlt": "surfaceAlt",
+        "text": "ink",
+        "textMuted": "inkSoft"
+      },
+      "schema_version": 3,
+      "signature": "The ocean arch wallpaper and frosted panels",
+      "source": "worlds/aero/world.json",
+      "story": "A bright habitat over the ocean; your workspace floats in glass.",
+      "version": 2
+    },
+    {
+      "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+      "author": "mo12st",
+      "category": "worlds",
+      "colors": {
+        "fade": "#8a9a90",
+        "ink": "#164437",
+        "inkSoft": "#4c7860",
+        "line": "#e0d9c4",
+        "rust": "#a05040",
+        "sage": "#cfe3d4",
+        "surface": "#f6f1e4",
+        "surfaceAlt": "#efe9d8"
+      },
+      "defaults": {
+        "dock": "island",
+        "sounds": true,
+        "wallpaper": "assets/wallpapers/main.jpg"
+      },
+      "description": "The original paper-and-ink ElTo: cream, deep green, rust. Close to soft-paper; keep or merge, see report. Palette estimated from the user concept art; artist refines.",
+      "id": "classic",
+      "kind": "data",
+      "label": "ElTo Classic",
+      "license": "Proprietary (all rights reserved, mo12st)",
+      "parts": [
+        "boot",
+        "boot-menu",
+        "color-scheme",
+        "cursor",
+        "greeter",
+        "icons",
+        "sounds",
+        "wallpapers",
+        "widgets",
+        "window-frame"
+      ],
+      "roles": {
+        "accent": "rust",
+        "disabled": "fade",
+        "divider": "line",
+        "selection": "sage",
+        "surface": "surface",
+        "surfaceAlt": "surfaceAlt",
+        "text": "ink",
+        "textMuted": "inkSoft"
+      },
+      "schema_version": 3,
+      "signature": "Paper grain and the snail",
+      "source": "worlds/classic/world.json",
+      "story": "The original paper desk: cream sheets, green ink, a rust seal.",
+      "version": 2
+    },
+    {
+      "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+      "author": "mo12st",
+      "category": "worlds",
+      "colors": {
+        "fade": "#6e6e6e",
+        "ink": "#0a0a0a",
+        "inkSoft": "#4a4a4a",
+        "line": "#808080",
+        "navy": "#000080",
+        "surface": "#c0c0c0",
+        "surfaceAlt": "#d8d8d8",
+        "teal": "#008284"
+      },
+      "defaults": {
+        "dock": "bar",
+        "sounds": true,
+        "wallpaper": "assets/wallpapers/main.jpg"
+      },
+      "description": "A faithful mid-90s desktop: teal field, gray beveled windows, navy titlebars, square everything. Palette estimated from the user concept art; artist refines.",
+      "id": "faithful",
+      "kind": "data",
+      "label": "ElTo 95 Faithful",
+      "license": "Proprietary (all rights reserved, mo12st)",
+      "parts": [
+        "boot",
+        "boot-menu",
+        "color-scheme",
+        "cursor",
+        "greeter",
+        "icons",
+        "sounds",
+        "wallpapers",
+        "widgets",
+        "window-frame"
+      ],
+      "roles": {
+        "accent": "navy",
+        "disabled": "fade",
+        "divider": "line",
+        "selection": "navy",
+        "surface": "surface",
+        "surfaceAlt": "surfaceAlt",
+        "text": "ink",
+        "textMuted": "inkSoft"
+      },
+      "schema_version": 3,
+      "signature": "Square beveled windows on the teal field",
+      "source": "worlds/faithful/world.json",
+      "story": "The 90s desktop exactly as you remember it, teal and honest.",
+      "version": 2
+    },
+    {
+      "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+      "author": "mo12st",
+      "category": "worlds",
+      "colors": {
+        "fade": "#5d6e64",
+        "glow": "#d8b25c",
+        "ink": "#eae6d4",
+        "inkSoft": "#9db5a6",
+        "line": "#2a4a3e",
+        "moss": "#265847",
+        "surface": "#12211c",
+        "surfaceAlt": "#1d4638"
+      },
+      "defaults": {
+        "dock": "island",
+        "sounds": true,
+        "wallpaper": "assets/wallpapers/main.jpg"
+      },
+      "description": "Deep green night garden: dark ambient surfaces, warm light accents, minimal chrome. Palette estimated from the user concept art; artist refines.",
+      "id": "flow",
+      "kind": "data",
+      "label": "Flow",
+      "license": "Proprietary (all rights reserved, mo12st)",
+      "parts": [
+        "boot",
+        "boot-menu",
+        "color-scheme",
+        "cursor",
+        "greeter",
+        "icons",
+        "sounds",
+        "wallpapers",
+        "widgets",
+        "window-frame"
+      ],
+      "roles": {
+        "accent": "glow",
+        "disabled": "fade",
+        "divider": "line",
+        "selection": "moss",
+        "surface": "surface",
+        "surfaceAlt": "surfaceAlt",
+        "text": "ink",
+        "textMuted": "inkSoft"
+      },
+      "schema_version": 3,
+      "signature": "Deep green glow around a single serif line",
+      "source": "worlds/flow/world.json",
+      "story": "A night garden where the interface breathes slowly.",
+      "version": 2
+    },
+    {
+      "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+      "author": "mo12st",
+      "category": "worlds",
+      "colors": {
+        "fade": "#a8a7a6",
+        "fog": "#d4d4d4",
+        "ink": "#151514",
+        "inkSoft": "#5a5959",
+        "line": "#c8c8c8",
+        "pitch": "#151514",
+        "surface": "#f6f6f6",
+        "surfaceAlt": "#eaeaea"
+      },
+      "defaults": {
+        "dock": "island",
+        "sounds": false,
+        "wallpaper": "assets/wallpapers/main.jpg"
+      },
+      "description": "Black and white brutalism: huge light type, concrete photography, no color at all. Palette estimated from the user concept art; artist refines.",
+      "id": "mono",
+      "kind": "data",
+      "label": "Mono",
+      "license": "Proprietary (all rights reserved, mo12st)",
+      "parts": [
+        "boot",
+        "boot-menu",
+        "color-scheme",
+        "cursor",
+        "greeter",
+        "icons",
+        "sounds",
+        "wallpapers",
+        "widgets",
+        "window-frame"
+      ],
+      "roles": {
+        "accent": "pitch",
+        "disabled": "fade",
+        "divider": "line",
+        "selection": "fog",
+        "surface": "surface",
+        "surfaceAlt": "surfaceAlt",
+        "text": "ink",
+        "textMuted": "inkSoft"
+      },
+      "schema_version": 3,
+      "signature": "Huge light type over concrete photography",
+      "source": "worlds/mono/world.json",
+      "story": "A gallery of black ink and white paper; nothing shouts.",
+      "version": 2
+    },
+    {
+      "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+      "author": "mo12st",
+      "category": "worlds",
+      "colors": {
+        "fade": "#7d76a0",
+        "grape": "#552394",
+        "ink": "#1c1440",
+        "inkSoft": "#5b4e9a",
+        "line": "#8d86b0",
+        "sun": "#fdc94e",
+        "surface": "#cac6df",
+        "surfaceAlt": "#b0aacc",
+        "titleFrom": "#e078c8",
+        "titleTo": "#6c7fd8"
+      },
+      "defaults": {
+        "dock": "bar",
+        "sounds": true,
+        "wallpaper": "assets/wallpapers/main.jpg"
+      },
+      "description": "Purple vaporwave playground: gradient titlebars, beveled panels, pixel type, stepped motion. Palette estimated from the user concept art; artist refines.",
+      "id": "retro95",
+      "kind": "data",
+      "label": "Retro 95 Vector",
+      "license": "Proprietary (all rights reserved, mo12st)",
+      "parts": [
+        "boot",
+        "boot-menu",
+        "color-scheme",
+        "cursor",
+        "greeter",
+        "icons",
+        "sounds",
+        "wallpapers",
+        "widgets",
+        "window-frame"
+      ],
+      "roles": {
+        "accent": "sun",
+        "disabled": "fade",
+        "divider": "line",
+        "selection": "grape",
+        "surface": "surface",
+        "surfaceAlt": "surfaceAlt",
+        "text": "ink",
+        "textMuted": "inkSoft"
+      },
+      "schema_version": 3,
+      "signature": "Gradient titlebars and stepped motion",
+      "source": "worlds/retro95/world.json",
+      "story": "A purple playground from a parallel 1995; everything clicks into place.",
+      "version": 2
+    },
+    {
+      "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+      "author": "mo12st",
+      "category": "worlds",
+      "colors": {
+        "aqua": "#9ee5f9",
+        "blush": "#ee9fb8",
+        "fade": "#8fb0bc",
+        "ink": "#103250",
+        "inkSoft": "#2c4c66",
+        "line": "#b8dde8",
+        "surface": "#f4fbfd",
+        "surfaceAlt": "#dff2f9"
+      },
+      "defaults": {
+        "dock": "island",
+        "sounds": true,
+        "wallpaper": "assets/wallpapers/main.jpg"
+      },
+      "description": "Pearlescent space-age: glossy capsules, bubble wallpaper, sunset-pink accents, close button left. Palette estimated from the user concept art; artist refines.",
+      "id": "retroaero",
+      "kind": "data",
+      "label": "Retro Aero Pearl",
+      "license": "Proprietary (all rights reserved, mo12st)",
+      "parts": [
+        "boot",
+        "boot-menu",
+        "color-scheme",
+        "cursor",
+        "greeter",
+        "icons",
+        "sounds",
+        "wallpapers",
+        "widgets",
+        "window-frame"
+      ],
+      "roles": {
+        "accent": "blush",
+        "disabled": "fade",
+        "divider": "line",
+        "selection": "aqua",
+        "surface": "surface",
+        "surfaceAlt": "surfaceAlt",
+        "text": "ink",
+        "textMuted": "inkSoft"
+      },
+      "schema_version": 3,
+      "signature": "Glossy capsules and the close button on the left",
+      "source": "worlds/retroaero/world.json",
+      "story": "A pearl space station from a warmer future.",
+      "version": 2
+    },
+    {
+      "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+      "author": "mo12st",
+      "category": "worlds",
+      "colors": {
+        "amber": "#ccac6b",
+        "fade": "#3d4a41",
+        "ink": "#9fce8f",
+        "inkSoft": "#4f7a5e",
+        "line": "#24352b",
+        "pine": "#2f4639",
+        "surface": "#0b120f",
+        "surfaceAlt": "#14201a"
+      },
+      "defaults": {
+        "dock": "island",
+        "sounds": false,
+        "wallpaper": "assets/wallpapers/main.jpg"
+      },
+      "description": "Green phosphor terminal world: near-black, monospace everywhere, keyboard-first, motion off. Palette estimated from the user concept art; artist refines.",
+      "id": "unix",
+      "kind": "data",
+      "label": "Unix",
+      "license": "Proprietary (all rights reserved, mo12st)",
+      "parts": [
+        "boot",
+        "boot-menu",
+        "color-scheme",
+        "cursor",
+        "greeter",
+        "icons",
+        "sounds",
+        "wallpapers",
+        "widgets",
+        "window-frame"
+      ],
+      "roles": {
+        "accent": "amber",
+        "disabled": "fade",
+        "divider": "line",
+        "selection": "pine",
+        "surface": "surface",
+        "surfaceAlt": "surfaceAlt",
+        "text": "ink",
+        "textMuted": "inkSoft"
+      },
+      "schema_version": 3,
+      "signature": "Monospace everything, motion off",
+      "source": "worlds/unix/world.json",
+      "story": "A green phosphor terminal that grew into a whole desk.",
+      "version": 2
+    },
+    {
+      "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+      "author": "mo12st",
+      "category": "worlds",
+      "colors": {
+        "fade": "#4a4e80",
+        "indigo": "#292c93",
+        "ink": "#e2e6ff",
+        "inkSoft": "#8c96d0",
+        "lime": "#b8e62e",
+        "line": "#2c3070",
+        "surface": "#0e102e",
+        "surfaceAlt": "#1f2357"
+      },
+      "defaults": {
+        "dock": "island",
+        "sounds": true,
+        "wallpaper": "assets/wallpapers/main.jpg"
+      },
+      "description": "Chrome and deep navy: signal-green accents, command index, fast linear motion. Palette estimated from the user concept art; artist refines.",
+      "id": "y2k",
+      "kind": "data",
+      "label": "Y2K Signal",
+      "license": "Proprietary (all rights reserved, mo12st)",
+      "parts": [
+        "boot",
+        "boot-menu",
+        "color-scheme",
+        "cursor",
+        "greeter",
+        "icons",
+        "sounds",
+        "wallpapers",
+        "widgets",
+        "window-frame"
+      ],
+      "roles": {
+        "accent": "lime",
+        "disabled": "fade",
+        "divider": "line",
+        "selection": "indigo",
+        "surface": "surface",
+        "surfaceAlt": "surfaceAlt",
+        "text": "ink",
+        "textMuted": "inkSoft"
+      },
+      "schema_version": 3,
+      "signature": "The command index and the lime close light",
+      "source": "worlds/y2k/world.json",
+      "story": "Chrome signals in deep navy; the keyboard is the remote control.",
+      "version": 2
+    }
+  ]
+}
