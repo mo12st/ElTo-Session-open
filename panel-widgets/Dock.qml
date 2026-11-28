@@ -10,9 +10,64 @@ import QtQuick
 Scope {
     id: root
     readonly property var dk: Theme.dockT
+    // icon folder for the pinned glyphs: "lucide" (white line glyphs, tinted) or a vendored multi-colour set
+    // under icons/. glyphTint false draws the files as they are. Both are theme keys, so a swap is one line.
+    readonly property string glyphDir: root.dk.glyphDir || "lucide"
+    readonly property bool glyphTint: root.dk.glyphTint !== false
+
+    // ---- per-world dock identity. Every token below is optional in the theme; a world that omits them draws
+    // exactly what the shell drew before they existed. An unknown value falls back to the default, never to a
+    // broken dock, the same way an unknown options.dock falls back to island.
+    function pick(v, list, def) { return list.indexOf(v) >= 0 ? v : def }
+    // launcher logo: an absolute path, or a path relative to the shell root (icons/launcher/aero.svg)
+    function logoSource() {
+        var p = root.look.launcherLogo
+        if (!p) return ""
+        return p.charAt(0) === "/" ? "file://" + p : "file://" + Quickshell.shellPath("../" + p)
+    }
+    function num(v, def) { return (typeof v === "number" && v > 0) ? Math.round(v) : def }
+    readonly property var look: {
+        var d = root.dk
+        return {
+            material: root.pick(d.dockMaterial, ["paper", "flat", "glass", "gloss", "bevel"], "paper"),
+            radius: root.num(d.dockRadius, d.radius),
+            height: root.num(d.dockHeight, d.height),
+            button: root.pick(d.dockButton, ["circle", "rounded", "square"], "circle"),
+            launcherMark: root.pick(d.launcherMark, ["none", "dot", "label", "button", "logo"], "none"),
+            launcherLabel: typeof d.launcherLabel === "string" ? d.launcherLabel : "ElTo",
+            launcherLogo: typeof d.launcherLogo === "string" ? d.launcherLogo : "",
+            launcherLogoSize: Math.min(40, root.num(d.launcherLogoSize, 22)),
+            clockStyle: root.pick(d.clockStyle, ["text", "pill", "none"], "text"),
+            clockPosition: root.pick(d.clockPosition, ["end", "start"], "end"),
+            trayStyle: root.pick(d.trayStyle, ["text", "compact", "none"], "text"),
+            activeIndicator: root.pick(d.activeIndicator, ["pill", "dot", "bar", "none"], "pill"),
+            taskStyle: root.pick(d.taskStyle, ["pill", "button", "label"], "pill"),
+            edge: root.pick(d.edge, ["bottom", "top"], "bottom")
+        }
+    }
     property string activeApp: ""
+    // set by elto-shell so the launcher button can open the app drawer, the same way Notch takes one
+    property var drawer: null
     property var openApps: ({})
     property bool blurBroken: false
+
+    // Pinned ids are reverse-DNS on some distros (org.mozilla.firefox) and plain on others (firefox), so an exact
+    // byId miss falls back to the last segment of the id, then to the app name. Without this a pinned app that is
+    // installed still drops out of the dock and its slot disappears.
+    function pinnedEntry(id) {
+        var e = DesktopEntries.byId(id)
+        if (e) return e
+        var short = String(id).toLowerCase().split(".").pop()
+        var vals = DesktopEntries.applications.values
+        for (var i = 0; i < vals.length; i++) {
+            var vid = String(vals[i].id || "").toLowerCase()
+            if (vid === short || vid === short + ".desktop" || vid.split(".").pop() === short) return vals[i]
+        }
+        for (var j = 0; j < vals.length; j++) {
+            if (String(vals[j].name || "").toLowerCase() === short) return vals[j]
+        }
+        return null
+    }
 
     // ---- pinned apps: ids of desktop entries, kept in dock.pinned of the user theme. Entries that are not installed are skipped.
     readonly property var pinnedItems: {
@@ -20,7 +75,7 @@ Scope {
         var out = []
         var ids = root.dk.pinned || []
         for (var i = 0; i < ids.length; i++) {
-            var e = DesktopEntries.byId(ids[i])
+            var e = root.pinnedEntry(ids[i])
             if (e) out.push({ id: ids[i], entry: e, glyph: (root.dk.glyphs || {})[ids[i]] || "" })
         }
         return out
