@@ -87,6 +87,10 @@
       }
     ]
   },
+  "dock": {
+    "launcherMark": "logo",
+    "launcherLogo": "assets/launcher.png"
+  },
   "sounds": {
     "enabled": true,
     "events": {

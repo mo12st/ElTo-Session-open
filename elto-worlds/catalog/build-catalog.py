@@ -152,9 +152,10 @@ def catalog_entry(world, dirname):
         },
         "source": "worlds/%s/world.json" % dirname,
     }
-    dock_look = _get(world, "options.dock")
-    # PR #58 dock.look tokens live under options.dock in world.json once a
-    # world adopts them; pass them through verbatim, absent means island look.
+    dock_look = world.get("dock")
+    # Dock look tokens (launcherMark, launcherLogo, ...) live in the top-level
+    # dock section; options.dock stays the variant id string. Pass the tokens
+    # through verbatim, absent means island look.
     if isinstance(dock_look, dict) and dock_look:
         entry["dockLook"] = dock_look
     if INCLUDE_FILEMANAGER and _present(world.get("filemanager")):
