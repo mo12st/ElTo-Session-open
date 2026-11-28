@@ -3,7 +3,9 @@
 // It composes the existing widgets from this directory instead of re-reading those services, so each
 // readout keeps one source of truth. Text only, in the dock's serif: no new icon files.
 // trayStyle, clockStyle and clockPosition come from the dock theme and are optional: "text" and "end" draw
-// exactly what this file drew before those tokens existed.
+// exactly what this file drew before those tokens existed. The workspace indicator sits between the
+// Settings entry and the clock, which is where the concept art puts it; it draws nothing unless KWin
+// reports more than one desktop.
 // See DOCK-SYSTEM-AREA.md for what is wired to real data and what is not.
 import Quickshell
 import Quickshell.Io
@@ -15,6 +17,11 @@ Row {
     property string trayStyle: "text"     // text | compact | none
     property string clockStyle: "text"    // text | pill | none
     property string clockPosition: "end"  // end: drawn here; start: drawn at the dock's leading edge
+    property string workspaceStyle: "text" // text | numbers | dots | none
+    property int workspaceCount: 0
+    property int workspaceIndex: -1
+    property string workspaceName: ""
+    signal pickWorkspace(int i)
     readonly property int readoutSize: root.trayStyle === "compact" ? Math.max(10, root.textSize - 3) : root.textSize
     spacing: root.trayStyle === "compact" ? 8 : 12
 
@@ -46,6 +53,17 @@ Row {
             anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
             onClicked: root.openControl()
         }
+    }
+
+    // workspace indicator: which virtual desktop is in use, before the clock
+    DockPager {
+        style: root.workspaceStyle
+        count: root.workspaceCount
+        index: root.workspaceIndex
+        name: root.workspaceName
+        textSize: root.textSize
+        anchors.verticalCenter: parent.verticalCenter
+        onPick: i => root.pickWorkspace(i)
     }
 
     // clock: plain text by default, a pill on request, hidden here when the world puts it at the start

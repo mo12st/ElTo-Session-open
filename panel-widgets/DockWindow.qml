@@ -261,7 +261,18 @@ PanelWindow {
 
             Rectangle { width: 1; height: win.dk.tile * 0.7; anchors.verticalCenter: parent.verticalCenter; color: Theme.divider }
 
-            DockSystemArea { textSize: 13; trayStyle: win.dock.look.trayStyle; clockStyle: win.dock.look.clockStyle; clockPosition: win.dock.look.clockPosition; anchors.verticalCenter: parent.verticalCenter }
+            DockSystemArea {
+                textSize: 13
+                trayStyle: win.dock.look.trayStyle
+                clockStyle: win.dock.look.clockStyle
+                clockPosition: win.dock.look.clockPosition
+                workspaceStyle: win.dock.look.workspaceStyle
+                workspaceCount: win.dock.desktops ? win.dock.desktops.count : 0
+                workspaceIndex: win.dock.desktops ? win.dock.desktops.currentIndex : -1
+                workspaceName: win.dock.desktops ? win.dock.desktops.currentName : ""
+                anchors.verticalCenter: parent.verticalCenter
+                onPickWorkspace: i => { if (win.dock.desktops) win.dock.desktops.switchTo(i) }
+            }
         }
     }
 
