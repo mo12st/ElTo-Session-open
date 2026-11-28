@@ -233,6 +233,164 @@ class FunctionsTest(unittest.TestCase):
             self.assertTrue(it["url"].startswith("http"))
 
 
+# ---------------------------------------------------------------- rices
+
+def make_targz(members, root="owner-repo-deadbee"):
+    import tarfile
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tf:
+        for name, data in members.items():
+            data = data.encode() if isinstance(data, str) else data
+            info = tarfile.TarInfo("%s/%s" % (root, name))
+            info.size = len(data)
+            tf.addfile(info, io.BytesIO(data))
+    return buf.getvalue()
+
+
+RICE_FILES = {
+    "LICENSE": "GPL-3.0 text\n",
+    "aurorae/paper/paperrc": "[General]\ncolor=#f5f1e6\n",
+    "aurorae/paper/deco.svg": '<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>',
+    "color-schemes/Paper.colors": "[General]\nName=Paper\n",
+    "wallpaper/paper/contents/metadata.desktop": "[Desktop Entry]\nName=Paper\n",
+    "wallpaper/paper/contents/images/1.png": b"\x89PNG\r\n\x1a\n",
+}
+RICE_TAR = make_targz(RICE_FILES)
+
+
+def rice_manifest(tmpdir, files=None):
+    files = files or RICE_FILES
+    mfiles = []
+    for rel, data in sorted(files.items()):
+        data = data.encode() if isinstance(data, str) else data
+        mfiles.append({"path": rel, "sha256": store.sha256(data), "size": len(data)})
+    m = {"format": "eltoricefiles/1", "id": "test-rice", "commit": "c" * 40,
+         "subsetDirs": ["aurorae"], "fileCount": len(mfiles),
+         "totalBytes": sum(f["size"] for f in mfiles), "files": mfiles}
+    path = os.path.join(tmpdir, "test-rice.files.json")
+    with open(path, "w") as f:
+        json.dump(m, f)
+    return path
+
+
+def rice_cards(tmpdir, manifest_path, **kw):
+    card = {"id": "test-rice", "label": "Test Rice", "author": "maker",
+            "license": "GPL-3.0", "tier": "A", "curated": True,
+            "commit": "c" * 40, "repo": "owner/repo",
+            "manifest": manifest_path, "version": "2026-01-01",
+            "upstream": "https://github.com/owner/repo",
+            "applies": ["window frames (Aurorae)"], "linksOnly": ["global theme (QML)"]}
+    card.update(kw)
+    path = os.path.join(tmpdir, "rices.json")
+    with open(path, "w") as f:
+        json.dump([card], f)
+    return path
+
+
+class RiceTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.payload = {"https://codeload.github.com/owner/repo/tar.gz/" + "c" * 40: RICE_TAR}
+
+        def fetcher(url, **kw):
+            if url in self.payload:
+                return self.payload[url]
+            raise OSError("no network in tests")
+
+        self.store = store.Store(root=os.path.join(self.tmp.name, "data"), fetcher=fetcher)
+        self.old_rices = store.RICES_JSON
+        store.RICES_JSON = rice_cards(self.tmp.name, rice_manifest(self.tmp.name))
+
+    def tearDown(self):
+        store.RICES_JSON = self.old_rices
+        self.tmp.cleanup()
+
+    def test_cards_flag_installable_vs_listing(self):
+        items = store.list_rices()
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]["kind"], "data")
+        self.assertNotIn("listingOnly", items[0])
+
+    def test_install_happy_path(self):
+        dest = self.store.install_rice("test-rice")
+        self.assertTrue(os.path.isfile(os.path.join(dest, "part.json")))
+        part = json.load(open(os.path.join(dest, "part.json")))
+        self.assertEqual(part["source"], "github-rice")
+        self.assertEqual(part["category"], "rices")
+        self.assertEqual(part["pinnedCommit"], "c" * 40)
+        self.assertEqual(part["license"], "GPL-3.0")
+        self.assertIn("aurorae/paper/paperrc", part["files"])
+        self.assertTrue(os.path.isfile(os.path.join(dest, "LICENSE")))
+        reg = self.store.list_installed()
+        self.assertEqual(len(reg), 1)
+        self.assertEqual(reg[0]["key"], "rice-test-rice")
+        self.assertEqual(reg[0]["pinnedCommit"], "c" * 40)
+
+    def test_sha_drift_refused(self):
+        bad = dict(RICE_FILES)
+        bad["LICENSE"] = "tampered\n"
+        self.payload[list(self.payload)[0]] = make_targz(bad)
+        self.assertRaises(store.StoreError, self.store.install_rice, "test-rice")
+        self.assertEqual(self.store.list_installed(), [])
+
+    def test_missing_member_refused(self):
+        bad = {k: v for k, v in RICE_FILES.items() if k != "LICENSE"}
+        self.payload[list(self.payload)[0]] = make_targz(bad)
+        self.assertRaises(store.StoreError, self.store.install_rice, "test-rice")
+
+    def test_uncurated_refused_before_download(self):
+        store.RICES_JSON = rice_cards(self.tmp.name, rice_manifest(self.tmp.name),
+                                      curated=False)
+        self.assertRaises(store.StoreError, self.store.install_rice, "test-rice")
+
+    def test_unknown_rice_refused(self):
+        self.assertRaises(store.StoreError, self.store.install_rice, "nope")
+
+    def test_code_in_manifest_refused(self):
+        bad = dict(RICE_FILES)
+        bad["tools/run.sh"] = "#!/bin/sh\n"
+        store.RICES_JSON = rice_cards(self.tmp.name, rice_manifest(self.tmp.name, bad))
+        self.payload[list(self.payload)[0]] = make_targz(bad)
+        self.assertRaises(store.StoreError, self.store.install_rice, "test-rice")
+
+    def test_evil_svg_member_refused(self):
+        bad = dict(RICE_FILES)
+        bad["aurorae/paper/deco.svg"] = '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
+        store.RICES_JSON = rice_cards(self.tmp.name, rice_manifest(self.tmp.name, bad))
+        self.payload[list(self.payload)[0]] = make_targz(bad)
+        self.assertRaises(store.StoreError, self.store.install_rice, "test-rice")
+
+    def test_manifest_commit_mismatch_refused(self):
+        store.RICES_JSON = rice_cards(self.tmp.name, rice_manifest(self.tmp.name),
+                                      commit="d" * 40)
+        self.assertRaises(store.StoreError, self.store.install_rice, "test-rice")
+
+
+class ShippedRicesTest(unittest.TestCase):
+    """The repo's own rices.json and manifests stay in sync."""
+
+    def test_shipped_cards_and_manifests(self):
+        items = store.list_rices()
+        self.assertGreaterEqual(len(items), 3)
+        curated = [i for i in items if i.get("curated")]
+        self.assertEqual(len(curated), 3)
+        for it in items:
+            self.assertTrue(it["upstream"].startswith("https://github.com/"))
+            self.assertTrue(it["license"])
+            if it.get("curated"):
+                mpath = os.path.join(os.path.dirname(STORE_PY), it["manifest"])
+                self.assertTrue(os.path.isfile(mpath), it["id"])
+                m = json.load(open(mpath))
+                self.assertEqual(m["format"], "eltoricefiles/1")
+                self.assertEqual(m["commit"], it["commit"])
+                self.assertEqual(m["fileCount"], len(m["files"]))
+                self.assertTrue(any(f["path"].split("/")[-1].startswith("LICENSE")
+                                    or f["path"] == "COPYING" for f in m["files"]),
+                                "license credit missing in %s" % it["id"])
+            else:
+                self.assertTrue(it.get("listingOnly"))
+
+
 
 
 class CliTest(unittest.TestCase):
@@ -267,6 +425,12 @@ class CliTest(unittest.TestCase):
         rc, out = self.run_cli("installed")
         self.assertEqual(rc, 0)
         self.assertEqual(out["items"], [])
+
+    def test_rices_lists_cards_without_network(self):
+        rc, out = self.run_cli("rices")
+        self.assertEqual(rc, 0)
+        self.assertTrue(out["ok"])
+        self.assertTrue(any(i.get("curated") for i in out["items"]))
 
     def test_kde_unavailable_without_network(self):
         self.env["ELTO_OCS_BASE"] = "http://127.0.0.1:9/ocs"
