@@ -9,7 +9,7 @@ ShellRoot {
     NotificationPopups {}
     Notch { drawer: drawer }
 
-    Dock {}
+    Dock { drawer: drawer }
 
     Component.onCompleted: Sound.play("session-start")
 }

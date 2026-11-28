@@ -32,7 +32,7 @@ run() { # label, expected resolved variant, options.dock value ("" = key absent)
   fi
   # Load failures only. "Unable to assign [undefined]" is pre-existing startup noise: Theme.qml
   # publishes its tokens before the base theme file lands, so every token warns once and then resolves.
-  if grep -aE 'is not a type|is not installed|Cannot load|Failed to load|module .* not found|ReferenceError|Cannot read property' "$log"; then
+  if grep -aE 'is not a type|is not installed|Cannot load|Failed to load|module .* not found|ReferenceError|Cannot read property|Unexpected token|Expected token|SyntaxError' "$log"; then
     echo "QML-LOAD-ERRORS ($label)"; fail=1
   fi
   kill "$pid" 2>/dev/null
