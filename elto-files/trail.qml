@@ -99,7 +99,7 @@ ShellRoot {
     function openPath(p) {            // folder: show in Trail. file: hand to the desktop.
         trailGoto = p; gotoSerial++; trailVisible = true
     }
-    function openFile(p) { Quickshell.execDetached(["xdg-open", p]) }
+    function openFile(p) { Quickshell.execDetached(["gio", "open", p]) }
     function refreshDrives() { drivesProc.running = true; refreshCounts() }
     function refreshCounts() {
         var names = ["Documents", "Downloads", "Pictures", "Music", "Videos"]
