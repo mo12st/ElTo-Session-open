@@ -38,7 +38,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, ".."))
 import bundle  # elto-worlds/bundle.py: shared data-only rules
 
-OCS_BASE = "https://api.opendesktop.org/ocs/v1"
+OCS_BASE = os.environ.get("ELTO_OCS_BASE", "https://api.opendesktop.org/ocs/v1")
 OCS_UA = "elto-worlds-store/1"
 MAX_DOWNLOAD = bundle.MAX_BYTES          # 150 MB
 MAX_LIST_XML = 8 * 1024 * 1024
@@ -309,6 +309,57 @@ class Store:
 
 # ---------------------------------------------------------------- archives
 
+def _jprint(obj):
+    sys.stdout.write(json.dumps(obj) + "\n")
+
+
+def cli(argv):
+    """JSON bridge for the manager UI (and anything else that can spawn a
+    process). Mirrors elto-world: {"ok": true, ...} or {"ok": false,
+    "error": ...} on stdout. Read-only except install/enable/disable/remove,
+    which stay inside the user data home.
+
+    store.py --cli worlds
+    store.py --cli kde <category>
+    store.py --cli functions
+    store.py --cli installed
+    store.py --cli install            (entry JSON on stdin)
+    store.py --cli enable <key> | --cli disable <key> | --cli remove <key>
+    """
+    st = Store()
+    try:
+        if argv == ["worlds"]:
+            _jprint({"ok": True, "items": list_worlds()})
+        elif len(argv) == 2 and argv[0] == "kde":
+            items = st.kde_listing(argv[1])
+            _jprint({"ok": True, "items": items, "stale": any(i.get("stale") for i in items)})
+        elif argv == ["functions"]:
+            _jprint({"ok": True, "items": list_functions()})
+        elif argv == ["installed"]:
+            _jprint({"ok": True, "items": st.list_installed()})
+        elif argv == ["install"]:
+            entry = json.load(sys.stdin)
+            dest = st.install_kde(entry)
+            _jprint({"ok": True, "path": dest})
+        elif len(argv) == 2 and argv[0] == "installarg":
+            entry = json.loads(argv[1])
+            dest = st.install_kde(entry)
+            _jprint({"ok": True, "path": dest})
+        elif len(argv) == 2 and argv[0] in ("enable", "disable"):
+            st.set_enabled(argv[1], argv[0] == "enable")
+            _jprint({"ok": True})
+        elif len(argv) == 2 and argv[0] == "remove":
+            st.remove(argv[1])
+            _jprint({"ok": True})
+        else:
+            _jprint({"ok": False, "error": "usage: worlds | kde <category> | functions | installed | install | installarg <entry-json> | enable <key> | disable <key> | remove <key>"})
+            return 1
+        return 0
+    except (StoreError, ValueError, OSError) as e:
+        _jprint({"ok": False, "error": str(e)})
+        return 1
+
+
 def _classify_names(names):
     """data | code, from member names alone (the pre-download hint comes
     from the OCS category; this is the content check that decides)."""
@@ -394,3 +445,10 @@ def _extract_archive(data, staging):
             if low.endswith(".svg"):
                 _check_svg(p)
     return names
+
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--cli":
+        sys.exit(cli(sys.argv[2:]))
+    sys.stderr.write(__doc__)
+    sys.exit(2)
