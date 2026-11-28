@@ -4,14 +4,18 @@
 // One Process, serialized queue: the UI is user-paced, and a single process
 // keeps callbacks unambiguous. Every reply is one JSON object on stdout.
 import QtQuick
+import Quickshell
 import Quickshell.Io
 
 QtObject {
     id: bridge
 
-    readonly property string storePath: Qt.resolvedUrl("../store.py").toString().replace("file://", "")
-    readonly property string eltoWorld: Qt.resolvedUrl("../../elto-world").toString().replace("file://", "")
-    readonly property string worldsDir: Qt.resolvedUrl("../../worlds").toString().replace("file://", "")
+    // Qt.resolvedUrl inside a QtObject returns the qrc:/qs-blackhole
+    // placeholder, not the real file; Quickshell.shellPath resolves
+    // against the shell root (the ui/ dir ManagerWindow.qml launches from).
+    readonly property string storePath: Quickshell.shellPath("../store.py")
+    readonly property string eltoWorld: Quickshell.shellPath("../../elto-world")
+    readonly property string worldsDir: Quickshell.shellPath("../../worlds")
 
     property var queue: []
     property bool busy: false
