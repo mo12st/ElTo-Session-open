@@ -133,6 +133,50 @@ class ApplyWallpaperTest(unittest.TestCase):
         self.assertTrue(any("not installed" in w and "user-pick.jpg" in w
                             for w in out["warnings"]), out["warnings"])
 
+    def add_launcher_asset(self):
+        asset_dir = os.path.join(self.wdir, "assets")
+        os.makedirs(asset_dir, exist_ok=True)
+        with open(os.path.join(asset_dir, "launcher.png"), "wb") as f:
+            f.write(b"\x89PNG\r\n\x1a\n")
+
+    def world_with_dock(self):
+        world = dict(WORLD)
+        world["dock"] = {"launcherMark": "logo", "launcherLogo": "assets/launcher.png"}
+        with open(os.path.join(self.wdir, "world.json"), "w") as f:
+            json.dump(world, f)
+
+    def test_launcher_logo_rewritten_absolute(self):
+        # Dock.qml resolves relative launcherLogo against the shell root, so
+        # apply must write an absolute path into the overlay.
+        self.world_with_dock()
+        self.add_launcher_asset()
+        rc, out = self.cli("apply", self.wdir)
+        self.assertEqual(rc, 0, out)
+        dock = self.read_overlay()["dock"]
+        self.assertEqual(dock.get("launcherMark"), "logo")
+        self.assertEqual(dock.get("launcherLogo"),
+                         os.path.join(self.wdir, "assets", "launcher.png"))
+        self.assertTrue(os.path.isabs(dock["launcherLogo"]))
+        self.assertTrue(os.path.isfile(dock["launcherLogo"]))
+
+    def test_launcher_logo_missing_asset_falls_back_to_label(self):
+        self.world_with_dock()
+        rc, out = self.cli("apply", self.wdir)
+        self.assertEqual(rc, 0, out)
+        dock = self.read_overlay()["dock"]
+        self.assertNotIn("launcherLogo", dock)
+        self.assertTrue(any("launcherLogo" in w and "label" in w
+                            for w in out["warnings"]), out["warnings"])
+
+    def test_launcher_logo_unknown_mark_warns(self):
+        world = dict(WORLD)
+        world["dock"] = {"launcherMark": "banana"}
+        with open(os.path.join(self.wdir, "world.json"), "w") as f:
+            json.dump(world, f)
+        rc, out = self.cli("apply", self.wdir)
+        self.assertEqual(rc, 0, out)
+        self.assertTrue(any("launcherMark" in w for w in out["warnings"]), out["warnings"])
+
 
 if __name__ == "__main__":
     unittest.main()

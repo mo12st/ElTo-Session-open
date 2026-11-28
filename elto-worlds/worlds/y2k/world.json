@@ -67,10 +67,7 @@
     "systemTheme": "breeze"
   },
   "options": {
-    "dock": {
-      "launcherMark": "logo",
-      "launcherLogo": "assets/launcher.png"
-    },
+    "dock": "island",
     "notch": "clock",
     "wallpaper": "assets/wallpaper.jpg",
     "motion": "soft",
@@ -80,6 +77,10 @@
         "label": "Chrome navy"
       }
     ]
+  },
+  "dock": {
+    "launcherMark": "logo",
+    "launcherLogo": "assets/launcher.png"
   },
   "sounds": {
     "enabled": true,
