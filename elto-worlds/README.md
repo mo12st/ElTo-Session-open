@@ -74,6 +74,13 @@ executables, files over 25 MB, bundles over 100 MB, missing licenses and checksu
 are all rejected. There is no install script mechanism and no online store; bundles move by
 file sharing only.
 
+Rendering is built into ElTo (user decision, option 1): the SDDM greeter, lock screen,
+Plymouth boot splash and GRUB menu are fixed OS components that READ bundle data; they are
+never loaded from it. Bundles therefore contain no QML and no scripts - pack and unpack
+reject them, with one exception: an inert .desktop (no Exec=/TryExec=) such as an Aurorae
+plugin descriptor. The data contract for the built-in renderers is specified in HANDOFF.md
+section 5.
+
 ### Bundle commands (hardened reader, `bundle.py`)
 
 ```
