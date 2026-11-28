@@ -65,7 +65,10 @@
     "systemTheme": "breeze"
   },
   "options": {
-    "dock": "island",
+    "dock": {
+      "launcherMark": "logo",
+      "launcherLogo": "assets/launcher.png"
+    },
     "notch": "clock",
     "wallpaper": "assets/wallpaper.jpg",
     "motion": "soft",

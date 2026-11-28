@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Waybar",
+    "category": "bars",
+    "url": "https://github.com/Alexays/Waybar",
+    "description": "Highly customizable bar for Wayland. Code, not data: listed for honesty, installed from the distro, never from the store.",
+    "license": "MIT"
+  },
+  {
+    "name": "eww",
+    "category": "widgets",
+    "url": "https://github.com/elkowar/eww",
+    "description": "Standalone widget system. Code, not data: listed for honesty, installed from the distro, never from the store.",
+    "license": "MIT"
+  },
+  {
+    "name": "wofi",
+    "category": "launchers",
+    "url": "https://hg.sr.ht/~scoopta/wofi",
+    "description": "Launcher/menu for Wayland. Code, not data: listed for honesty, installed from the distro, never from the store.",
+    "license": "GPL-3.0"
+  },
+  {
+    "name": "mako",
+    "category": "notifications",
+    "url": "https://github.com/emersion/mako",
+    "description": "Lightweight notification daemon for Wayland. Code, not data: listed for honesty, installed from the distro, never from the store.",
+    "license": "MIT"
+  }
+]
