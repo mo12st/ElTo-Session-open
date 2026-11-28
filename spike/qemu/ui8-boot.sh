@@ -153,7 +153,7 @@ $SC /tmp/m.sh /tmp/pick.py /tmp/key.py /tmp/cli.sh dev@127.0.0.1:/tmp/
 $S 'pkill -f "[w]elcome.qml"; sleep 1'
 echo "== open manager"
 $S 'sudo bash /tmp/m.sh; pgrep -a quickshell | cut -c1-120'
-click 140 609; sleep 8; click 501 298; sleep 25
+click 140 609; sleep 8; shot /tmp/v0.ppm v0_rices; click 501 344; sleep 25; shot /tmp/v0b.ppm v0b_after_install
 click 188 104; sleep 5; shot /tmp/v1.ppm v1_installed
 click 900 350; sleep 3; shot /tmp/x0.ppm x0_parts_open
 $S 'md5sum ~/.config/plasma-org.kde.plasma.desktop-appletsrc ~/.config/elto/theme.json 2>&1 | head -3; ls -la ~/.config/elto 2>&1 | head'
