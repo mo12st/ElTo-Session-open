@@ -1,0 +1,1160 @@
+{
+  "commit": "5eb5020c327e133ff147cf1f47b5ab2807f11ae3",
+  "fileCount": 229,
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "fbbdd5ec489ab07265bcd7ea9072ff0a4f9c539294567ed346fe3cbc612a1aaf",
+      "size": 35067
+    },
+    {
+      "path": "aurorae/Graphite-dark-rimless/decoration.svg",
+      "sha256": "d74e977fbd743ced4796a65f5f7f1ebef4bc21d0ae00b1d81d15a5a940e678a9",
+      "size": 8189
+    },
+    {
+      "path": "aurorae/Graphite-dark-round-rimless/decoration.svg",
+      "sha256": "cbc2306295ab1a2cbb36ebf998d71e089f645a212a7acd594d58921bbf11c611",
+      "size": 17379
+    },
+    {
+      "path": "aurorae/Graphite-dark-round/Graphite-dark-roundrc",
+      "sha256": "a7cf2f41a825f938e2b81fae086e9d151a68bdcfb98ca5db424dca90354b9b04",
+      "size": 898
+    },
+    {
+      "path": "aurorae/Graphite-dark-round/alldesktops.svg",
+      "sha256": "a384b51a41f411b2ff34a5a3b4b2ad3e472853574fcd0ebf511a5c3e6611b57b",
+      "size": 3442
+    },
+    {
+      "path": "aurorae/Graphite-dark-round/close.svg",
+      "sha256": "aac54a817c9a30cd4945dbf3d4a13de850b61925511628e4153cd6998b3353cf",
+      "size": 6437
+    },
+    {
+      "path": "aurorae/Graphite-dark-round/decoration.svg",
+      "sha256": "dfb6619ae96af91222553efdeb57ca759ba36ac0ac1692f03f7d3771939074e0",
+      "size": 18165
+    },
+    {
+      "path": "aurorae/Graphite-dark-round/keepabove.svg",
+      "sha256": "f105f712593886bb2fe4f2fadc2027a23a4cc3eef343cc0bc013cf8cc43cce22",
+      "size": 3890
+    },
+    {
+      "path": "aurorae/Graphite-dark-round/keepbelow.svg",
+      "sha256": "c9f332d4d81eaeae2d4092734eaf1235596b79d363df552eb7a68a4e8b779938",
+      "size": 4079
+    },
+    {
+      "path": "aurorae/Graphite-dark-round/maximize.svg",
+      "sha256": "5e644110747cbd1e2c934bd5452e0141a61eebea9153553a7d8514a784176ffa",
+      "size": 5782
+    },
+    {
+      "path": "aurorae/Graphite-dark-round/metadata.desktop",
+      "sha256": "a2994cad623f9d53c45829a02a5cc72d87c4aea70f1208e082ae7c67bc02629f",
+      "size": 348
+    },
+    {
+      "path": "aurorae/Graphite-dark-round/metadata.json",
+      "sha256": "289e552e2a4e7474ba1548a4f503c07ad57aca4d831e3cbe0399ee8f428ceed3",
+      "size": 642
+    },
+    {
+      "path": "aurorae/Graphite-dark-round/minimize.svg",
+      "sha256": "b11b0e6d59d561062d04469c01b2a8baae6bc20efc246799ea35b9a6514b6e89",
+      "size": 4504
+    },
+    {
+      "path": "aurorae/Graphite-dark-round/restore.svg",
+      "sha256": "6ce104f78ceef67a58f7846db97fdfd836e36d460197e0285a74ea7afd428553",
+      "size": 7435
+    },
+    {
+      "path": "aurorae/Graphite-dark/Graphite-darkrc",
+      "sha256": "1313e026f252943137b65750517b6e0bf077e6754a8b9d64f486de16ca4a205c",
+      "size": 895
+    },
+    {
+      "path": "aurorae/Graphite-dark/alldesktops.svg",
+      "sha256": "a384b51a41f411b2ff34a5a3b4b2ad3e472853574fcd0ebf511a5c3e6611b57b",
+      "size": 3442
+    },
+    {
+      "path": "aurorae/Graphite-dark/close.svg",
+      "sha256": "aac54a817c9a30cd4945dbf3d4a13de850b61925511628e4153cd6998b3353cf",
+      "size": 6437
+    },
+    {
+      "path": "aurorae/Graphite-dark/decoration.svg",
+      "sha256": "8cd86d9b42d0337bbfa09975a3834718373e7cc1259eb6ad09c9b9f8a4c536bc",
+      "size": 8653
+    },
+    {
+      "path": "aurorae/Graphite-dark/keepabove.svg",
+      "sha256": "f105f712593886bb2fe4f2fadc2027a23a4cc3eef343cc0bc013cf8cc43cce22",
+      "size": 3890
+    },
+    {
+      "path": "aurorae/Graphite-dark/keepbelow.svg",
+      "sha256": "c9f332d4d81eaeae2d4092734eaf1235596b79d363df552eb7a68a4e8b779938",
+      "size": 4079
+    },
+    {
+      "path": "aurorae/Graphite-dark/maximize.svg",
+      "sha256": "5e644110747cbd1e2c934bd5452e0141a61eebea9153553a7d8514a784176ffa",
+      "size": 5782
+    },
+    {
+      "path": "aurorae/Graphite-dark/metadata.desktop",
+      "sha256": "d356825386b5c0357583ec2c76d300275f0c8d1da18b7959dd42fed6924bd812",
+      "size": 308
+    },
+    {
+      "path": "aurorae/Graphite-dark/metadata.json",
+      "sha256": "451aef6abdda9c7cbe949a4646d4f990f63ed27b906d381c8ad253e9abfda76b",
+      "size": 624
+    },
+    {
+      "path": "aurorae/Graphite-dark/minimize.svg",
+      "sha256": "b11b0e6d59d561062d04469c01b2a8baae6bc20efc246799ea35b9a6514b6e89",
+      "size": 4504
+    },
+    {
+      "path": "aurorae/Graphite-dark/restore.svg",
+      "sha256": "6ce104f78ceef67a58f7846db97fdfd836e36d460197e0285a74ea7afd428553",
+      "size": 7435
+    },
+    {
+      "path": "aurorae/Graphite-light-rimless/decoration.svg",
+      "sha256": "3cab9d74c0a897d5784a328d996ba480f4feb90e67149f6c74120b0c0035952e",
+      "size": 7812
+    },
+    {
+      "path": "aurorae/Graphite-light-round-rimless/decoration.svg",
+      "sha256": "8a95ea0ea034c1f4c8574bb979f7a060035c370f0601786c584084d47f53d0e1",
+      "size": 11004
+    },
+    {
+      "path": "aurorae/Graphite-light-round/Graphite-light-roundrc",
+      "sha256": "3daa40ec33e53b235b644a896d9a39ac246f651454fcb527c2ffab58ce5e3330",
+      "size": 914
+    },
+    {
+      "path": "aurorae/Graphite-light-round/alldesktops.svg",
+      "sha256": "7c29e47613721d1a46b616f490af8656ff7cadfb2db76bacb5d11a86d5bab800",
+      "size": 3442
+    },
+    {
+      "path": "aurorae/Graphite-light-round/close.svg",
+      "sha256": "5f77d8ff6b38b7cf2b2afd3c69ed98e3affbd739adb669a77d4699a1a55af4c1",
+      "size": 6436
+    },
+    {
+      "path": "aurorae/Graphite-light-round/decoration.svg",
+      "sha256": "b440ff4c4439a82a2b3337984015b394550d0a924fb9e45fa0360f6cfa119c37",
+      "size": 11887
+    },
+    {
+      "path": "aurorae/Graphite-light-round/keepabove.svg",
+      "sha256": "b804caacd2d2590f79464ea32b14af6dd881788faf7132d3c3f6964e2b77a8ba",
+      "size": 3890
+    },
+    {
+      "path": "aurorae/Graphite-light-round/keepbelow.svg",
+      "sha256": "ed7cae0ba34322223e89dbb7e2ca313622b16b9c19ad4a86861bb2a3c37bd0d7",
+      "size": 4079
+    },
+    {
+      "path": "aurorae/Graphite-light-round/maximize.svg",
+      "sha256": "1ae1c1a13a7deca9bf309664a9b3eddd8c734d256313ff72deb37d8435168862",
+      "size": 5789
+    },
+    {
+      "path": "aurorae/Graphite-light-round/metadata.desktop",
+      "sha256": "8f0ad0df47662d8ae048f27fdced882eb07d0f97875978f24e69bc4710ee1900",
+      "size": 322
+    },
+    {
+      "path": "aurorae/Graphite-light-round/metadata.json",
+      "sha256": "a8101fae94d9239bf45312de6288783e2f6c5234ef8d8c96ce44829c9e25a5c0",
+      "size": 645
+    },
+    {
+      "path": "aurorae/Graphite-light-round/minimize.svg",
+      "sha256": "8681a64cf9943cc3f614b8dbeb84eb3f72a8c6728af1407c2e04ed075128e73a",
+      "size": 4529
+    },
+    {
+      "path": "aurorae/Graphite-light-round/restore.svg",
+      "sha256": "7a2d21b5673325cb36f912dc0c0be4ad7264b29e18e64b0c22633ddf799cfa60",
+      "size": 7443
+    },
+    {
+      "path": "aurorae/Graphite-light/Graphite-lightrc",
+      "sha256": "9c744115d4f18b7a83dab01f9ab5e4475898bfc352819f527cf514182b4124fb",
+      "size": 914
+    },
+    {
+      "path": "aurorae/Graphite-light/alldesktops.svg",
+      "sha256": "7c29e47613721d1a46b616f490af8656ff7cadfb2db76bacb5d11a86d5bab800",
+      "size": 3442
+    },
+    {
+      "path": "aurorae/Graphite-light/close.svg",
+      "sha256": "5f77d8ff6b38b7cf2b2afd3c69ed98e3affbd739adb669a77d4699a1a55af4c1",
+      "size": 6436
+    },
+    {
+      "path": "aurorae/Graphite-light/decoration.svg",
+      "sha256": "3a13401009caaa558e3e1c7294a390f50c2f18b930512d15042789533699ab88",
+      "size": 8678
+    },
+    {
+      "path": "aurorae/Graphite-light/keepabove.svg",
+      "sha256": "b804caacd2d2590f79464ea32b14af6dd881788faf7132d3c3f6964e2b77a8ba",
+      "size": 3890
+    },
+    {
+      "path": "aurorae/Graphite-light/keepbelow.svg",
+      "sha256": "ed7cae0ba34322223e89dbb7e2ca313622b16b9c19ad4a86861bb2a3c37bd0d7",
+      "size": 4079
+    },
+    {
+      "path": "aurorae/Graphite-light/maximize.svg",
+      "sha256": "1ae1c1a13a7deca9bf309664a9b3eddd8c734d256313ff72deb37d8435168862",
+      "size": 5789
+    },
+    {
+      "path": "aurorae/Graphite-light/metadata.desktop",
+      "sha256": "51edb8c87159e041057cab712ff79168b952c126be5d1582d94cb77803fc51b1",
+      "size": 310
+    },
+    {
+      "path": "aurorae/Graphite-light/metadata.json",
+      "sha256": "66d82b7fd8704654a74f9ace8bd7580fb1ac94736cd28a4b379849fa63785cd8",
+      "size": 627
+    },
+    {
+      "path": "aurorae/Graphite-light/minimize.svg",
+      "sha256": "8681a64cf9943cc3f614b8dbeb84eb3f72a8c6728af1407c2e04ed075128e73a",
+      "size": 4529
+    },
+    {
+      "path": "aurorae/Graphite-light/restore.svg",
+      "sha256": "7a2d21b5673325cb36f912dc0c0be4ad7264b29e18e64b0c22633ddf799cfa60",
+      "size": 7443
+    },
+    {
+      "path": "color-schemes/GraphiteDark.colors",
+      "sha256": "3a6fc67f29973e0bde558b0f05f2a31c453c02f6e50d819a7795e8a945553eea",
+      "size": 3855
+    },
+    {
+      "path": "color-schemes/GraphiteLight.colors",
+      "sha256": "02cdaa74714263ceadb2cb9baa8f97aa1003c985f0877df17e0b44bba3de7afd",
+      "size": 3823
+    },
+    {
+      "path": "color-schemes/GraphiteNordDark.colors",
+      "sha256": "61c5f3bb53d1d03105b94644957ab9847f13cbe48dfdc4b41cc5a01aada735b9",
+      "size": 3858
+    },
+    {
+      "path": "color-schemes/GraphiteNordLight.colors",
+      "sha256": "f195f1600e05f05e590895a00e4ca94def9854db16f551315da34eff21619586",
+      "size": 3836
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-dark/metadata.desktop",
+      "sha256": "6504e8302d994292a0fb68047aa3c95ad2e1aa9d408fd3195a76a37406f68ec3",
+      "size": 548
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-dark/metadata.json",
+      "sha256": "0660e467ee47145fc274a26a910b35a9d56058178d443498506868ca306c33e9",
+      "size": 509
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-dark/plasmarc",
+      "sha256": "61e8cbe19e4250e2606e7c02402a3f62274d543e9934714b14df8a45cd29a26f",
+      "size": 203
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-dark/solid/widgets/tooltip.svg",
+      "sha256": "39bc7e344605dc814f6de46d4594cca5a37fc757a09c6dceadbe7595aaee39dc",
+      "size": 20330
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-dark/translucent/widgets/tooltip.svg",
+      "sha256": "6094b5eebac796f3050281a98088df1b87194c485a6fad5990e9e6031995923b",
+      "size": 14936
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-dark/widgets/tooltip.svg",
+      "sha256": "6094b5eebac796f3050281a98088df1b87194c485a6fad5990e9e6031995923b",
+      "size": 14936
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-light/metadata.desktop",
+      "sha256": "b471b4fa28997e54f7aa1c052a1d07b3a7f85a6d39a66d724e2a4c4f4583b3ac",
+      "size": 551
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-light/metadata.json",
+      "sha256": "a943f03cb4c1325280ea93b8d646fb23721ba7dbd9f70eb7e2285eecaaccf77e",
+      "size": 512
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-light/plasmarc",
+      "sha256": "de25fd4e4b61484a6aa61d992a9a6496ea3fff5939661c07e1ce742ec83ecf3f",
+      "size": 204
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-light/solid/widgets/tooltip.svg",
+      "sha256": "ef6800f1dc7ca4bf36aa683269e6c3f85c9dd86d224eaea5c5dd1907bffba26b",
+      "size": 20330
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-light/translucent/widgets/tooltip.svg",
+      "sha256": "49a751fff9cfcc87f2930e0e6ee4b3590cc2218bfd4dd5387757ce80abee4ede",
+      "size": 14936
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-light/widgets/tooltip.svg",
+      "sha256": "49a751fff9cfcc87f2930e0e6ee4b3590cc2218bfd4dd5387757ce80abee4ede",
+      "size": 14936
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-dark/metadata.desktop",
+      "sha256": "578e94f947d51405f24a51efb5f3c8ab7cf04384306e64bd54c77d004e05003d",
+      "size": 563
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-dark/metadata.json",
+      "sha256": "d32ff1e23882ed84d703be439c17f6f47781428c803b403db6759e50b481b4c0",
+      "size": 524
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-dark/plasmarc",
+      "sha256": "f182ad42617e687c5d7b4ec7c291cffbb1206d78296acdf1ebddc72a3326a548",
+      "size": 208
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-dark/solid/widgets/tooltip.svg",
+      "sha256": "e4b264095329541eff25b13f5f03f266cef31811d4f73fc63ac0739b649a5767",
+      "size": 20330
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-dark/translucent/widgets/tooltip.svg",
+      "sha256": "58107bfc3ee7d0abc8eceda2a0f08465c41d329a0fc2c2f1fae66ab4c5a17b4b",
+      "size": 14936
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-dark/widgets/tooltip.svg",
+      "sha256": "58107bfc3ee7d0abc8eceda2a0f08465c41d329a0fc2c2f1fae66ab4c5a17b4b",
+      "size": 14936
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-light/metadata.desktop",
+      "sha256": "3c6a458cc731b60b025880c6ccfc28238db362028f65246ac13d1f67de229d06",
+      "size": 566
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-light/metadata.json",
+      "sha256": "7291d9cc984a68f066a47fc461ae80e91bcea055a09ef6bf08f45a01b3e97479",
+      "size": 527
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-light/plasmarc",
+      "sha256": "d37df2824030f634368c1d20740b3ab4a30b56e06b65a6c6b16876061aaca945",
+      "size": 209
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-light/solid/widgets/tooltip.svg",
+      "sha256": "7d016cb24c37e4d257fc6c412e36680afb9d7ffa97ec960b2768eb8cd597e008",
+      "size": 20330
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-light/translucent/widgets/tooltip.svg",
+      "sha256": "eb29c762756c709d4a016d849a484bf2e2100a6b61cbddb7a4f22fbcf1e49293",
+      "size": 14936
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-nord-light/widgets/tooltip.svg",
+      "sha256": "eb29c762756c709d4a016d849a484bf2e2100a6b61cbddb7a4f22fbcf1e49293",
+      "size": 14936
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-rimless/dialogs/background.svgz",
+      "sha256": "8bb0ca529ef8c8dcae2daaa9fc4f90aeabdeb1a2081643c4eb80d34a4bb9b2e8",
+      "size": 3584
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-rimless/solid/dialogs/background.svgz",
+      "sha256": "fbe5813d719aa923670574f8830e4a9330d812182863d3afe8dc86f76b9126f9",
+      "size": 3655
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-rimless/solid/widgets/panel-background.svg",
+      "sha256": "c146e907d2ababb7d48641ad09cfca1134b5662a8196f18471ed9d44c04434ec",
+      "size": 11928
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-rimless/translucent/dialogs/background.svgz",
+      "sha256": "53bb153227c971ff078f53da5795e76465871e756f9ff09cd3958a1576832c5e",
+      "size": 3645
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-rimless/translucent/widgets/background.svg",
+      "sha256": "ff0db755ec523148592c6a4c1df36af55ecda651c363fe51c1eeb6232d404912",
+      "size": 19177
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-rimless/translucent/widgets/panel-background.svg",
+      "sha256": "52929993e0aa8d4fc43076da6727a0894225c9b0cad200dfafbd8f13c4168f5a",
+      "size": 11915
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-rimless/widgets/background.svg",
+      "sha256": "0d8eb7b58b8388fa2524d9fab529ce7fffe80bbf35e8a9edf6b961df4cafb0ae",
+      "size": 19180
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-rimless/widgets/panel-background.svg",
+      "sha256": "52929993e0aa8d4fc43076da6727a0894225c9b0cad200dfafbd8f13c4168f5a",
+      "size": 11915
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite-rimless/widgets/translucentbackground.svg",
+      "sha256": "f646a873415d38c32eb8679c01fb71df6708490c162d7a6ffce83acefd4d46fe",
+      "size": 11654
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/dialogs/background.svgz",
+      "sha256": "71715d66a2921d035c46f8b1d5e6aa0939b58223f7996185d82e28024819a632",
+      "size": 3420
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/akonadi.svgz",
+      "sha256": "76a36f82d330628bf659c18146e650a33dbbb76128dfcc524198114285663198",
+      "size": 448
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/akregator.svgz",
+      "sha256": "9d6e3866660ced8ea9b586c23ac3376dba79d7a275f9a561de30844ec2d78137",
+      "size": 439
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/amarok.svgz",
+      "sha256": "6e58f42be781fe174474fcc1f3a849c2d292ecf5e2b35094ab448d69d2564a23",
+      "size": 1970
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/applications.svgz",
+      "sha256": "a3939ad368079524c4246d6ddf3a76f29e458869b5b3f94d504b35968557a03f",
+      "size": 1349
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/apport.svgz",
+      "sha256": "c311bf1376f21aad4815b011a8f34b4567c7a0be000167723d8339c0c78e2362",
+      "size": 467
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/audio.svgz",
+      "sha256": "03b79c23e91f714cc9a480c1010a52228a79917aef34ba355338c37783ebae7d",
+      "size": 3395
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/battery.svgz",
+      "sha256": "de4b6436657d55868e41d3b767f0034aa82567c30586946b2cbb7b4e1f9d858d",
+      "size": 3989
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/bookmarks.svgz",
+      "sha256": "d9bbadf3d7f18c7622165485dc0080ec9223fe482be86485972e89ae90828391",
+      "size": 1658
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/cantata.svgz",
+      "sha256": "7bccdc5e8e6497a781824ca93c4bbba983db30477e875df753c0d1a2c5dc2581",
+      "size": 1225
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/compass.svgz",
+      "sha256": "c29221a993a710c20ce620fe742746d21ba04c4386f4efc46d70879d53033992",
+      "size": 1253
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/computer.svgz",
+      "sha256": "aaadc82365def4f7441bf2000a61cedc7752c9af91e9ff2922000bcf18e8a168",
+      "size": 1336
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/configure.svgz",
+      "sha256": "aebb015d66389847595e73a5a88f9cab12e6a21005842f8cdecaa7bc1abb59c2",
+      "size": 5683
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/device.svgz",
+      "sha256": "83653feb407609e0f38493d02ff2f7ab2dbde9613c61b824b66cae6c54f4f069",
+      "size": 1529
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/disk.svgz",
+      "sha256": "9edb6dcdaf1e1d9cf0b941e2ea7589b1b29738e383714619d77bb787a50effa7",
+      "size": 1791
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/distribute.svgz",
+      "sha256": "07e1b941f3a66e09286b36064d15bd169138fbc6fe1ea475fa84fc1e00b488cb",
+      "size": 558
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/document.svgz",
+      "sha256": "c583c8841f768f61009f7db7ddf51c38f85d7654aa03da2dcdaae9c930187e07",
+      "size": 1772
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/drive.svgz",
+      "sha256": "c5aee8a64897469d20d76cb87a782d9d6d0c9d907f8add7bc6ab2cf885195333",
+      "size": 1188
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/edit.svgz",
+      "sha256": "c24ec77d0c02b6f5cf7b0a0e7b2f3f3f4c593e1fe17a9f59e131cb1fb2dc0fca",
+      "size": 2258
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/fcitx.svgz",
+      "sha256": "edd11d4c76a9a091b3160ef85d5246b163e78731c30427ec3060ba813a73a36d",
+      "size": 17296
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/go.svgz",
+      "sha256": "65d2c057c3b070832c40625b78322b0b9f091b44c9b7b9a88940653f21f97fa2",
+      "size": 1387
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/ime.svgz",
+      "sha256": "dfe1cc8cd380b3cde210ec0d9ecc399f61e408ce5afc1bb1e756a8530d3785c4",
+      "size": 11208
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/input.svgz",
+      "sha256": "6fc53e4bcfd95e4ca4a0a40493c7c4f213b754c484d48a493cab344cc86a9ea2",
+      "size": 5362
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kalarm.svgz",
+      "sha256": "7bbee0c7a75b3ec8363127ba862eb746846ad55914029f82ae405b0fa6357b59",
+      "size": 787
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kate.svgz",
+      "sha256": "8cae62d9a66a744ccdbe6553f11611de429b28739e81a532b20a1a911c48f7c7",
+      "size": 950
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kdeconnect.svgz",
+      "sha256": "94063f647501eee7913dbae063ebe5b2d579c48f57fcdae0e88f61339205adf0",
+      "size": 1444
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kdf.svgz",
+      "sha256": "90e706a978aef3eaf36b6f0bd89bd74b02a05048e2bba4245303a3f0d3c6370d",
+      "size": 1210
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/keyboard.svgz",
+      "sha256": "eb0a21a9747702bfd23ac010f28d11ce013ddf37c994d377907409a95d296d9a",
+      "size": 1697
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kget.svgz",
+      "sha256": "e2ccd7ef3519dd4a812712ad7bae8c4a3db972887bee507e624cb0cfbd0de114",
+      "size": 1882
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kgpg.svgz",
+      "sha256": "7e2f4f7d1e0f45d31d6bc4fad523bfa3ee8458ed9e5c75bb5abd52523441cc3e",
+      "size": 1186
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kleopatra.svgz",
+      "sha256": "ba9c6a0991c7164c7513cafca6706136aba8a8165a8093aa72702de680d88def",
+      "size": 903
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/klipper.svgz",
+      "sha256": "4f260086e56ce69a3d684a1a60e56b659ed08009306c6da90202c7b063c86d9e",
+      "size": 1672
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kmail.svgz",
+      "sha256": "07f0991984a168909b2aa03166987af9f68c69e100e97f8373daaf2724cbf52d",
+      "size": 930
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/knotes.svgz",
+      "sha256": "bb1276d93dea6aef320cdbae489628ba068a61fb79ce185c89ca63e56888d601",
+      "size": 903
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/konv_message.svgz",
+      "sha256": "9f12c002dd7557038f3843085daba43868211a62023818160c7c3220f6bca285",
+      "size": 1151
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/konversation.svgz",
+      "sha256": "8f7b674d0606de2abb6695c34cf8aa47607a3cfe47a9e8b7e4f862d8ba3e81df",
+      "size": 1048
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kopete.svgz",
+      "sha256": "8f396f5a0b850d56004a3f9f2de9057ea020f68ab0180b9ee5b7bd487c8b020a",
+      "size": 478
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/korgac.svgz",
+      "sha256": "fbeb4b02c7ed4d68eaec25720aa16f45ad6b12597d7661872b7c3e4995c3c59a",
+      "size": 325
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kpackagekit.svgz",
+      "sha256": "a234118ff494b1b5911c27fc891a7d3f850c5392be411f9e6a1924c406d34630",
+      "size": 1386
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kruler.svgz",
+      "sha256": "c1d5599b5c81934ddcf12ab0ec782553212c0fdd71a5b9c785bc1b6441671a8a",
+      "size": 424
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kteatime.svgz",
+      "sha256": "e7094e807817d7095f1e8dae71dd22dfb79eb2b3b5792297219874a3ad0349c6",
+      "size": 421
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/ktorrent.svgz",
+      "sha256": "1622a221f4cc8b9ac457f1ae7028adbb1a8c3de5279b308fbda97b523957b524",
+      "size": 1636
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/kup.svgz",
+      "sha256": "fa0a97c01ea98562e8f4f7fce62bc2ccad897bfa8e47ff3cb863bed3f61d72dd",
+      "size": 1252
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/list.svgz",
+      "sha256": "579b31dd9b7d9cb9227d14b481a5e0ff20fddc7ca73180e25d8041a0a22187ac",
+      "size": 1034
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/mail.svgz",
+      "sha256": "b24d177ce1a6c2fc91dcea86876692f9c14bfe8e77ad11dc91ab2b0d7b822de0",
+      "size": 1163
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/manjaro.svgz",
+      "sha256": "b605bca506463b760173ba2a66873301636e76c1c310ef29e235a30b77d678a7",
+      "size": 1589
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/media.svgz",
+      "sha256": "de7e09bb47a50364137fb5e29a8bead25189d030042e861e2ab2eac5fdbcb635",
+      "size": 5931
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/mobile.svgz",
+      "sha256": "eed087fbf7db382b46f17ea1e595cc79ff5c5ea9f2999f577575401794dff4ea",
+      "size": 926
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/nepomuk.svgz",
+      "sha256": "f2297093c7e17134bc30ad26adfc6e12006497da056ffcb910fd1c41ac3c6fcd",
+      "size": 1148
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/network.svgz",
+      "sha256": "701d867ba3888e5f4421b9d97881f05ec6903593265b6de2f20959fb1e01d12c",
+      "size": 16186
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/notification.svgz",
+      "sha256": "6a7695ab5ec2862916355019e36c7e2cd314ee2b3f85735e01caa6c32c7cb438",
+      "size": 3137
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/osd.svgz",
+      "sha256": "252ff6c2640c3f883bb23c029e8c29f52d0b45301aa48f3c1fcd1f182c04f904",
+      "size": 8587
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/pamac.svgz",
+      "sha256": "7491744432e436621fa87e67f813fac632aa0d010505e3596e79064963c8dc1b",
+      "size": 3408
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/phone.svgz",
+      "sha256": "0d1e41fc7c18050ef04c566a395b3ba91f759d0be28f3288e382431768c2e7b5",
+      "size": 1843
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/plasmavault.svgz",
+      "sha256": "25cc270a2246834c795ffcb2e4b605d84fccaa92ad05ae094687cff74ce82f84",
+      "size": 1551
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/plasmavault_error.svgz",
+      "sha256": "d0c7ba4312d2cfa1587bc7645e66ae8931b52090cf1d400ad308f57aae6ab09a",
+      "size": 1454
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/preferences.svgz",
+      "sha256": "8dd7321f1608f1fd517262e6b79eedb476ec1d9d2df268e66eceabaf44f13316",
+      "size": 3364
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/printer.svgz",
+      "sha256": "f0b05b7c1725b81d82d0ce13e64be212a44f136428024cf23ecd0ea913265c58",
+      "size": 1422
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/quassel.svgz",
+      "sha256": "3c1755940aa09eba6c68f974d707f2321449eb06d589a282ed8591abc7bb1c0a",
+      "size": 378
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/quota.svgz",
+      "sha256": "bef620950bf2be87ea6ce193cc4f0ffae1846e125f4e454153d12a5100f74d57",
+      "size": 1798
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/redshift.svgz",
+      "sha256": "fbd3dfa164643d4fbf4d95e7d16c58962e83ddd595e944897396a0bd74fcb0ba",
+      "size": 1832
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/search.svgz",
+      "sha256": "ec2f2a408d99bd8e5c8f324f4d2e090e9336c8dfc2c1179808ff2add323f1777",
+      "size": 1263
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/slc.svgz",
+      "sha256": "762bec9aae8a59ccfaf764653f3ece423ffc2569182a1380abba90a2a15bdf93",
+      "size": 839
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/software.svgz",
+      "sha256": "f5a0c5114aa340b8fd4242c086e8d4fdcfa5c99b359c620471c0e6c0f5b26654",
+      "size": 1512
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/sogoupinyin.svgz",
+      "sha256": "6288307043eb0f5b35eeb60a0e924eeb9aa0d2a3e33be0956f7fb71b61a840ec",
+      "size": 5569
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/start.svgz",
+      "sha256": "6a3018898710ea74f5612a74e17a62d3d7a574e53bcbaf8e4e89bb1a6ca5510b",
+      "size": 1382
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/system.svgz",
+      "sha256": "dec53dbc69b357714a0b1e0df3460f2f2761171ecc25df819f748c826b76952b",
+      "size": 9486
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/touchpad.svg",
+      "sha256": "8436619e9eec3db30f0277bd1503bdcd0814d5fb7d9c1d3089141232202fb847",
+      "size": 3589
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/touchpad.svgz",
+      "sha256": "075f7ecd0f587f8facd0cc2ec012797f08a50701ac3ab1c32a39a4e8c287f832",
+      "size": 1393
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/update.svgz",
+      "sha256": "254d10d91262c13f4171892872e26bf97869d2f989a48ccdb31af72c59e549ce",
+      "size": 1862
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/user.svgz",
+      "sha256": "d492c09b80290293988cac30b7e1c54d317ebf14591a124720cae91daabf7eee",
+      "size": 3184
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/video-card.svgz",
+      "sha256": "e98f16471f11f544747ca83144906edefad86571f9fd62c50ff77662249743e0",
+      "size": 766
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/video.svgz",
+      "sha256": "2ce13f555dc4cb5871ced31757216f88fd0b49c0700f5b550d847b884ec125e3",
+      "size": 2883
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/view.svgz",
+      "sha256": "1264ccdd30fd7391be04d6387e7454f45803b21efa3497e87db6bce199bb2890",
+      "size": 1291
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/vlc.svgz",
+      "sha256": "c797dfef4a9160d84453ec91def558959d5120127267e59c73a6499dac86b5b4",
+      "size": 368
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/wallet.svgz",
+      "sha256": "3e1e08dd21e681d1d90be10afa230c948c968468caee3ac105cb80bca38449a0",
+      "size": 471
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/window.svgz",
+      "sha256": "d70bd648e14e3f1598995cb67e632bbd1e35ffdd89ff56bf29383fcf89daf237",
+      "size": 3755
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/yakuake.svgz",
+      "sha256": "dacbb63c4ac7bf44788183e95097275de21a28e54fd2c7504b080d7ce2ab6fc1",
+      "size": 1255
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/icons/zoom.svgz",
+      "sha256": "869f2ceca210297d7142e7861e884cd03b0b419173a1c24581b9dac01f4d056b",
+      "size": 485
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/metadata.desktop",
+      "sha256": "82336a2536ddf0e5907da5b862c9d7d9832c1413cb6f501c91ecf519c09b4f54",
+      "size": 538
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/metadata.json",
+      "sha256": "659cae417c71a2a75adcb5e9b0996a3b65c672975b371180f7f1840000be16df",
+      "size": 494
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/plasmarc",
+      "sha256": "61e8cbe19e4250e2606e7c02402a3f62274d543e9934714b14df8a45cd29a26f",
+      "size": 203
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/solid/dialogs/background.svgz",
+      "sha256": "e6bf9bf5c8a20d78699e8b3f929a60bcb680b160cb9c1e1843cefaa68223bcf3",
+      "size": 3384
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/solid/widgets/panel-background.svg",
+      "sha256": "d7b3dc43446ef2a7e0c04fb2be222c0211c110635f1a1cdcf1ea521db7f3f486",
+      "size": 13204
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/solid/widgets/tooltip.svg",
+      "sha256": "39bc7e344605dc814f6de46d4594cca5a37fc757a09c6dceadbe7595aaee39dc",
+      "size": 20330
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/translucent/dialogs/background.svgz",
+      "sha256": "71715d66a2921d035c46f8b1d5e6aa0939b58223f7996185d82e28024819a632",
+      "size": 3420
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/translucent/widgets/background.svg",
+      "sha256": "c2b057839878deb7cd4c4bab81f9b43a2476db07f28063b7d66a076d1804c617",
+      "size": 20247
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/translucent/widgets/panel-background.svg",
+      "sha256": "ca4ed4533b897a02f78db15a418011eaad0bad09a2be0f2745d71b0394f81093",
+      "size": 12746
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/translucent/widgets/tooltip.svg",
+      "sha256": "6094b5eebac796f3050281a98088df1b87194c485a6fad5990e9e6031995923b",
+      "size": 14936
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/action-overlays.svg",
+      "sha256": "e0f7a7f47cf228b99385f701258451d8ced37fa24adc8fadd52767c6ed7e1ff8",
+      "size": 8740
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/actionbutton.svg",
+      "sha256": "783dfcb6ce71b4b11e50e8a103c3f04402e4c6af8126427413c4f91a3aa9bd28",
+      "size": 4086
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/arrows.svgz",
+      "sha256": "6d0af7048881315010f538c5374dd410ec34505578a5d9dae1945b7fffe665e1",
+      "size": 1454
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/background.svg",
+      "sha256": "85c00f4e2d50b268ffb6ad7ad2cf9d74d79c8b8f40ea95ed69556b26e115c8ab",
+      "size": 20237
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/bar_meter_horizontal.svg",
+      "sha256": "62b2007caed86387582e07bd958265ab94203a6846d1d133ef2265a2cbb70d2a",
+      "size": 5845
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/bar_meter_vertical.svg",
+      "sha256": "aa57a68262ae6f93ccbc941cba82bfe0c245ef6c054d58b830cca982b9c462dd",
+      "size": 5831
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/busywidget.svgz",
+      "sha256": "8b0a881f680cb8b3d32efcb4ed0d199238ae6d779bca894476afca02b8004a02",
+      "size": 2330
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/button.svg",
+      "sha256": "d348b13212d2997d624ea63b3d776f6c4335e3a7958c7dafda7146d86c51f186",
+      "size": 27188
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/calendar.svg",
+      "sha256": "6bc2033ed433c83ff8e8122e63af6c6f133a3d27a99e6d0c763613c684d58e44",
+      "size": 1315
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/checkmarks.svg",
+      "sha256": "8a128c291fcc8a6fc8a6cc402d19446fb3f2d412842d3a736d502afd85663fea",
+      "size": 3810
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/clock.svgz",
+      "sha256": "999108b74e433acb9c0a178cc9dfdacd84a7ff6f83ea0b8c91e69fe833416cf5",
+      "size": 6993
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/configuration-icons.svgz",
+      "sha256": "1315e19467acf6bcd9c6278e1125b17e03d3fe8c93859814f2f147a48ba3b685",
+      "size": 5431
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/containment-controls.svg",
+      "sha256": "6d4fc04a9775813b19c45f32779858ee06ca80f4e5255319a8558630744bd53a",
+      "size": 13993
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/glowbar.svg",
+      "sha256": "a728d548e511edde7426a89e32cd89dc82cc52fb1e501cb735c0243db51aa790",
+      "size": 3853
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/line.svgz",
+      "sha256": "5d4d34cf40d8b8a41a6d54d2626ccfafd98aef73920eaa58470b9dbbd2ae734e",
+      "size": 776
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/lineedit.svg",
+      "sha256": "7d83fb20de0a22aa80782a024d1914e59cf2fcf9ab2d31a22a2f7a2bd35cd4ce",
+      "size": 25049
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/listitem.svg",
+      "sha256": "e7842fb3e6432167e97e19f0dbceefb150e63aca6374b5f39d0c9956713e3b33",
+      "size": 13732
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/menubaritem.svgz",
+      "sha256": "32a15b90d21d750177c505d4c5bb97d0caf09f0e7260afe3e0e7a93d71fe10b4",
+      "size": 1519
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/notes.svg",
+      "sha256": "999e183deab59e60d7622e07fdd5f343b6da97e530f141fa6b7e76d9503f2c08",
+      "size": 24686
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/pager.svg",
+      "sha256": "3a68863b231955d02e05de5460678138e0d5d9e767eb617c671c907d2e81399a",
+      "size": 3972
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/panel-background.svg",
+      "sha256": "ca4ed4533b897a02f78db15a418011eaad0bad09a2be0f2745d71b0394f81093",
+      "size": 12746
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/plasmoidheading.svgz",
+      "sha256": "0506cba6c1dbb84a631f40d8ae86795866cd5252f9810ffa8d196fd83c7af7ba",
+      "size": 1543
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/plot-background.svg",
+      "sha256": "f292c3ae4cf18aaf0c19b0af1fdb44cf7fa625d0504e5ff033d8ca1610ba8fcb",
+      "size": 224
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/scrollbar.svg",
+      "sha256": "a573ba4aef652fb01af2bc15e996597968b47420ceaad710326246add3be3ca1",
+      "size": 30944
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/scrollbar.svgz",
+      "sha256": "d67ac8539696ba20121339b8ae0372b714a8e49b72029617087764b8f3aa0a8e",
+      "size": 1830
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/scrollwidget.svgz",
+      "sha256": "b050813b410f510af2f78d4f54275d6a40e73a6a22bc0d5b0863e72e19afd07d",
+      "size": 1482
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/slider.svg",
+      "sha256": "bd0003acfe29810a7b2fa82c470b085a705c7708a189cef2a2afbbb8fa3ea0ec",
+      "size": 8247
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/switch.svgz",
+      "sha256": "78fae4af017171acc2e7cc9b7a76b1612158934a801ce7ed46fbf233c78cd6d7",
+      "size": 2345
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/tabbar.svgz",
+      "sha256": "725520fe0ff773a3506d0b582fab7e7ca924800d65c5a11d2e32f2a8993089d1",
+      "size": 1940
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/tasks.svgz",
+      "sha256": "d905743d266797d42a6ae6f62732869723ece4e2643ce6405113af4ff5159278",
+      "size": 7037
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/toolbar.svg",
+      "sha256": "7d743f056b2da8972fce056d25e3cf1dd6b206a1a3eb067ec8a78fc3d1fd00dc",
+      "size": 5025
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/tooltip.svg",
+      "sha256": "6094b5eebac796f3050281a98088df1b87194c485a6fad5990e9e6031995923b",
+      "size": 14936
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/translucentbackground.svg",
+      "sha256": "bd35da3806a3b8e4d13e7fa95cede703de2d5a7677c1ac3d518f835c09ee1a08",
+      "size": 20686
+    },
+    {
+      "path": "plasma/desktoptheme/Graphite/widgets/viewitem.svgz",
+      "sha256": "577db1e38f3318fdc0a3284198bcd183aaf03e4f797e68736dbf901b5da0d087",
+      "size": 1595
+    },
+    {
+      "path": "wallpaper/Graphite-dark/contents/images/3840x2160.jpg",
+      "sha256": "c1d9758f40c7c95d419f49871aee0511e8da4c373e3888a8ad7f11ab5fd2b6fa",
+      "size": 147665
+    },
+    {
+      "path": "wallpaper/Graphite-dark/metadata.desktop",
+      "sha256": "dc637b222ff447c90e139be63724734ded3307609a26fb74b26a1aeef94aa956",
+      "size": 196
+    },
+    {
+      "path": "wallpaper/Graphite-dark/metadata.json",
+      "sha256": "0e5c4fe8fb460b4a813b5e76fd228ab435672d7f3e92bf76eeff74c278697a01",
+      "size": 378
+    },
+    {
+      "path": "wallpaper/Graphite-light/contents/images/3840x2160.jpg",
+      "sha256": "8b084689a5151ae9227774353ade44c307dc19304399bf7f8d7f5d5ecb09230f",
+      "size": 152206
+    },
+    {
+      "path": "wallpaper/Graphite-light/metadata.desktop",
+      "sha256": "4117be62a742483f04a404e1d9f50a70a96f420dd9cb7dff5c79008d7d012320",
+      "size": 198
+    },
+    {
+      "path": "wallpaper/Graphite-light/metadata.json",
+      "sha256": "62e04f18746dd86a3d0b43c474b3afb18656e8b79f9eda18a3d6a8ddfd273a0a",
+      "size": 380
+    },
+    {
+      "path": "wallpaper/Graphite-nord-dark/contents/images/3840x2160.jpg",
+      "sha256": "55ef8781de7ebd8a33123240809c009fae995d1fb34ca6126c6878fd0680e1b4",
+      "size": 227587
+    },
+    {
+      "path": "wallpaper/Graphite-nord-dark/metadata.desktop",
+      "sha256": "f21ad09da041f038146c1b1093b23bb8bfbc12c1ea65efe7b76d884c2f60be4d",
+      "size": 206
+    },
+    {
+      "path": "wallpaper/Graphite-nord-dark/metadata.json",
+      "sha256": "9140a2a6ca6b4707e6f87ded64c10ead52c113e8e205a8f94be4150ae4f882c8",
+      "size": 388
+    },
+    {
+      "path": "wallpaper/Graphite-nord-light/contents/images/3840x2160.jpg",
+      "sha256": "43e9abc8c156fc9040e1a871d6db4d9dea64853605da84769aae712f0241d054",
+      "size": 230950
+    },
+    {
+      "path": "wallpaper/Graphite-nord-light/metadata.desktop",
+      "sha256": "eedd62f71f142b1a982c0634b81e62a45bb93f4b2025cccb69d0ef22fe868b4d",
+      "size": 208
+    },
+    {
+      "path": "wallpaper/Graphite-nord-light/metadata.json",
+      "sha256": "0d9fe01a0ff02979eca710194256561f48519b7a428a992441fd081da2441cbd",
+      "size": 390
+    },
+    {
+      "path": "wallpaper/Graphite-nord/contents/images/3840x2160.jpg",
+      "sha256": "43e9abc8c156fc9040e1a871d6db4d9dea64853605da84769aae712f0241d054",
+      "size": 230950
+    },
+    {
+      "path": "wallpaper/Graphite-nord/contents/images_dark/3840x2160.jpg",
+      "sha256": "55ef8781de7ebd8a33123240809c009fae995d1fb34ca6126c6878fd0680e1b4",
+      "size": 227587
+    },
+    {
+      "path": "wallpaper/Graphite-nord/metadata.desktop",
+      "sha256": "780d99286038d86f3877eb04c44061cdcf0e671eca11b65759209601ec7b16d3",
+      "size": 631
+    },
+    {
+      "path": "wallpaper/Graphite-nord/metadata.json",
+      "sha256": "47d77900e46550a3ec044b0100234c2cbae0c8ea2957915361aafdd77cf2e2d9",
+      "size": 378
+    },
+    {
+      "path": "wallpaper/Graphite/contents/images/3840x2160.jpg",
+      "sha256": "8b084689a5151ae9227774353ade44c307dc19304399bf7f8d7f5d5ecb09230f",
+      "size": 152206
+    },
+    {
+      "path": "wallpaper/Graphite/contents/images_dark/3840x2160.jpg",
+      "sha256": "c1d9758f40c7c95d419f49871aee0511e8da4c373e3888a8ad7f11ab5fd2b6fa",
+      "size": 147665
+    },
+    {
+      "path": "wallpaper/Graphite/metadata.desktop",
+      "sha256": "83cac7c1f5b8f406006895a540ecfa030760e57cc7809dae16d366efa6657096",
+      "size": 611
+    },
+    {
+      "path": "wallpaper/Graphite/metadata.json",
+      "sha256": "28c8cc916b7f0ea6c9b05f10dbfe5332ed2f4983db90a681776ea4ff3597b701",
+      "size": 368
+    }
+  ],
+  "format": "eltoricefiles/1",
+  "id": "graphite-kde-theme",
+  "subsetDirs": [
+    "aurorae",
+    "color-schemes",
+    "plasma/desktoptheme",
+    "wallpaper"
+  ],
+  "totalBytes": 2687432
+}
