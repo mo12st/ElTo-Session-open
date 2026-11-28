@@ -431,6 +431,12 @@ class KdePartsTest(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(dst, "cursors", "left_ptr")))
         self.assertTrue(os.path.isfile(os.path.join(dst, "index.theme")))
         self.assertTrue(any(s["step"] == "cursor-note" for s in out["steps"]))
+        # the libXcursor default link is data and always written, tools or not
+        default_meta = os.path.join(self.env["XDG_DATA_HOME"], "icons", "default", "index.theme")
+        self.assertTrue(os.path.isfile(default_meta))
+        with open(default_meta) as f:
+            self.assertIn("Inherits=Pink", f.read())
+        self.assertTrue(any(s["step"] == "cursor-activate" for s in out["steps"]))
 
     def test_apply_icons_copies_theme_dir(self):
         rc, out = self.cli("applypart", self.imp("icons"), "icons", "Tiberius")

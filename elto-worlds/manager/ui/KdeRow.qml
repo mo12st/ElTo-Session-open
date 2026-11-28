@@ -17,6 +17,9 @@ Column {
     property bool open: false
     property var parts: null
     property string feedback: ""
+    // optimistic local state: the page does not reload on toggle, so the
+    // switch and the auto-apply feedback stay alive through the apply chain
+    property bool active: item.enabled === true
 
     // [{fmt, label, variants, idx, note}]
     property var partRows: []
@@ -51,6 +54,52 @@ Column {
         })
     }
 
+    // Activate = apply automatically (user order): each apply-able format
+    // gets its first/default variant; the picker below still changes it.
+    // Nothing is invented for deactivate: the registry flag flips off and
+    // the already-applied data stays until something else is applied.
+    function applyDefaults() {
+        if (!bridge) return
+        bridge.kdeParts(item.key, item.category || "", function (o) {
+            if (!o.ok) { kde.feedback = o.error || "parts unavailable"; return }
+            const p = o.parts || {}
+            const queue = []
+            for (const fmt in p)
+                if ((p[fmt] || []).length > 0)
+                    queue.push({ fmt: fmt, name: p[fmt][0] })
+            if (queue.length === 0) {
+                kde.feedback = kde.item.category === "boot-menu"
+                    ? "Nothing to auto-apply: GRUB themes install into /boot, a system path - apply needs the system helper, which is still pending."
+                    : "Nothing to auto-apply: this item ships QML or scripts, which the data-only rule leaves unapplied."
+                return
+            }
+            const done = []
+            const step = function () {
+                if (queue.length === 0) {
+                    kde.feedback = "Applied: " + done.join("; ")
+                    if (kde.parts === null) { kde.open = true; kde.loadParts() }
+                    return
+                }
+                const q = queue.shift()
+                kde.feedback = "applying " + q.name + "..."
+                bridge.applyKdePart(kde.item.key, q.fmt, q.name, function (ao) {
+                    const label = kde.labels[q.fmt] || q.fmt
+                    done.push(ao.ok ? (label + " '" + q.name + "'")
+                                    : (label + " failed safely: " + (ao.error || "unknown error")))
+                    step()
+                })
+            }
+            step()
+        })
+    }
+
+    function setActive(on) {
+        kde.active = on
+        kde.toggled(on)
+        if (on) applyDefaults()
+        else kde.feedback = "Marked inactive. Nothing is undone: whatever was applied stays until you apply something else; Remove deletes the import but keeps the applied look."
+    }
+
     width: parent ? parent.width : 600
     spacing: 0
 
@@ -77,13 +126,13 @@ Column {
         Rectangle {
             x: parent.width - 262; anchors.verticalCenter: parent.verticalCenter
             width: 46; height: 26; radius: 13
-            color: kde.item.enabled ? st.accent : st.line
+            color: kde.active ? st.accent : st.line
             Rectangle {
                 y: 3; width: 20; height: 20; radius: 10; color: "#ffffff"
-                x: kde.item.enabled ? 23 : 3
+                x: kde.active ? 23 : 3
                 Behavior on x { NumberAnimation { duration: 120 } }
             }
-            MouseArea { anchors.fill: parent; onClicked: kde.toggled(!kde.item.enabled) }
+            MouseArea { anchors.fill: parent; onClicked: kde.setActive(!kde.active) }
         }
 
         Text {

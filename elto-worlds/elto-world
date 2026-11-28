@@ -927,7 +927,9 @@ KDE_PART_NOTES = {
     "colorscheme": "",
     "aurorae": "",
     "wallpaper": "",
-    "cursor": "apps read the cursor theme from kdeglobals; already-running apps may need a restart",
+    "cursor": ("written to ~/.local/share/icons/<name> + kdeglobals [Mouse] cursorTheme; "
+               "with plasma-apply-cursortheme the running session switches live, "
+               "without it new apps pick it up on start"),
     "icons": "Qt and KDE apps pick this up; the ElTo shell draws its own shell icons",
     "sounds": "installed into the XDG sounds dir; whether it plays depends on session sound support",
     "kvantum": "only apps running with the Kvantum Qt style pick this up",
@@ -1187,13 +1189,26 @@ def cmd_applypart(pdir, fmt, name):
             steps.append({"step": "kwinrc", "status": "skipped",
                           "detail": "kwriteconfig6 not available"})
     elif fmt == "cursor":
-        if which("kwriteconfig6"):
+        # Plasma and the ElTo session (KWin Wayland) read the cursor theme
+        # from kdeglobals [Mouse] cursorTheme; libXcursor apps fall back to
+        # icons/default/index.theme. plasma-apply-cursortheme does both the
+        # write and the live session reload when a session is running.
+        default_meta = os.path.join(XDG_DATA, "icons", "default", "index.theme")
+        run_obj.write(default_meta, "[Icon Theme]\nInherits=%s\n" % name, "cursor-default")
+        if which("plasma-apply-cursortheme"):
+            ok, err = run(["plasma-apply-cursortheme", name])
+            steps.append({"step": "cursor-activate", "status": "done" if ok else "failed",
+                          "detail": err or ("kdeglobals Mouse/cursorTheme=" + name + ", live reload")})
+        elif which("kwriteconfig6"):
             run(["kwriteconfig6", "--file", "kdeglobals", "--group", "Mouse",
                  "--key", "cursorTheme", name])
-            steps.append({"step": "kdeglobals", "status": "done", "detail": "cursorTheme=" + name})
+            steps.append({"step": "cursor-activate", "status": "done",
+                          "detail": "kdeglobals Mouse/cursorTheme=" + name +
+                                    " (no live reload; new apps pick it up)"})
         else:
-            steps.append({"step": "kdeglobals", "status": "skipped",
-                          "detail": "kwriteconfig6 not available"})
+            steps.append({"step": "cursor-activate", "status": "skipped",
+                          "detail": "no cursor tool; index.theme fallback written, "
+                                    "kdeglobals not updated"})
         steps.append({"step": "cursor-note", "status": "info",
                       "detail": KDE_PART_NOTES["cursor"]})
     elif fmt == "icons":
