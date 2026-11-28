@@ -16,6 +16,9 @@ Commands:
                                   never overwrites (--replace keeps the old copy as .bak-<time>);
                                   does not apply the world
   install-system <worlddir>       not implemented (Phase 2/3: SDDM, lock, Plymouth, GRUB)
+  parts <dir>                     list applicable data parts of an installed rice dir
+  applypart <dir> <fmt> <name>    apply one rice part: colorscheme | aurorae | wallpaper |
+                                  desktoptheme (staged + rollback; activation best-effort)
 
 Format: world.schema.json in this directory (schema_version 3).
 Every command prints one JSON object on stdout.
@@ -769,6 +772,266 @@ def cmd_reset(wdir):
     # reset = apply with user overrides in managed sections dropped (build_overlay replaces them)
     return apply_world(w, wdir, dry_run=False, reset_mode=True)
 
+# ---------------------------------------------------------------- rice parts
+# An installed rice dir (store.py install_rice) is a reviewed pinned subset of
+# an upstream KDE theme repo: color-schemes/, aurorae/, wallpaper/,
+# plasma/desktoptheme/. These commands list and apply those parts. Everything
+# is data copying into the same targets a world apply uses; activation tools
+# are best-effort and their failures never roll files back. No upstream code
+# is ever read or run: aurorae assembly below reproduces the upstream
+# repos' documented layout (rc + variant svg dir + common button assets),
+# verified against the pinned manifests, not by executing their installers.
+
+PART_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._-]*$")
+
+def _safe_part_name(name):
+    if not PART_NAME.match(name or ""):
+        raise ValueError("bad part name %r" % (name,))
+    return name
+
+def _aurorae_variants(aur):
+    """Variant names an aurorae subtree can apply: every <name>rc with its
+    svgs either alongside it (self-contained variant dir) or in a sibling
+    dir of the same name (upstream split layout)."""
+    out = set()
+    for root, _dirs, files in os.walk(aur):
+        rcfiles = [f for f in files if f.endswith("rc")]
+        svgs_here = any(f.endswith(".svg") for f in files)
+        for f in rcfiles:
+            name = f[:-2]
+            if svgs_here or os.path.isdir(os.path.join(root, name)):
+                out.add(name)
+    return sorted(out)
+
+def _find_dirs(pdir, rel, max_depth=3):
+    """Every dir matching the relative layout rel (e.g. 'color-schemes' or
+    'plasma/desktoptheme') under pdir, up to max_depth levels down. Rice
+    subsets keep upstream paths, and upstream layouts differ (catppuccin
+    ships its data under generated/, vinceliuice at the root)."""
+    out = []
+    want = rel.split("/")
+    def walk(d, depth):
+        if depth > max_depth:
+            return
+        try:
+            entries = sorted(os.listdir(d))
+        except OSError:
+            return
+        for e in entries:
+            full = os.path.join(d, e)
+            if not os.path.isdir(full):
+                continue
+            if e == want[0]:
+                node = full
+                ok = True
+                for part in want[1:]:
+                    node = os.path.join(node, part)
+                    if not os.path.isdir(node):
+                        ok = False
+                        break
+                if ok:
+                    out.append(node)
+            walk(full, depth + 1)
+    walk(pdir, 1)
+    return out
+
+def rice_parts(pdir):
+    parts = {"colorschemes": [], "aurorae": [], "wallpapers": [], "desktopthemes": []}
+    for cs in _find_dirs(pdir, "color-schemes"):
+        parts["colorschemes"] += [f[:-7] for f in sorted(os.listdir(cs)) if f.endswith(".colors")]
+    for aur in _find_dirs(pdir, "aurorae"):
+        parts["aurorae"] += _aurorae_variants(aur)
+    for wp in _find_dirs(pdir, "wallpaper"):
+        for name in sorted(os.listdir(wp)):
+            imgs = os.path.join(wp, name, "contents", "images")
+            if os.path.isdir(imgs) and any(f.lower().endswith((".png", ".jpg", ".jpeg"))
+                                           for f in os.listdir(imgs)):
+                parts["wallpapers"].append(name)
+            elif os.path.isfile(os.path.join(wp, name)) and name.lower().endswith((".png", ".jpg", ".jpeg")):
+                parts["wallpapers"].append(name)
+    for dt in _find_dirs(pdir, "plasma/desktoptheme"):
+        parts["desktopthemes"] += [d for d in sorted(os.listdir(dt))
+                                   if os.path.isdir(os.path.join(dt, d))]
+    return {k: sorted(set(v)) for k, v in parts.items()}
+
+def _aurorae_assemble(aur, name):
+    """(src, dstname) pairs that make one working aurorae theme dir for the
+    variant: the rc, the variant's svgs, the shared button assets (dark
+    variants pair with assets-dark, matching the upstream installers'
+    documented layout), and the theme metadata. None when unknown."""
+    rc = name + "rc"
+    rcdir = None
+    for root, _dirs, files in os.walk(aur):
+        if rc in files:
+            rcdir = root
+            break
+    if rcdir is None:
+        return None
+    pairs = []
+    for f in sorted(os.listdir(rcdir)):
+        p = os.path.join(rcdir, f)
+        if os.path.isfile(p) and f.endswith(".svg"):
+            pairs.append((p, f))
+    sib = os.path.join(rcdir, name)
+    if os.path.isdir(sib):
+        for f in sorted(os.listdir(sib)):
+            if f.endswith(".svg"):
+                pairs.append((os.path.join(sib, f), f))
+    common = os.path.join(aur, "common")
+    if os.path.isdir(common):
+        prefs = ["assets-dark", "assets"] if "dark" in name.lower() else ["assets", "assets-dark"]
+        for cand in prefs:
+            d = os.path.join(common, cand)
+            if os.path.isdir(d):
+                for f in sorted(os.listdir(d)):
+                    if f.endswith(".svg"):
+                        pairs.append((os.path.join(d, f), f))
+                break
+    for meta in ("metadata.desktop", "metadata.json"):
+        p = os.path.join(aur, meta)
+        if os.path.isfile(p):
+            pairs.append((p, meta))
+    pairs.append((os.path.join(rcdir, rc), rc))
+    return pairs
+
+def _wallpaper_image(wpdir, name):
+    """The image file a wallpaper entry points at: the largest file under
+    contents/images/ (upstream ships one per resolution), or the plain file."""
+    plain = os.path.join(wpdir, name)
+    if os.path.isfile(plain):
+        return plain
+    imgs = os.path.join(wpdir, name, "contents", "images")
+    if not os.path.isdir(imgs):
+        return None
+    best, best_size = None, -1
+    for f in os.listdir(imgs):
+        if not f.lower().endswith((".png", ".jpg", ".jpeg")):
+            continue
+        s = os.path.getsize(os.path.join(imgs, f))
+        if s > best_size:
+            best, best_size = os.path.join(imgs, f), s
+    return best
+
+def _wallpaper_image_any(pdir, name):
+    for wp in _find_dirs(pdir, "wallpaper"):
+        src = _wallpaper_image(wp, name)
+        if src:
+            return src
+    return None
+
+def cmd_parts(pdir):
+    if not os.path.isdir(pdir):
+        print(json.dumps({"ok": False, "error": "no such dir %r" % pdir}))
+        return 1
+    print(json.dumps({"ok": True, "dir": pdir, "parts": rice_parts(pdir)}, indent=2))
+    return 0
+
+def cmd_applypart(pdir, fmt, name):
+    """Apply one rice part. File phase staged with rollback (same Run as a
+    world apply); activation tools best-effort after, failures recorded."""
+    name = _safe_part_name(name)
+    if not os.path.isdir(pdir):
+        print(json.dumps({"ok": False, "error": "no such dir %r" % pdir}))
+        return 1
+    run_obj = Run(False)
+    plan = {"ok": True, "dir": pdir, "format": fmt, "part": name, "steps": run_obj.steps}
+    try:
+        if fmt == "colorscheme":
+            src = None
+            for cs in _find_dirs(pdir, "color-schemes"):
+                cand = os.path.join(cs, name + ".colors")
+                if os.path.isfile(cand):
+                    src = cand
+                    break
+            if not src:
+                raise ValueError("no color scheme %r in %s" % (name, pdir))
+            run_obj.copy(src, os.path.join(XDG_DATA, "color-schemes", name + ".colors"),
+                         "kde-colorscheme")
+        elif fmt == "aurorae":
+            pairs = None
+            for aur in _find_dirs(pdir, "aurorae"):
+                pairs = _aurorae_assemble(aur, name)
+                if pairs:
+                    break
+            if not pairs:
+                raise ValueError("no aurorae variant %r in %s" % (name, pdir))
+            outdir = os.path.join(XDG_DATA, "aurorae", "themes", name)
+            for src, dstname in pairs:
+                run_obj.copy(src, os.path.join(outdir, dstname), "aurorae")
+        elif fmt == "wallpaper":
+            src = _wallpaper_image_any(pdir, name)
+            if not src:
+                raise ValueError("no wallpaper image for %r in %s" % (name, pdir))
+            base = os.path.basename(src)
+            run_obj.copy(src, os.path.join(XDG_CONFIG, "elto", "wallpapers", base), "wallpaper")
+            cur = read_overlay()
+            opts = dict(cur.get("options") or {})
+            opts["wallpaper"] = base
+            cur["options"] = opts
+            run_obj.write(overlay_path(), json.dumps(cur, indent=2, ensure_ascii=False),
+                          "shell-overlay")
+        elif fmt == "desktoptheme":
+            src = None
+            for dt in _find_dirs(pdir, "plasma/desktoptheme"):
+                cand = os.path.join(dt, name)
+                if os.path.isdir(cand):
+                    src = cand
+                    break
+            if not src:
+                raise ValueError("no plasma desktop theme %r in %s" % (name, pdir))
+            for root, _dirs, files in os.walk(src):
+                for f in files:
+                    full = os.path.join(root, f)
+                    rel = os.path.relpath(full, src)
+                    run_obj.copy(full, os.path.join(XDG_DATA, "plasma", "desktoptheme",
+                                                    name, rel), "desktoptheme")
+        else:
+            raise ValueError("unknown part format %r (colorscheme | aurorae | wallpaper | desktoptheme)" % fmt)
+    except Exception as e:
+        rolled = run_obj.rollback()
+        print(json.dumps({"ok": False, "error": str(e), "rolled_back": rolled,
+                          "steps": run_obj.steps}, indent=2))
+        return 1
+
+    steps = run_obj.steps
+    if fmt == "colorscheme":
+        if which("plasma-apply-colorscheme"):
+            ok, err = run(["plasma-apply-colorscheme", name])
+            steps.append({"step": "kde-apply", "status": "done" if ok else "failed",
+                          "detail": err or name})
+        else:
+            steps.append({"step": "kde-apply", "status": "skipped",
+                          "detail": "plasma-apply-colorscheme not available"})
+    elif fmt == "aurorae":
+        if which("kwriteconfig6"):
+            for key, val in (("library", "org.kde.kwin.aurorae"),
+                             ("theme", "__aurorae__svg__" + name)):
+                run(["kwriteconfig6", "--file", "kwinrc", "--group", "org.kde.kdecoration2",
+                     "--key", key, val])
+            steps.append({"step": "kwinrc", "status": "done", "detail": "__aurorae__svg__" + name})
+            qdbus = which("qdbus6") or which("qdbus")
+            if qdbus:
+                ok, _ = run([qdbus, "org.kde.KWin", "/KWin", "reconfigure"], timeout=10)
+                steps.append({"step": "kwin-reconfigure", "status": "done" if ok else "skipped",
+                              "detail": "KWin reconfigure"})
+        else:
+            steps.append({"step": "kwinrc", "status": "skipped",
+                          "detail": "kwriteconfig6 not available"})
+    elif fmt == "desktoptheme":
+        if which("plasma-apply-desktoptheme"):
+            ok, err = run(["plasma-apply-desktoptheme", name])
+            steps.append({"step": "desktoptheme-apply", "status": "done" if ok else "failed",
+                          "detail": err or name})
+        else:
+            steps.append({"step": "desktoptheme-apply", "status": "skipped",
+                          "detail": "plasma-apply-desktoptheme not available"})
+        steps.append({"step": "desktoptheme-note", "status": "info",
+                      "detail": "plasma desktop themes style Plasma shell components; the ElTo shell draws its own shell, so no visible change is expected there"})
+    if run_obj.run_dir:
+        plan["backup_dir"] = run_obj.run_dir
+    print(json.dumps(plan, indent=2, ensure_ascii=False))
+    return 0
+
 # ---------------------------------------------------------------- bundles
 
 def cmd_pack(wdir, out):
@@ -898,10 +1161,14 @@ def main():
             return cmd_inspect(os.path.abspath(a[1]))
         if len(a) in (2, 3) and a[0] == "install" and (len(a) == 2 or a[2] == "--replace"):
             return cmd_install(os.path.abspath(a[1]), len(a) == 3)
+        if len(a) == 2 and a[0] == "parts":
+            return cmd_parts(os.path.abspath(a[1]))
+        if len(a) == 4 and a[0] == "applypart":
+            return cmd_applypart(os.path.abspath(a[1]), a[2], a[3])
         if len(a) == 2 and a[0] == "install-system":
             print(json.dumps({"ok": False, "error": "install-system is Phase 2/3 (SDDM, lock, Plymouth, GRUB): not implemented"}))
             return 2
-        raise ValueError("usage: status | check <dir> | apply <dir> [--dry-run] | reset [<dir>] | pack <dir> <out.elworld> | inspect <file.elworld> | unpack <file.elworld> <destdir> | install <file.elworld> [--replace] | install-system <dir>")
+        raise ValueError("usage: status | check <dir> | apply <dir> [--dry-run] | reset [<dir>] | pack <dir> <out.elworld> | inspect <file.elworld> | unpack <file.elworld> <destdir> | install <file.elworld> [--replace] | parts <dir> | applypart <dir> <fmt> <name> | install-system <dir>")
     except Exception as e:
         print(json.dumps({"ok": False, "error": str(e)}))
         return 1
