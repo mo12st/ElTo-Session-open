@@ -11,7 +11,7 @@ ShellRoot {
     id: app
 
     ManagerStyle { id: style }
-    StoreBridge { id: bridge }
+    StoreBridge { id: storeBridge }
 
     readonly property var tabs: [
         { id: "discover", t: "Discover" },
@@ -98,9 +98,9 @@ ShellRoot {
         }
     }
 
-    Component { id: discoverC; DiscoverPage { st: style; bridge: bridge; category: app.category } }
-    Component { id: installedC; InstalledPage { st: style; bridge: bridge } }
-    Component { id: updatesC; UpdatesPage { st: style; bridge: bridge } }
-    Component { id: downloadsC; DownloadsPage { st: style; bridge: bridge } }
-    Component { id: customizeC; CustomizePage { st: style; bridge: bridge } }
+    Component { id: discoverC; DiscoverPage { st: style; bridge: storeBridge; category: app.category } }
+    Component { id: installedC; InstalledPage { st: style; bridge: storeBridge } }
+    Component { id: updatesC; UpdatesPage { st: style; bridge: storeBridge } }
+    Component { id: downloadsC; DownloadsPage { st: style; bridge: storeBridge } }
+    Component { id: customizeC; CustomizePage { st: style; bridge: storeBridge } }
 }
