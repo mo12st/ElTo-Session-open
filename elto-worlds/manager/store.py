@@ -4,8 +4,9 @@
 Stdlib only. Serves the Theme Manager (PR 3):
 
 - reads the repo catalog (catalog.json, PR 1) for ElTo worlds
-- lists KDE Store categories read-only over the public OCS API, with a stale
-  cache fallback so the catalog degrades gracefully when the store is down
+- lists KDE Store categories read-only over the public OCS API (with live
+  search), with a stale cache fallback so the catalog degrades gracefully
+  when the store is down
 - imports KDE DATA items: download -> checksum (pinned per version) ->
   archive scan (the bundle.py rules: no scripts, no traversal, SVG sanitize,
   size and zip-bomb guards) -> staging -> atomic rename -> registry
@@ -30,6 +31,7 @@ import sys
 import tarfile
 import tempfile
 import time
+import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
@@ -234,22 +236,29 @@ class Store:
     def _ocs_cache(self, ocs_id):
         return os.path.join(self.root, "cache", "ocs", "%d.json" % ocs_id)
 
-    def kde_listing(self, category, fresh_after=CACHE_TTL):
+    def kde_listing(self, category, search="", fresh_after=CACHE_TTL):
         """List a KDE category read-only. Falls back to a stale cache with
-        stale=True when the store is unreachable - graceful, honest."""
+        stale=True when the store is unreachable - graceful, honest. A
+        non-empty search queries the store live (results are never cached,
+        so a search can never clobber the category cache)."""
         if category not in KDE_CATEGORIES:
             raise StoreError("unknown KDE category %r" % category)
         out = []
         for ocs_id, label, hint in KDE_CATEGORIES[category]:
             cache = self._ocs_cache(ocs_id)
             items, stale = None, False
+            url = "%s/content/data?categories=%d&pagesize=40" % (OCS_BASE, ocs_id)
+            if search:
+                url += "&search=" + urllib.parse.quote(search)
             try:
-                xml_bytes = self.fetcher("%s/content/data?categories=%d&pagesize=40"
-                                         % (OCS_BASE, ocs_id))
+                xml_bytes = self.fetcher(url)
                 items = parse_content_list(xml_bytes)
-                with open(cache, "w") as f:
-                    json.dump({"fetched": time.time(), "items": items}, f)
+                if not search:
+                    with open(cache, "w") as f:
+                        json.dump({"fetched": time.time(), "items": items}, f)
             except Exception:
+                if search:
+                    raise StoreError("KDE Store unavailable; search needs a live connection")
                 try:
                     with open(cache) as f:
                         items = json.load(f)["items"]
@@ -407,7 +416,7 @@ def cli(argv):
     which stay inside the user data home.
 
     store.py --cli worlds
-    store.py --cli kde <category>
+    store.py --cli kde <category> [search...]
     store.py --cli functions
     store.py --cli installed
     store.py --cli install            (entry JSON on stdin)
@@ -420,8 +429,8 @@ def cli(argv):
     try:
         if argv == ["worlds"]:
             _jprint({"ok": True, "items": list_worlds()})
-        elif len(argv) == 2 and argv[0] == "kde":
-            items = st.kde_listing(argv[1])
+        elif len(argv) >= 2 and argv[0] == "kde":
+            items = st.kde_listing(argv[1], search=" ".join(argv[2:]))
             _jprint({"ok": True, "items": items, "stale": any(i.get("stale") for i in items)})
         elif argv == ["functions"]:
             _jprint({"ok": True, "items": list_functions()})
@@ -449,7 +458,7 @@ def cli(argv):
             st.remove(argv[1])
             _jprint({"ok": True})
         else:
-            _jprint({"ok": False, "error": "usage: worlds | kde <category> | functions | installed | install | installarg <entry-json> | installworld <id> | worlddir <id> | updates | enable <key> | disable <key> | remove <key>"})
+            _jprint({"ok": False, "error": "usage: worlds | kde <category> [search...] | functions | installed | install | installarg <entry-json> | installworld <id> | worlddir <id> | updates | enable <key> | disable <key> | remove <key>"})
             return 1
         return 0
     except (StoreError, ValueError, OSError) as e:
