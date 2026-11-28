@@ -181,3 +181,42 @@ merge on the strength of qmllint alone.
 - No screenshots exist, because nothing here has ever been on a screen. Nothing was run on the machine
   where this was written either: no Qt or Quickshell was available there, so CI is the only place this
   code has executed.
+
+## Per-world identity tokens (optional)
+
+A world can give the dock its own identity through optional keys in the `dock` section of its theme
+overlay. Every key is optional. Absent, mistyped or unknown values fall back to the default in the last
+column, which is exactly what the dock drew before these keys existed, so a world that omits them is
+unchanged and a typo can never produce a broken dock. `Dock.qml` resolves and validates them once
+(`dock.look`); both variants only read the resolved values.
+
+| key | values | what it changes | default |
+| --- | --- | --- | --- |
+| `dockMaterial` | `paper` `flat` `glass` `gloss` `bevel` | surface of the bar: flat fill, translucent glass with a light border, a gloss highlight band, or a 2 px bevel | `paper` |
+| `dockRadius` | number | corner radius of the island (the bar variant is full width and has none) | `dock.radius` |
+| `dockHeight` | number | bar height | `dock.height` |
+| `dockButton` | `circle` `rounded` `square` | shape of the hover halo behind a pinned app | `circle` |
+| `launcherMark` | `none` `dot` `label` | leading mark before the pinned apps; `label` draws `launcherLabel` | `none` |
+| `launcherLabel` | string | text for `launcherMark: "label"` | `Elto` |
+| `clockStyle` | `text` `pill` `none` | clock in the system area: plain text, a pill, or none | `text` |
+| `clockPosition` | `end` `start` | clock sits in the system area at the end, or at the leading edge | `end` |
+| `trayStyle` | `text` `compact` `none` | status readouts: full with the Settings entry, smaller without it, or hidden | `text` |
+| `activeIndicator` | `pill` `dot` `bar` `none` | how a running app is marked: filled halo, a dot under the tile, a short bar, or nothing | `pill` |
+| `edge` | `bottom` `top` | which screen edge the dock sits on; the menu and the shadows follow | `bottom` |
+
+Example, a world that wants a raised gloss bar at the top with a start label and dot markers:
+
+```json
+"dock": {
+  "dockMaterial": "gloss",
+  "dockButton": "rounded",
+  "launcherMark": "label",
+  "launcherLabel": "Start",
+  "activeIndicator": "dot",
+  "trayStyle": "compact",
+  "edge": "top"
+}
+```
+
+Proof level: the tokens are code-complete and the fallback path is the pre-existing rendering, but the
+VM run is what proves it. Nothing here changes window tracking, pinning or launching.

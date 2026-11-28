@@ -20,13 +20,13 @@ PanelWindow {
     readonly property string style: "bar"
     // room above the strip for the right-click menu (menu height 36 + 8 gap)
     readonly property int menuRoom: 44
-    readonly property real barAlpha: dk.glass ? dk.opacity : 1
+    readonly property real barAlpha: (dk.glass || win.dock.look.material === "glass") ? dk.opacity : 1
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "elto-dock"
     exclusionMode: ExclusionMode.Ignore
-    anchors { left: true; right: true; bottom: true }
-    implicitHeight: dk.height + win.menuRoom
+    anchors { left: true; right: true; bottom: win.dock.look.edge === "bottom"; top: win.dock.look.edge === "top" }
+    implicitHeight: win.dock.look.height + win.menuRoom
     color: "transparent"
     mask: Region { item: bar; regions: [ Region { item: menuBox } ] }
     visible: win.dock.style === win.style
@@ -36,22 +36,35 @@ PanelWindow {
 
     Rectangle {
         id: bar
+        readonly property string mat: win.dock.look.material
         width: parent.width
-        height: win.dk.height
-        y: parent.height - height
+        height: win.dock.look.height
+        y: win.dock.look.edge === "bottom" ? parent.height - height : 0
         color: Qt.alpha(Theme.role(win.dk.color), win.barAlpha)
-        border.width: win.dk.glass ? 1 : 0
-        border.color: Qt.rgba(1, 1, 1, 0.45)
+        border.width: bar.mat === "bevel" ? 2 : (bar.mat === "glass" ? 1 : 0)
+        border.color: bar.mat === "bevel" ? Theme.divider : Qt.rgba(1, 1, 1, 0.45)
         Behavior on color { ColorAnimation { duration: Theme.ms(200) } }
 
-        // painterly edge: one hairline on top, then a soft inner shade instead of a hard drop shadow
+        // material: gloss adds a highlight band over the flat fill
         Rectangle {
-            anchors { top: parent.top; left: parent.left; right: parent.right }
+            anchors.fill: parent
+            visible: bar.mat === "gloss"
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.55) }
+                GradientStop { position: 0.42; color: Qt.rgba(1, 1, 1, 0.10) }
+                GradientStop { position: 0.43; color: "transparent" }
+                GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.05) }
+            }
+        }
+
+        // painterly edge: one hairline on the inner side, then a soft inner shade instead of a hard drop shadow
+        Rectangle {
+            anchors { top: win.dock.look.edge === "bottom" ? parent.top : undefined; bottom: win.dock.look.edge === "bottom" ? undefined : parent.bottom; left: parent.left; right: parent.right }
             height: 1
             color: win.dk.glass ? Qt.rgba(1, 1, 1, 0.5) : Theme.divider
         }
         Rectangle {
-            anchors { top: parent.top; left: parent.left; right: parent.right }
+            anchors { top: win.dock.look.edge === "bottom" ? parent.top : undefined; bottom: win.dock.look.edge === "bottom" ? undefined : parent.bottom; left: parent.left; right: parent.right }
             height: 10
             gradient: Gradient {
                 GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, Theme.shadowAlpha / 8) }
@@ -66,6 +79,27 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
             spacing: win.dk.gap
 
+            // launcher mark: optional leading mark for a world's identity, absent by default
+            Rectangle {
+                visible: win.dock.look.launcherMark === "dot"
+                width: 8; height: 8; radius: 4
+                color: Theme.accent
+                anchors.verticalCenter: parent.verticalCenter
+            }
+            Text {
+                visible: win.dock.look.launcherMark === "label"
+                text: win.dock.look.launcherLabel
+                color: Theme.text
+                font.family: Theme.serif; font.pixelSize: 14
+                anchors.verticalCenter: parent.verticalCenter
+                renderType: Text.NativeRendering
+            }
+            Clock {
+                visible: win.dock.look.clockStyle !== "none" && win.dock.look.clockPosition === "start"
+                textColor: Theme.text; pixelSize: 13; format: "HH:mm"
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
             Repeater {
                 model: win.dock.pinnedItems
                 Item {
@@ -73,11 +107,25 @@ PanelWindow {
                     required property var modelData
                     readonly property bool running: win.dock.openApps[modelData.id] === true || win.dock.openApps[modelData.entry.startupClass] === true
                     width: win.dk.tile; height: win.dk.tile
+                    // hover halo; the running state is drawn by the indicator the theme chooses
                     Rectangle {
-                        anchors.fill: parent; radius: width / 2
+                        anchors.fill: parent
+                        radius: win.dock.look.button === "circle" ? width / 2 : (win.dock.look.button === "rounded" ? 10 : 0)
                         color: Theme.selection
-                        opacity: app.running ? 1 : (am.containsMouse ? 0.6 : 0)
+                        opacity: (win.dock.look.activeIndicator === "pill" && app.running) ? 1 : (am.containsMouse ? 0.6 : 0)
                         Behavior on opacity { NumberAnimation { duration: Theme.ms(140) } }
+                    }
+                    Rectangle {
+                        visible: win.dock.look.activeIndicator === "dot" && app.running
+                        width: 4; height: 4; radius: 2; color: Theme.accent
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: win.dock.look.edge === "bottom" ? parent.height + 1 : -5
+                    }
+                    Rectangle {
+                        visible: win.dock.look.activeIndicator === "bar" && app.running
+                        width: 14; height: 2; radius: 1; color: Theme.accent
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: win.dock.look.edge === "bottom" ? parent.height + 2 : -4
                     }
                     LIcon { visible: app.modelData.glyph !== ""; anchors.centerIn: parent; name: app.modelData.glyph; size: win.dk.icon; tint: Theme.text; dir: win.dock.glyphDir; tintArt: win.dock.glyphTint
                         scale: am.pressed ? 0.92 : (am.containsMouse && Theme.motion ? 1.08 : 1)
@@ -169,6 +217,9 @@ PanelWindow {
         DockSystemArea {
             id: sys
             textSize: 13
+            trayStyle: win.dock.look.trayStyle
+            clockStyle: win.dock.look.clockStyle
+            clockPosition: win.dock.look.clockPosition
             anchors { right: parent.right; rightMargin: win.dk.pad; verticalCenter: parent.verticalCenter }
         }
     }
@@ -179,7 +230,7 @@ PanelWindow {
         visible: win.menu !== null
         width: 130; height: 36; radius: 18
         x: win.menu ? Math.max(4, Math.min(win.width - width - 4, win.menu.x - width / 2)) : 0
-        y: bar.y - height - 8
+        y: win.dock.look.edge === "bottom" ? bar.y - height - 8 : bar.y + bar.height + 8
         color: Theme.surface; border.width: 1; border.color: Theme.divider
         Text { anchors.centerIn: parent; text: win.menu && win.menu.pinned ? "Unpin" : "Pin to dock"
             color: Theme.text; font.family: Theme.serifItalic; font.italic: true; font.pixelSize: 15; renderType: Text.NativeRendering }

@@ -14,6 +14,28 @@ Scope {
     // under icons/. glyphTint false draws the files as they are. Both are theme keys, so a swap is one line.
     readonly property string glyphDir: root.dk.glyphDir || "lucide"
     readonly property bool glyphTint: root.dk.glyphTint !== false
+
+    // ---- per-world dock identity. Every token below is optional in the theme; a world that omits them draws
+    // exactly what the shell drew before they existed. An unknown value falls back to the default, never to a
+    // broken dock, the same way an unknown options.dock falls back to island.
+    function pick(v, list, def) { return list.indexOf(v) >= 0 ? v : def }
+    function num(v, def) { return (typeof v === "number" && v > 0) ? Math.round(v) : def }
+    readonly property var look: {
+        var d = root.dk
+        return {
+            material: root.pick(d.dockMaterial, ["paper", "flat", "glass", "gloss", "bevel"], "paper"),
+            radius: root.num(d.dockRadius, d.radius),
+            height: root.num(d.dockHeight, d.height),
+            button: root.pick(d.dockButton, ["circle", "rounded", "square"], "circle"),
+            launcherMark: root.pick(d.launcherMark, ["none", "dot", "label"], "none"),
+            launcherLabel: typeof d.launcherLabel === "string" ? d.launcherLabel : "ElTo",
+            clockStyle: root.pick(d.clockStyle, ["text", "pill", "none"], "text"),
+            clockPosition: root.pick(d.clockPosition, ["end", "start"], "end"),
+            trayStyle: root.pick(d.trayStyle, ["text", "compact", "none"], "text"),
+            activeIndicator: root.pick(d.activeIndicator, ["pill", "dot", "bar", "none"], "pill"),
+            edge: root.pick(d.edge, ["bottom", "top"], "bottom")
+        }
+    }
     property string activeApp: ""
     property var openApps: ({})
     property bool blurBroken: false
