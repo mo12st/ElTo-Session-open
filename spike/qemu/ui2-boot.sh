@@ -160,8 +160,10 @@ $S 'ls /home/dev/.local/share/elto/worlds/imports 2>&1 | head; sudo -u dev pytho
 echo "== card 2"
 click 821 298; sleep 25; shot /tmp/r3.ppm r3_after_install_card2
 echo "== card 3"
-click 1141 298; sleep 25; shot /tmp/r4.ppm r4_after_install_card3
+click 500 486; sleep 25; shot /tmp/r4.ppm r4_after_install_graphite
 $S 'ls /home/dev/.local/share/elto/worlds/imports 2>&1 | head; sudo -u dev python3 /tmp/repo/elto-worlds/manager/store.py --cli installed 2>&1 | jq -c ".items[]|{key,category,kind,enabled,title}" 2>&1 | head -12; du -sh /home/dev/.local/share/elto/worlds/imports 2>&1'
+echo "== GitHub button on Layan"
+click 821 486; sleep 6; shot /tmp/r4b.ppm r4b_github_click
 echo "== Installed tab"
 click 188 104; sleep 5; shot /tmp/r5.ppm r5_installed_tab
 echo "== Downloads tab"
