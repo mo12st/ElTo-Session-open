@@ -7,9 +7,19 @@ Stdlib only. Serves the Theme Manager (PR 3):
 - lists KDE Store categories read-only over the public OCS API (with live
   search), with a stale cache fallback so the catalog degrades gracefully
   when the store is down
-- imports KDE DATA items: download -> checksum (pinned per version) ->
-  archive scan (the bundle.py rules: no scripts, no traversal, SVG sanitize,
-  size and zip-bomb guards) -> staging -> atomic rename -> registry
+- imports KDE DATA items: the store's signed download links are
+  re-resolved at install time (they expire, cached listings go stale), then
+  download -> checksum (pinned per version) -> content scan under the
+  bundle.py rules (no traversal, SVG sanitize, size and zip-bomb guards) ->
+  staging -> atomic rename -> registry
+- installable payloads are zip, tar, tar.gz, tar.xz and tar.bz2 archives,
+  plus the two single-file data formats the store actually serves:
+  .colors schemes and wallpaper images. Script members inside an archive
+  are skipped (never written to disk) and recorded as skippedCode; an
+  archive with no data at all is refused. Internal symlinks/hardlinks are
+  materialized as copies; links escaping the archive refuse the install.
+  Anything else (7z, rar, zstd, store notes, audio previews, HTML error
+  pages) is refused with the actual format named
 - KDE items that ship code are listed greyed (kind "code") and never import
 - Functions (bars, widgets, ...) are listing-only from functions.json with
   their upstream links; there is no install path for them
@@ -25,12 +35,15 @@ Nothing here executes third-party content. Archives are only ever read.
 OCS category ids verified against the live API (api.opendesktop.org
 /ocs/v1/content/categories) on 2026-11-28.
 """
+import gzip
 import hashlib
 import io
 import json
 import os
+import posixpath
 import re
 import shutil
+import stat
 import sys
 import tarfile
 import tempfile
@@ -49,6 +62,8 @@ OCS_UA = "elto-worlds-store/1"
 MAX_DOWNLOAD = bundle.MAX_BYTES          # 150 MB
 MAX_LIST_XML = 8 * 1024 * 1024
 CACHE_TTL = 3600                         # seconds a live listing is fresh
+KDE_MAX_FILES = 50000    # imported themes (icon packs) dwarf ElTo world bundles
+# the total-bytes and per-file caps still come from bundle.py
 
 CATALOG_JSON = os.path.join(HERE, "..", "catalog", "catalog.json")
 FUNCTIONS_JSON = os.path.join(HERE, "functions.json")
@@ -300,21 +315,32 @@ class Store:
         return out
 
     # -- KDE import --
-    def install_kde(self, entry, file_index=0):
+    def install_kde(self, entry, file_index=None):
         """Download, verify and convert one KDE data item into the local
-        library. kind=code entries are refused before any download."""
+        library. kind=code entries are refused before any download. The
+        download link is re-resolved first: OCS signed links expire, and a
+        cached listing must still install."""
         if entry.get("kind") != "data":
             raise StoreError("item ships code; data-only rule keeps it listing-only")
-        if not entry.get("files"):
+        files = entry.get("files") or []
+        if not files:
             raise StoreError("item has no downloadable files")
-        if file_index >= len(entry["files"]):
+        if file_index is None:
+            file_index = _pick_file_index(entry)
+        if file_index >= len(files):
             raise StoreError("no such file index")
-        url = entry["files"][file_index]["url"]
+        listed_url = files[file_index].get("url") or ""
+        url = self._fresh_url(entry, file_index) or listed_url
         slug = re.sub(r"[^a-z0-9-]+", "-", (entry.get("title") or "item").lower()).strip("-") or "item"
         key = "kde-%s-%s" % (entry.get("ocsId") or slug, slug)
         version = entry.get("version") or "0"
 
-        data = self.fetcher(url)
+        try:
+            data = self.fetcher(url)
+        except StoreError:
+            raise
+        except (OSError, ValueError) as e:
+            raise StoreError("download failed: %s" % e)
         digest = sha256(data)
         for old in self.list_installed():
             if old["key"] == key and old.get("sourceSha256") and old["sourceSha256"] != digest \
@@ -324,7 +350,11 @@ class Store:
         dest = os.path.join(self.root, "imports", "%s-%s" % (key, version))
         staging = tempfile.mkdtemp(dir=os.path.join(self.root, "tmp"))
         try:
-            names = _extract_archive(data, staging)
+            if zipfile.is_zipfile(io.BytesIO(data)) or tarfile.is_tarfile(io.BytesIO(data)):
+                names, skipped, skipped_links = _extract_archive(data, staging, max_files=KDE_MAX_FILES)
+            else:
+                names = _install_raw(data, staging, entry, files[file_index].get("name") or url)
+                skipped, skipped_links = [], []
             part = {
                 "format": "eltopart/1",
                 "source": "kde",
@@ -341,6 +371,10 @@ class Store:
                 "files": sorted(names),
                 "note": "approximate conversion where the KDE format does not map 1:1",
             }
+            if skipped:
+                part["skippedCode"] = sorted(skipped)
+            if skipped_links:
+                part["skippedLinks"] = sorted(skipped_links)
             with open(os.path.join(staging, "part.json"), "w") as f:
                 json.dump(part, f, indent=2, sort_keys=True)
             if os.path.lexists(dest):
@@ -479,6 +513,26 @@ class Store:
             if it["key"] == key and os.path.isfile(os.path.join(it["path"], "part.json")):
                 return it["path"]
         raise StoreError("rice %r is not installed" % key)
+
+    def _fresh_url(self, entry, file_index):
+        """Re-resolve the item's current download link from the OCS content
+        detail: the signed links in a cached listing expire. None when the
+        detail cannot be fetched or parsed (callers fall back to the listed
+        link)."""
+        cid = str(entry.get("id") or "")
+        if not cid.isdigit():
+            return None
+        try:
+            xml = self.fetcher("%s/content/data/%s?format=xml" % (OCS_BASE, cid), limit=MAX_LIST_XML)
+            items = parse_content_list(xml)
+        except Exception:
+            return None
+        if not items:
+            return None
+        files = items[0].get("files") or []
+        if file_index < len(files):
+            return files[file_index].get("url") or None
+        return None
 
     # -- world install (copy from the repo worlds dir, register) --
     def install_world(self, world_id):
@@ -653,53 +707,290 @@ def _check_svg(path):
         raise StoreError("svg with script or remote reference: %s" % path)
 
 
-def _extract_archive(data, staging):
-    """Extract a zip/tar into staging under the bundle.py data-only rules.
-    Returns member names. Raises StoreError on anything hostile or code."""
+ARCHIVE_EXTS = (".zip", ".tar", ".tar.gz", ".tgz", ".tar.xz", ".txz", ".tar.bz2", ".tbz2")
+IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".svg")
+AUDIO_EXTS = (".mp3", ".ogg", ".oga", ".wav", ".flac")
+NOTE_EXTS = (".txt", ".md", ".pdf", ".html", ".htm")
+
+_MAGICS = [
+    ("zip", b"PK\x03\x04"),
+    ("gzip", b"\x1f\x8b"),
+    ("xz", b"\xfd7zXZ\x00"),
+    ("bzip2", b"BZh"),
+    ("zstd", b"\x28\xb5\x2f\xfd"),
+    ("7z", b"7z\xbc\xaf\x27\x1c"),
+    ("rar", b"Rar!\x1a\x07"),
+    ("png", b"\x89PNG\r\n\x1a\n"),
+    ("jpeg", b"\xff\xd8\xff"),
+    ("bmp", b"BM"),
+    ("audio", b"ID3"),
+    ("audio", b"OggS"),
+    ("audio", b"fLaC"),
+    ("audio", b"\xff\xfb"),
+]
+
+
+def _sniff(data):
+    """Format label from magic bytes, for precise answers about a payload."""
+    for label, magic in _MAGICS:
+        if data.startswith(magic):
+            return label
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "webp"
+    if data[:4] == b"RIFF" and data[8:12] == b"WAVE":
+        return "audio"
+    head = data[:512].lstrip()
+    if head[:1] == b"<":
+        return "page"
+    try:
+        head.decode("utf-8")
+        if b"\x00" not in head:
+            return "text"
+    except UnicodeDecodeError:
+        pass
+    return "data"
+
+
+def _pick_file_index(entry):
+    """Choose the most installable file of an OCS entry: real archives and
+    the category's raw data format first, store notes and previews last."""
+    files = entry.get("files") or []
+    cat = entry.get("category")
+
+    def score(f):
+        n = ((f.get("name") or f.get("url") or "").split("?")[0]).lower()
+        if any(n.endswith(e) for e in ARCHIVE_EXTS):
+            return 0
+        if cat == "color-scheme" and n.endswith(".colors"):
+            return 0
+        if cat == "wallpapers" and any(n.endswith(e) for e in IMAGE_EXTS):
+            return 0
+        if any(n.endswith(e) for e in AUDIO_EXTS + NOTE_EXTS + (".desktop",)):
+            return 2
+        return 1
+
+    return min(range(len(files)), key=lambda i: (score(files[i]), i))
+
+
+def _is_code_name(n):
+    return bool(CODE_EXTS.search(n)) and not n.lower().endswith(".desktop")
+
+
+def _write_bytes(staging, name, data):
+    dst = os.path.join(staging, name)
+    d = os.path.dirname(dst)
+    if d:
+        os.makedirs(d, exist_ok=True)
+    with open(dst, "wb") as f:
+        f.write(data)
+    return dst
+
+
+def _write_member(staging, name, fileobj):
+    dst = os.path.join(staging, name)
+    d = os.path.dirname(dst)
+    if d:
+        os.makedirs(d, exist_ok=True)
+    with open(dst, "wb") as out:
+        shutil.copyfileobj(fileobj, out)
+
+
+def _link_canonical(member_name, linkname, hardlink=False):
+    """Canonical archive-relative path of a link target, or None when the
+    link is absolute or escapes the archive root."""
+    if not linkname or linkname.startswith("/") or "\x00" in linkname or "\\" in linkname:
+        return None
+    if hardlink:
+        cand = linkname
+    else:
+        base = posixpath.dirname(member_name)
+        cand = posixpath.join(base, linkname) if base else linkname
+    cand = posixpath.normpath(cand)
+    if cand == ".." or cand.startswith("../") or posixpath.isabs(cand):
+        return None
+    return cand
+
+
+def _resolve_link(name, linkmap, regulars, depth=0):
+    """Follow a link (through further links, as cursor and icon themes
+    chain aliases) to a regular data file. None when the chain escapes,
+    cycles or ends at something that is not data."""
+    if name in regulars:
+        return name
+    if depth > 40 or name not in linkmap:
+        return None
+    target, hard = linkmap[name]
+    cand = _link_canonical(name, target, hardlink=hard)
+    if cand is None:
+        return None
+    return _resolve_link(cand, linkmap, regulars, depth + 1)
+
+
+def _copy_extracted(staging, target, name):
+    """Materialize a link as a plain copy of its already-extracted target:
+    no symlink ever lands on disk, so nothing can escape later."""
+    src = os.path.join(staging, target)
+    dst = os.path.join(staging, name)
+    d = os.path.dirname(dst)
+    if d:
+        os.makedirs(d, exist_ok=True)
+    shutil.copyfile(src, dst)
+    return os.path.getsize(dst)
+
+
+def _unsupported_reason(data, name):
+    fmt = _sniff(data)
+    label = {
+        "gzip": "gzip-compressed data that is not a tar archive",
+        "xz": "xz-compressed data that is not a tar archive",
+        "bzip2": "bzip2-compressed data that is not a tar archive",
+        "zstd": "a zstd archive (not supported: no standard zstd reader)",
+        "7z": "a 7z archive (not supported)",
+        "rar": "a RAR archive (not supported)",
+        "page": "a web page, not a file (the store link expired or moved; reopen the category and retry)",
+        "text": "plain text, not a theme file",
+        "audio": "an audio file, not a theme archive",
+        "png": "a PNG image",
+        "jpeg": "a JPEG image",
+        "webp": "a WebP image",
+        "bmp": "a BMP image",
+    }.get(fmt, "unrecognized data")
+    return "unsupported download: got %s; installable formats are zip, tar, tar.gz, tar.xz and tar.bz2" % label
+
+
+def _install_raw(data, staging, entry, fname):
+    """Single-file downloads. Installable only where the category's data IS
+    one file: .colors schemes and wallpaper images. Everything else is
+    refused with the actual format named."""
+    cat = entry.get("category")
+    base = os.path.basename((fname or "").split("?")[0]) or "download"
+    if not bundle.safe_name(base):
+        base = "download"
+    low = base.lower()
+    if len(data) > bundle.MAX_ASSET:
+        raise StoreError("file too large (%d bytes, cap %d)" % (len(data), bundle.MAX_ASSET))
+    fmt = _sniff(data)
+    if fmt == "page":
+        raise StoreError(_unsupported_reason(data, base))
+    if fmt == "gzip":
+        try:
+            data = gzip.decompress(data)
+        except OSError:
+            raise StoreError("corrupt gzip download: %s" % base)
+        if low.endswith(".gz"):
+            base = base[:-3]
+            low = low[:-3]
+        fmt = _sniff(data)
+    if cat == "color-scheme" and low.endswith(".colors"):
+        if fmt != "text":
+            raise StoreError(".colors file is not text (got %s)" % fmt)
+        _write_bytes(staging, base, data)
+        return [base]
+    if cat == "wallpapers":
+        if fmt in ("png", "jpeg", "webp", "bmp"):
+            _write_bytes(staging, base, data)
+            return [base]
+        if low.endswith(".svg") and fmt == "text":
+            path = _write_bytes(staging, base, data)
+            _check_svg(path)
+            return [base]
+        if low.endswith(".desktop"):
+            raise StoreError("a bare .desktop wallpaper stub (%s) has no image with it; this entry ships no usable wallpaper file" % base)
+    if fmt == "audio" or low.endswith(AUDIO_EXTS):
+        raise StoreError("a single audio file (%s) is a preview, not a sound theme; nothing installable in this entry" % base)
+    if fmt == "text" or low.endswith(NOTE_EXTS):
+        raise StoreError("this file is a store note (%s), not an installable theme; nothing usable in this entry" % base)
+    raise StoreError(_unsupported_reason(data, base))
+
+
+def _extract_archive(data, staging, max_files=bundle.MAX_FILES):
+    """Extract a zip/tar (gz, xz and bz2 auto-detected) into staging under
+    the bundle.py data-only rules. Script members are skipped, never
+    written; an archive with no data at all is refused. Internal links to
+    regular files are materialized as copies; links escaping the archive
+    refuse the install. Returns (data member names, skipped code names)."""
     total = 0
     names = []
+    skipped = []
+    skipped_links = []
+    linkmap = {}
     if zipfile.is_zipfile(io.BytesIO(data)):
         zf = zipfile.ZipFile(io.BytesIO(data))
         infos = zf.infolist()
-        if len(infos) > bundle.MAX_FILES:
-            raise StoreError("too many files")
-        if _classify_names([i.filename for i in infos]) == "code":
-            raise StoreError("archive contains code; data-only rule")
+        if len(infos) > max_files:
+            raise StoreError("archive has %d files (cap %d)" % (len(infos), max_files))
         for info in infos:
-            if not bundle.safe_name(info.filename):
-                raise StoreError("unsafe path in archive: %r" % info.filename)
-            if info.file_size > bundle.MAX_ASSET:
-                raise StoreError("file too large: %s" % info.filename)
-            if info.compress_size and info.file_size / max(1, info.compress_size) > bundle.MAX_RATIO:
-                raise StoreError("zip-bomb ratio: %s" % info.filename)
-            total += info.file_size
-            if total > bundle.MAX_BYTES:
-                raise StoreError("archive too large")
+            n = info.filename
+            if not bundle.safe_name(n):
+                raise StoreError("unsafe path in archive: %r" % n)
             if info.is_dir():
                 continue
-            names.append(info.filename)
+            mode = info.external_attr >> 16
+            if stat.S_IFMT(mode) == stat.S_IFLNK:
+                linkmap[n] = (zf.read(info)[:4096].decode("utf-8", "replace").strip(), False)
+                continue
+            if _is_code_name(n):
+                skipped.append(n)
+                continue
+            if info.file_size > bundle.MAX_ASSET:
+                raise StoreError("file too large: %s" % n)
+            if info.compress_size and info.file_size / max(1, info.compress_size) > bundle.MAX_RATIO:
+                raise StoreError("zip-bomb ratio: %s" % n)
+            total += info.file_size
+            if total > bundle.MAX_BYTES:
+                raise StoreError("archive too large (over %d bytes uncompressed)" % bundle.MAX_BYTES)
+            names.append(n)
             zf.extract(info, staging)
     elif tarfile.is_tarfile(io.BytesIO(data)):
         tf = tarfile.open(fileobj=io.BytesIO(data))
         members = tf.getmembers()
-        if len(members) > bundle.MAX_FILES:
-            raise StoreError("too many files")
-        if _classify_names([m.name for m in members]) == "code":
-            raise StoreError("archive contains code; data-only rule")
+        if len(members) > max_files:
+            raise StoreError("archive has %d files (cap %d)" % (len(members), max_files))
         for m in members:
-            if not bundle.safe_name(m.name) or m.issym() or m.islnk() or m.isdev():
+            if not bundle.safe_name(m.name) or m.isdev() or m.isfifo():
                 raise StoreError("unsafe member in archive: %r" % m.name)
+            if m.isdir():
+                continue
+            if m.issym() or m.islnk():
+                linkmap[m.name] = (m.linkname, m.islnk())
+                continue
+            if not m.isfile():
+                raise StoreError("unsafe member in archive: %r" % m.name)
+            if _is_code_name(m.name):
+                skipped.append(m.name)
+                continue
             if m.size > bundle.MAX_ASSET:
                 raise StoreError("file too large: %s" % m.name)
             total += m.size
             if total > bundle.MAX_BYTES:
-                raise StoreError("archive too large")
-            if m.isdir():
-                continue
+                raise StoreError("archive too large (over %d bytes uncompressed)" % bundle.MAX_BYTES)
             names.append(m.name)
-            tf.extract(m, staging, filter="data") if hasattr(tarfile, "data_filter") else tf.extract(m, staging)
+            _write_member(staging, m.name, tf.extractfile(m))
     else:
-        raise StoreError("unsupported archive (need zip or tar)")
+        raise StoreError(_unsupported_reason(data, ""))
+
+    regulars = set(names)
+    for n in linkmap:
+        if _is_code_name(n):
+            skipped.append(n)
+            continue
+        t = _resolve_link(n, linkmap, regulars)
+        if t is None:
+            # upstream ships aliases whose target is a directory, another
+            # alias chain that dead-ends, or an absolute path from the
+            # author's machine. Nothing is written for them: the link is
+            # only ever resolved to archive members, never the filesystem.
+            skipped_links.append(n)
+            continue
+        total += _copy_extracted(staging, t, n)
+        names.append(n)
+        regulars.add(n)
+
+    if not names:
+        if skipped:
+            raise StoreError("archive ships only code (%s); the data-only rule keeps it out"
+                             % ", ".join(sorted(skipped)[:3]))
+        raise StoreError("archive has no files in it")
 
     for root, _dirs, files in os.walk(staging):
         for fn in files:
@@ -709,8 +1000,7 @@ def _extract_archive(data, staging):
                 _check_desktop(p)
             if low.endswith(".svg"):
                 _check_svg(p)
-    return names
-
+    return names, skipped, skipped_links
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--cli":
