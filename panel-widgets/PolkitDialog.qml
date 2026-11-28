@@ -23,7 +23,10 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: agent.isActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    PolkitAgent { id: agent }
+    PolkitAgent {
+        id: agent
+        onIsRegisteredChanged: console.warn("polkit agent registered=" + isRegistered)
+    }
 
     Rectangle {
         id: dim
