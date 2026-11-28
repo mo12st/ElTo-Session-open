@@ -122,7 +122,17 @@
       }
     },
     "notch": { "type": "object" },
-    "dock": { "type": "object" },
+    "dock": {
+      "type": "object",
+      "description": "Dock presentation tokens, read by Dock.qml. The dock variant id stays a string in options.dock (island|bar). launcherLogo is a world-relative assets/ path in world.json; Dock.qml resolves relative paths against the shell root, so elto-world apply rewrites it to an absolute path in the overlay (missing asset: the key is dropped and the shell falls back to the label).",
+      "properties": {
+        "launcherMark": {
+          "type": "string",
+          "description": "\"logo\" shows the world's launcherLogo art in the launcher button; any other value falls back to the label."
+        },
+        "launcherLogo": { "$ref": "#/$defs/asset" }
+      }
+    },
     "drawer": { "type": "object" },
     "sounds": {
       "type": "object",

@@ -206,6 +206,19 @@ def validate(w, wdir):
                 else:
                     errors.append("options.wallpapers[%d] must be a {path, label} object" % i)
 
+    dock = w.get("dock")
+    if dock is not None:
+        if not isinstance(dock, dict):
+            errors.append("dock must be an object (the variant id string lives in options.dock)")
+        else:
+            lm = dock.get("launcherMark")
+            if lm is not None and lm not in ("logo", "label"):
+                warnings.append("dock.launcherMark: unknown value %r; "
+                                "the shell falls back to label" % (lm,))
+            ll = dock.get("launcherLogo")
+            if ll is not None:
+                check_asset("dock", "launcherLogo", ll)
+
     snd = w.get("sounds")
     if snd is not None:
         if not isinstance(snd, dict):
@@ -470,6 +483,22 @@ def build_overlay(w, wdir, run, cur, installed_wallpapers=(), warnings=None):
         if k in dfl:
             opts[k] = dfl[k]
     cur["options"] = opts
+    dock = w.get("dock")
+    if isinstance(dock, dict):
+        out_dock = dict(dock)
+        ll = out_dock.get("launcherLogo")
+        if ll:
+            # Dock.qml resolves a relative launcherLogo against the shell root,
+            # not the world folder, so the overlay carries an absolute path.
+            abs_ll = os.path.abspath(os.path.join(wdir, ll))
+            if os.path.isfile(abs_ll):
+                out_dock["launcherLogo"] = abs_ll
+            else:
+                out_dock.pop("launcherLogo", None)
+                if warnings is not None:
+                    warnings.append("dock.launcherLogo: asset %s not present; "
+                                    "the shell falls back to the label" % ll)
+        cur["dock"] = out_dock
     snd = w.get("sounds") or {}
     cur["sounds"] = {"enabled": dfl.get("sounds", snd.get("enabled", True))}
     return cur

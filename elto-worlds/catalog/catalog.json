@@ -81,6 +81,10 @@
         "wallpaper": "assets/wallpapers/main.jpg"
       },
       "description": "Glass panels over a bright ocean-habitat wallpaper; calm, airy, translucent. Palette estimated from the user concept art; artist refines.",
+      "dockLook": {
+        "launcherLogo": "assets/launcher.png",
+        "launcherMark": "logo"
+      },
       "id": "aero",
       "kind": "data",
       "label": "Aero Habitat",
@@ -133,6 +137,10 @@
         "wallpaper": "assets/wallpapers/main.jpg"
       },
       "description": "The original paper-and-ink ElTo: cream, deep green, rust. Close to soft-paper; keep or merge, see report. Palette estimated from the user concept art; artist refines.",
+      "dockLook": {
+        "launcherLogo": "assets/launcher.png",
+        "launcherMark": "logo"
+      },
       "id": "classic",
       "kind": "data",
       "label": "ElTo Classic",
@@ -185,6 +193,10 @@
         "wallpaper": "assets/wallpapers/main.jpg"
       },
       "description": "A faithful mid-90s desktop: teal field, gray beveled windows, navy titlebars, square everything. Palette estimated from the user concept art; artist refines.",
+      "dockLook": {
+        "launcherLogo": "assets/launcher.png",
+        "launcherMark": "logo"
+      },
       "id": "faithful",
       "kind": "data",
       "label": "ElTo 95 Faithful",
@@ -237,6 +249,10 @@
         "wallpaper": "assets/wallpapers/main.jpg"
       },
       "description": "Deep green night garden: dark ambient surfaces, warm light accents, minimal chrome. Palette estimated from the user concept art; artist refines.",
+      "dockLook": {
+        "launcherLogo": "assets/launcher.png",
+        "launcherMark": "logo"
+      },
       "id": "flow",
       "kind": "data",
       "label": "Flow",
@@ -274,6 +290,74 @@
       "author": "mo12st",
       "category": "worlds",
       "colors": {
+        "cloud": "#ffffff",
+        "fog": "#a39d8c",
+        "folder": "#f2c94c",
+        "grass": "#4a9e2f",
+        "grassDeep": "#35771f",
+        "ink": "#1c2430",
+        "line": "#d0c9b4",
+        "sand": "#ece9d8",
+        "sandLight": "#f6f4ec",
+        "selblue": "#a8c6f0",
+        "skyDark": "#1e46a8",
+        "skyDeep": "#2b5ed7",
+        "skyLight": "#7da8f0",
+        "slate": "#5a6673",
+        "taskbar": "#2b5ed7",
+        "taskbarText": "#ffffff",
+        "windowClose": "#d65f45",
+        "windowMaximize": "#dbe7fa",
+        "windowMinimize": "#dbe7fa"
+      },
+      "defaults": {
+        "dock": "bar",
+        "sounds": true,
+        "wallpaper": "assets/wallpapers/main.jpg"
+      },
+      "description": "Early-2000s consumer-desktop spirit: glossy rounded sky-blue titlebars, grass-green accents, bright friendly surfaces over a sunny hill. Original palette and art, no assets or names from any existing OS. Stub render only; the artist refines.",
+      "dockLook": {
+        "launcherLogo": "assets/launcher.png",
+        "launcherMark": "logo"
+      },
+      "id": "meadow",
+      "kind": "data",
+      "label": "Meadow",
+      "license": "Proprietary (all rights reserved, mo12st)",
+      "parts": [
+        "boot",
+        "boot-menu",
+        "color-scheme",
+        "cursor",
+        "greeter",
+        "icons",
+        "lock",
+        "sounds",
+        "wallpapers",
+        "widgets",
+        "window-frame"
+      ],
+      "roles": {
+        "accent": "grass",
+        "disabled": "fog",
+        "divider": "line",
+        "selection": "selblue",
+        "surface": "sand",
+        "surfaceAlt": "sandLight",
+        "text": "ink",
+        "textMuted": "slate"
+      },
+      "schema_version": 3,
+      "signature": "Glossy sky-blue titlebars and the green hill",
+      "source": "worlds/meadow/world.json",
+      "story": "A wide blue sky over a green hill; the desk sits out on the grass in the sun.",
+      "version": 2
+    },
+    {
+      "assetsLicense": "Proprietary (all rights reserved, mo12st)",
+      "author": "mo12st",
+      "category": "worlds",
+      "colors": {
         "fade": "#a8a7a6",
         "fog": "#d4d4d4",
         "ink": "#151514",
@@ -289,6 +373,10 @@
         "wallpaper": "assets/wallpapers/main.jpg"
       },
       "description": "Black and white brutalism: huge light type, concrete photography, no color at all. Palette estimated from the user concept art; artist refines.",
+      "dockLook": {
+        "launcherLogo": "assets/launcher.png",
+        "launcherMark": "logo"
+      },
       "id": "mono",
       "kind": "data",
       "label": "Mono",
@@ -343,6 +431,10 @@
         "wallpaper": "assets/wallpapers/main.jpg"
       },
       "description": "Purple vaporwave playground: gradient titlebars, beveled panels, pixel type, stepped motion. Palette estimated from the user concept art; artist refines.",
+      "dockLook": {
+        "launcherLogo": "assets/launcher.png",
+        "launcherMark": "logo"
+      },
       "id": "retro95",
       "kind": "data",
       "label": "Retro 95 Vector",
@@ -395,6 +487,10 @@
         "wallpaper": "assets/wallpapers/main.jpg"
       },
       "description": "Pearlescent space-age: glossy capsules, bubble wallpaper, sunset-pink accents, close button left. Palette estimated from the user concept art; artist refines.",
+      "dockLook": {
+        "launcherLogo": "assets/launcher.png",
+        "launcherMark": "logo"
+      },
       "id": "retroaero",
       "kind": "data",
       "label": "Retro Aero Pearl",
@@ -447,6 +543,10 @@
         "wallpaper": "assets/wallpapers/main.jpg"
       },
       "description": "Green phosphor terminal world: near-black, monospace everywhere, keyboard-first, motion off. Palette estimated from the user concept art; artist refines.",
+      "dockLook": {
+        "launcherLogo": "assets/launcher.png",
+        "launcherMark": "logo"
+      },
       "id": "unix",
       "kind": "data",
       "label": "Unix",
@@ -499,6 +599,10 @@
         "wallpaper": "assets/wallpapers/main.jpg"
       },
       "description": "Chrome and deep navy: signal-green accents, command index, fast linear motion. Palette estimated from the user concept art; artist refines.",
+      "dockLook": {
+        "launcherLogo": "assets/launcher.png",
+        "launcherMark": "logo"
+      },
       "id": "y2k",
       "kind": "data",
       "label": "Y2K Signal",
